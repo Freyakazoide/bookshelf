@@ -7,34 +7,32 @@ const App = {
         this.navLinks = document.querySelectorAll('.nav-link');
         this.views = document.querySelectorAll('.view');
     },
-init: async function() {
-    console.log("Aplicativo iniciando...");
-    this.cacheDOM();
-    this.bindNavEvents();
-    try {
-        console.log("Carregando dados dos livros...");
-        const livrosResponse = await fetch('/api/livros');
-        if (!livrosResponse.ok) {
-            throw new Error(`Erro HTTP ao buscar livros: ${livrosResponse.status}`);
-        }
-        this.state.allBooks = await livrosResponse.json();
-        console.log("Livros carregados com sucesso!");
+    init: async function() {
+        console.log("Aplicativo iniciando...");
+        this.cacheDOM();
+        this.bindNavEvents();
+        try {
+            console.log("Carregando dados dos livros...");
+            const livrosResponse = await fetch('/api/livros');
+            if (!livrosResponse.ok) {
+                throw new Error(`Erro HTTP ao buscar livros: ${livrosResponse.status}`);
+            }
+            this.state.allBooks = await livrosResponse.json();
+            console.log("Livros carregados com sucesso!");
 
-        // Inicia os módulos com os dados dos livros
-        Estante.init();
-        Estante.atualizar(this.state.allBooks);
-        Adicionar.init(this.state.allBooks);
-        Dashboard.init(this.state.allBooks);
-        Desafio.init(this.state.allBooks);
-        
-    } catch (error) {
-        console.error("Falha crítica ao carregar os dados:", error);
-        // Exibe uma mensagem de erro para o usuário na estante
-        const estanteEl = document.getElementById('estante-de-livros');
-        if(estanteEl) estanteEl.innerHTML = "<p class='erro-carregamento'>Não foi possível carregar os livros. Verifique se o servidor está rodando e tente recarregar a página.</p>";
-    }
-    this.navegarPara('view-estante');
-},
+            // CORREÇÃO: Passa a lista de livros diretamente para a inicialização de cada módulo.
+            Estante.init(this.state.allBooks);
+            Adicionar.init(this.state.allBooks);
+            Dashboard.init(this.state.allBooks);
+            Desafio.init(this.state.allBooks);
+            
+        } catch (error) {
+            console.error("Falha crítica ao carregar os dados:", error);
+            const estanteEl = document.getElementById('estante-de-livros');
+            if(estanteEl) estanteEl.innerHTML = "<p class='erro-carregamento'>Não foi possível carregar os livros. Verifique se o servidor está rodando e tente recarregar a página.</p>";
+        }
+        this.navegarPara('view-estante');
+    },
     bindNavEvents: function() {
         this.navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
@@ -49,78 +47,86 @@ init: async function() {
         document.getElementById(viewId)?.classList.add('active');
         document.querySelector(`.nav-link[data-view="${viewId}"]`)?.classList.add('active');
         
-        // Lógica para carregar o modo de edição
         if (viewId === 'view-adicionar' && payload) {
             Adicionar.modoEdicao(payload);
         }
     },
+    salvarLivro: async function(livroData, id) {
+        if (id) {
+            const response = await fetch(`/api/livros/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(livroData)
+            });
+            if (!response.ok) throw new Error('Falha na API ao atualizar');
+            
+            const livroAtualizado = await response.json();
+            const index = this.state.allBooks.findIndex(l => l.id == id);
+            if (index > -1) this.state.allBooks[index] = livroAtualizado;
 
+        } else {
+            const novoLivro = {
+                ...livroData,
+                id: Date.now(),
+                situacao: 'Quero Ler',
+                leituras: []
+            };
+            const response = await fetch('/api/livros', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(novoLivro)
+            });
+            if (!response.ok) throw new Error('Falha na API ao criar');
 
-// Funções de manipulação de dados
-salvarLivro: async function(livroData, id) {
-    if (id) {
-        // --- LÓGICA DE ATUALIZAÇÃO (PUT) ---
-        const response = await fetch(`/api/livros/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(livroData)
-        });
-        if (!response.ok) throw new Error('Falha na API ao atualizar');
+            const livroCriado = await response.json();
+            this.state.allBooks.push(livroCriado);
+        }
         
-        const livroAtualizado = await response.json();
-        const index = this.state.allBooks.findIndex(l => l.id == id);
-        if (index > -1) this.state.allBooks[index] = livroAtualizado;
-
-    } else {
-        // --- LÓGICA DE CRIAÇÃO (POST) ---
-        const novoLivro = {
-            ...livroData,
-            id: Date.now(), // Gera um ID único
-            situacao: 'Quero Ler', // Define valores padrão
-            leituras: [] // Prepara para a próxima fase do roadmap
-        };
-        const response = await fetch('/api/livros', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(novoLivro)
-        });
-        if (!response.ok) throw new Error('Falha na API ao criar');
-
-        const livroCriado = await response.json();
-        this.state.allBooks.push(livroCriado);
-    }
-    // Atualiza a estante com os novos dados
-    Estante.atualizar(this.state.allBooks);
-},
-
-atualizarLivro: async function(id, dadosAtualizados) {
-    // Esta função é chamada pelo Painel do Livro para pequenas atualizações
-    const index = this.state.allBooks.findIndex(l => l.id == id);
-    if (index > -1) {
-        const livroParaAtualizar = { ...this.state.allBooks[index], ...dadosAtualizados };
-        
-        const response = await fetch(`/api/livros/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(livroParaAtualizar)
-        });
-        if (!response.ok) throw new Error('Falha na API ao atualizar livro');
-
-        this.state.allBooks[index] = await response.json();
         Estante.atualizar(this.state.allBooks);
-    }
-},
+        Adicionar.init(this.state.allBooks); // Atualiza o Adicionar também
+        Dashboard.atualizar(this.state.allBooks); // Atualiza o Dashboard
+        Desafio.atualizar(this.state.allBooks); // Atualiza o Desafio
+    },
+    atualizarLivro: async function(id, dadosAtualizados) {
+        const index = this.state.allBooks.findIndex(l => l.id == id);
+        if (index > -1) {
+            const livroParaAtualizar = { ...this.state.allBooks[index], ...dadosAtualizados };
+            
+            const response = await fetch(`/api/livros/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(livroParaAtualizar)
+            });
+            if (!response.ok) throw new Error('Falha na API ao atualizar livro');
 
-excluirLivro: async function(id) {
-    const response = await fetch(`/api/livros/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Falha na API ao excluir livro');
-    
-    // Atualiza o estado local APÓS a confirmação da API
-    this.state.allBooks = this.state.allBooks.filter(l => l.id != id);
-    Estante.atualizar(this.state.allBooks);
-},
+            this.state.allBooks[index] = await response.json();
+            Estante.atualizar(this.state.allBooks);
+            Dashboard.atualizar(this.state.allBooks);
+            Desafio.atualizar(this.state.allBooks);
+        }
+    },
+    excluirLivro: async function(id) {
+        const response = await fetch(`/api/livros/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Falha na API ao excluir livro');
+        
+        this.state.allBooks = this.state.allBooks.filter(l => l.id != id);
+        Estante.atualizar(this.state.allBooks);
+        Dashboard.atualizar(this.state.allBooks);
+        Desafio.atualizar(this.state.allBooks);
+    },
+    mostrarNotificacao: function(mensagem, tipo = 'sucesso') {
+        const container = document.getElementById('notificacao-container');
+        
+        const notificacaoEl = document.createElement('div');
+        notificacaoEl.className = `toast ${tipo}`;
+        notificacaoEl.textContent = mensagem;
 
+        container.appendChild(notificacaoEl);
 
+        setTimeout(() => {
+            notificacaoEl.remove();
+        }, 5000);
+    },
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
