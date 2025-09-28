@@ -16,7 +16,7 @@
             <nav class="sidebar-nav">
                 <a href="#" class="nav-link active" data-view="view-estante">📚 Estante</a>
                 <a href="#" class="nav-link" data-view="view-adicionar">➕ Adicionar Livro</a>
-                <a href="#" class="nav-link" data-view="view-desafio">🏆 Desafio Anual</a>
+                <a href="#" class="nav-link" data-view="view-desafio">🏆 Metas de Leitura</a>
                 <a href="#" class="nav-link" data-view="view-dashboard">📊 Dashboard</a>
             </nav>
         </aside>
@@ -69,31 +69,31 @@
 
             <div id="view-adicionar" class="view">
                 <h1>Adicionar Novo Livro</h1>
-<div id="busca-api-container">
-    <div class="campo-busca-principal">
-        <input type="search" id="input-busca-api" placeholder="Digite o título ou autor do livro...">
-        <button id="btn-busca-api" class="btn btn-primario">Buscar na Internet</button>
-    </div>
-    <div class="opcoes-busca-api">
-        <span>Fonte:</span>
-        <input type="radio" id="api-google" name="api-source" value="google" checked>
-        <label for="api-google">Google Books</label>
-        <input type="radio" id="api-open" name="api-source" value="open">
-        <label for="api-open">Open Library</label>
-        <input type="radio" id="api-ambos" name="api-source" value="ambos">
-        <label for="api-ambos">Ambos (Fallback)</label>
-    </div>
-</div>
+                <div id="busca-api-container">
+                    <div class="campo-busca-principal">
+                        <input type="search" id="input-busca-api" placeholder="Digite o título ou autor do livro...">
+                        <button id="btn-busca-api" class="btn btn-primario">Buscar na Internet</button>
+                    </div>
+                    <div class="opcoes-busca-api">
+                        <span>Fonte:</span>
+                        <input type="radio" id="api-google" name="api-source" value="google" checked>
+                        <label for="api-google">Google Books</label>
+                        <input type="radio" id="api-open" name="api-source" value="open">
+                        <label for="api-open">Open Library</label>
+                        <input type="radio" id="api-ambos" name="api-source" value="ambos">
+                        <label for="api-ambos">Ambos (Fallback)</label>
+                    </div>
+                </div>
 
-                        <div id="adicionar-manual-container" class="hidden">
-            <p>Não encontrou o que procurava? <button id="btn-adicionar-manual" class="btn btn-secundario">Cadastrar Manualmente</button></p>
-        </div>
+                <div id="adicionar-manual-container" class="hidden">
+                    <p>Não encontrou o que procurava? <button id="btn-adicionar-manual" class="btn btn-secundario">Cadastrar Manualmente</button></p>
+                </div>
 
                 <div id="busca-api-paginacao" class="hidden">
-            <button id="btn-busca-anterior" class="btn btn-secundario">Anterior</button>
-            <span id="busca-api-info-pagina"></span>
-            <button id="btn-busca-proxima" class="btn btn-primario">Próxima</button>
-        </div>
+                    <button id="btn-busca-anterior" class="btn btn-secundario">Anterior</button>
+                    <span id="busca-api-info-pagina"></span>
+                    <button id="btn-busca-proxima" class="btn btn-primario">Próxima</button>
+                </div>
                 <div id="resultados-busca-api"></div>
 
                 <div id="painel-sincronizacao" class="hidden">
@@ -165,58 +165,91 @@
                 </div>
             </div>
 
-            <div id="view-desafio" class="view">
-                <h1>Minhas Metas de Leitura</h1>
-                <div class="gerenciar-metas-container">
-                    <div class="campo-selecionar-meta">
-                        <label for="select-meta-ativa">Selecione uma Meta:</label>
-                        <select id="select-meta-ativa"></select>
-                        <button id="btn-deletar-meta-ativa" class="btn btn-perigo">Deletar</button>
-                    </div>
-                    <div class="campo-criar-meta">
-                        <input type="text" id="input-nome-nova-meta" placeholder="Ou crie uma nova meta aqui...">
-                        <button id="btn-criar-nova-meta" class="btn btn-secundario">Criar Meta</button>
-                    </div>
-                </div>
-                <div id="desafio-ativo-container" class="hidden">
-                    <div class="desafio-container">
-                        <div class="desafio-meta">
-                            <h2>Gerenciar Livros da Meta</h2>
-                            <form id="form-desafio">
-                                <label for="select-livros-meta">Adicione ou remova livros da sua estante:</label>
-                                <select name="select-livros-meta" id="select-livros-meta" multiple></select>
-                                <small>Segure Ctrl (ou Cmd no Mac) para selecionar vários.</small>
-                                <button id="btn-salvar-meta" class="btn btn-primario">Salvar Livros na Meta</button>
-                            </form>
-                        </div>
-                        <div class="desafio-progresso">
-                            <h3>Progresso da Meta</h3>
-                            <p id="progresso-texto">0 de 0 livros concluídos</p>
-                            <progress id="progresso-barra" value="0" max="100"></progress>
-                        </div>
-                    </div>
-                    <h2>Livros da Meta Selecionada</h2>
-                    <div id="desafio-livros-da-meta" class="estante-de-livros"></div>
-                </div>
-                <div id="nenhuma-meta-selecionada">
-                    <h2>Nenhuma meta selecionada</h2>
-                    <p>Crie uma nova meta ou selecione uma existente para começar.</p>
-                </div>
+<div id="view-desafio" class="view">
+    <h1>Minhas Metas de Leitura</h1>
+    <div class="gerenciar-metas-container">
+        <div class="campo-selecionar-meta">
+            <label for="select-meta-ativa">Selecione uma Meta Ativa:</label>
+            <select id="select-meta-ativa"></select>
+            <button id="btn-deletar-meta-ativa" class="btn btn-perigo">Deletar Meta</button>
+        </div>
+    </div>
+
+    <div class="criar-meta-container dash-card">
+        <h3>Criar Nova Meta</h3>
+        <form id="form-criar-meta" class="form-grid" style="grid-template-columns: 2fr 1fr 1.5fr 1fr; align-items: flex-end;">
+            <div class="form-campo">
+                <label for="input-meta-nome">Nome da Meta:</label>
+                <input type="text" id="input-meta-nome" placeholder="Ex: Fim de Ano 2025" required>
             </div>
+            <div class="form-campo">
+                <label for="select-meta-ano">Ano:</label>
+                <select id="select-meta-ano"></select>
+            </div>
+            <div class="form-campo">
+                <label for="select-meta-tipo">Tipo de Meta:</label>
+                <select id="select-meta-tipo">
+                    <option value="livros">Nº de Livros (Automático)</option>
+                    <option value="paginas">Nº de Páginas (Automático)</option>
+                    <option value="lista">Lista de Livros (Manual)</option>
+                </select>
+            </div>
+            <div class="form-campo" id="campo-objetivo-container">
+                <label for="input-meta-objetivo">Objetivo:</label>
+                <input type="number" id="input-meta-objetivo" placeholder="Ex: 8" required>
+            </div>
+            <div class="form-botoes">
+                 <button type="submit" id="btn-criar-nova-meta" class="btn btn-primario">Criar Nova Meta</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="desafio-ativo-container" class="hidden">
+        <h2 id="meta-ativa-titulo" style="margin-top: 2rem;"></h2>
+
+        <div id="gerenciar-lista-container" class="hidden" style="margin-top: 1.5rem;">
+            <div class="desafio-meta">
+                 <label for="input-busca-livros-meta">Adicionar/Remover livros da sua estante:</label>
+                 <input type="search" id="input-busca-livros-meta" placeholder="Buscar por título ou autor...">
+                 <div class="grupo-filtros" style="justify-content: flex-start; margin-bottom: 10px;">
+                    <button class="filtro-status-meta active" data-status="Todos">Todos</button>
+                    <button class="filtro-status-meta" data-status="NaoLidos">Não Lidos</button>
+                 </div>
+                 
+                 <div id="seletor-livros-meta" class="estante-de-livros selecionavel">
+                 </div>
+
+                 <div class="controles-paginacao" id="paginacao-seletor-meta">
+                    <button id="btn-meta-anterior" class="btn btn-secundario">Anterior</button>
+                    <span id="info-pagina-meta"></span>
+                    <button id="btn-meta-proxima" class="btn btn-primario">Próxima</button>
+                 </div>
+            </div>
+        </div>
+
+        <div class="desafio-progresso">
+            <p id="progresso-texto">0 de 0 concluídos</p>
+            <progress id="progresso-barra" value="0" max="100"></progress>
+        </div>
+        <h3 style="margin-top: 1.5rem;">Livros da Meta:</h3>
+        <div id="desafio-livros-da-meta" class="estante-de-livros"></div>
+    </div>
+
+    <div id="nenhuma-meta-selecionada" class="active">
+        <h2>Nenhuma meta selecionada</h2>
+        <p>Crie uma nova meta ou selecione uma existente para começar.</p>
+    </div>
+</div>
 
             <div id="view-dashboard" class="view">
                 <h1>Dashboard de Leitura</h1>
                 <div class="controles-dashboard">
-                    <div class="dashboard-tabs">
-                        <button class="tab-button active" data-tab="anual">Análise Anual</button>
-                        <button class="tab-button" data-tab="historico">Recordes Históricos</button>
-                    </div>
                     <div class="grupo-filtros" id="filtro-ano-container">
                         <label for="select-ano-dashboard">Analisar Ano:</label>
                         <select id="select-ano-dashboard"></select>
                     </div>
                 </div>
-                <div id="dashboard-content-anual" class="dashboard-content active">
+                <div class="dashboard-content active">
                     <div class="dashboard-layout">
                         <div class="dashboard-coluna-kpi">
                             <div id="kpi-nota-media" class="dash-card"></div>
@@ -243,13 +276,19 @@
                             <table id="tabela-livros-ano"></table>
                         </div>
                     </div>
-                </div>
-                <div id="dashboard-content-historico" class="dashboard-content">
+                    <hr class="separador-form">
+                    <h2>Recordes Históricos</h2>
                     <div class="dashboard-grid-geral">
                         <div class="tabela-card dash-card" id="resumo-por-ano">
                             <h3>Resumo por Ano</h3>
-                            <div class="tabela-container">
-                                <table id="tabela-resumo-anual"></table>
+                            <div class="grafico-container">
+                                <canvas id="grafico-resumo-anual"></canvas>
+                            </div>
+                        </div>
+                         <div class="tabela-card dash-card" id="ranking-generos">
+                            <h3>Análise por Gênero</h3>
+                             <div class="grafico-container">
+                                <canvas id="grafico-generos"></canvas>
                             </div>
                         </div>
                         <div class="tabela-card dash-card" id="melhores-autores">
@@ -268,12 +307,6 @@
                             <h3>Melhores Editoras (>= 3 livros)</h3>
                             <div class="tabela-container">
                                 <table id="tabela-melhores-editoras"></table>
-                            </div>
-                        </div>
-                        <div class="tabela-card dash-card" id="ranking-generos">
-                            <h3>Análise por Gênero</h3>
-                            <div class="tabela-container">
-                                <table id="tabela-generos"></table>
                             </div>
                         </div>
                         <div class="tabela-card dash-card" id="prateleira-vergonha">
@@ -322,36 +355,68 @@
                             <div id="form-leitura-container" class="hidden"></div>
                         </div>
                         <div id="tab-notas" class="tab-content">
-                            <h3>Minhas Avaliações da Leitura Atual</h3>
-                            <div id="aviso-nota-bloqueada" class="aviso">
-                                <p>As notas só podem ser adicionadas ou editadas após a data de fim da leitura ser preenchida na aba "Minha Leitura".</p>
-                            </div>
-                            <form id="form-notas" class="painel-form hidden">
-                                <div class="slider-campo">
-                                    <label>Personagens: <span id="valor-nota-personagens">5</span></label>
-                                    <input type="range" id="nota-personagens" min="0" max="10" step="0.5" value="5">
-                                </div>
-                                <div class="slider-campo">
-                                    <label>Plot: <span id="valor-nota-plot">5</span></label>
-                                    <input type="range" id="nota-plot" min="0" max="10" step="0.5" value="5">
-                                </div>
-                                <div class="slider-campo">
-                                    <label>Desenvolvimento: <span id="valor-nota-desenvolvimento">5</span></label>
-                                    <input type="range" id="nota-desenvolvimento" min="0" max="10" step="0.5" value="5">
-                                </div>
-                                <div class="slider-campo">
-                                    <label>Pacing: <span id="valor-nota-pacing">5</span></label>
-                                    <input type="range" id="nota-pacing" min="0" max="10" step="0.5" value="5">
-                                </div>
-                                <div class="slider-campo">
-                                    <label>Closing: <span id="valor-nota-closing">5</span></label>
-                                    <input type="range" id="nota-closing" min="0" max="10" step="0.5" value="5">
-                                </div>
-                                <div class="nota-final-display">
-                                    Nota Final Calculada: <strong id="nota-final-calculada">5.0</strong>
-                                </div>
-                            </form>
-                        </div>
+    <h3>Minhas Avaliações da Leitura Atual</h3>
+    <div id="aviso-nota-bloqueada" class="aviso">
+        <p>As notas só podem ser adicionadas ou editadas após a data de fim da leitura ser preenchida na aba "Minha Leitura".</p>
+    </div>
+    <form id="form-notas" class="painel-form hidden">
+        <div class="notas-grid">
+            <div class="slider-campo">
+                <label>Personagens: <span id="valor-nota-personagens">5.0</span></label>
+                <small>Quão críveis, complexos e bem desenvolvidos são os personagens? Você se conectou com eles?</small>
+                <input type="range" id="nota-personagens" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Trama (Plot): <span id="valor-nota-plot">5.0</span></label>
+                <small>A estrutura da história é coesa? O enredo é original, envolvente e com conflitos bem definidos?</small>
+                <input type="range" id="nota-plot" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Construção de Mundo: <span id="valor-nota-desenvolvimento">5.0</span></label>
+                <small>O universo da história é imersivo e bem detalhado? Suas regras e cultura são consistentes?</small>
+                <input type="range" id="nota-desenvolvimento" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Ritmo (Pacing): <span id="valor-nota-pacing">5.0</span></label>
+                <small>A história flui bem? O ritmo acelera e desacelera nos momentos certos para criar tensão ou respiro?</small>
+                <input type="range" id="nota-pacing" min="0" max="10" step="0.1" value="5">
+            </div>
+             <div class="slider-campo">
+                <label>Estilo de Escrita (Prosa): <span id="valor-nota-prosa">5.0</span></label>
+                <small>A qualidade da escrita é alta? O texto é claro, evocativo e agradável de ler?</small>
+                <input type="range" id="nota-prosa" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Originalidade: <span id="valor-nota-originalidade">5.0</span></label>
+                <small>A premissa ou a execução da história trouxeram conceitos novos ou abordagens criativas?</small>
+                <input type="range" id="nota-originalidade" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Temas e Profundidade: <span id="valor-nota-temas">5.0</span></label>
+                <small>Os temas abordados são relevantes e explorados com a profundidade que merecem?</small>
+                <input type="range" id="nota-temas" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Impacto Emocional: <span id="valor-nota-impacto">5.0</span></label>
+                <small>O livro provocou emoções fortes em você (alegria, surpresa, tristeza, reflexão)?</small>
+                <input type="range" id="nota-impacto" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Conclusão (Closing): <span id="valor-nota-closing">5.0</span></label>
+                <small>O final resolve os conflitos de forma satisfatória e é coerente com o resto da história?</small>
+                <input type="range" id="nota-closing" min="0" max="10" step="0.1" value="5">
+            </div>
+            <div class="slider-campo">
+                <label>Fator Releitura/Recomendação: <span id="valor-nota-releitura">5.0</span></label>
+                <small>Você sentiria vontade de reler este livro no futuro ou o recomendaria com entusiasmo para alguém?</small>
+                <input type="range" id="nota-releitura" min="0" max="10" step="0.1" value="5">
+            </div>
+        </div>
+        <div class="nota-final-display">
+            Nota Final Calculada: <strong id="nota-final-calculada">5.0</strong>
+        </div>
+    </form>
+</div>
                         <div id="tab-detalhes" class="tab-content">
                             <h3>Detalhes do Livro</h3>
                             <div id="info-detalhes" class="detalhes-grid">
@@ -372,12 +437,13 @@
         </div>
     </dialog>
 
+    <div id="notificacao-container"></div>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="estante.js"></script>
     <script src="adicionar.js"></script>
     <script src="dashboard.js"></script>
     <script src="desafio.js"></script>
     <script src="app.js"></script>
-    <div id="notificacao-container"></div>
 </body>
 </html>

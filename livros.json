@@ -3866,23 +3866,6 @@
     "situacao": "Wishlist"
   },
   {
-    "id": 1758047107328,
-    "nomeDoLivro": "Três Heróis",
-    "autor": "J.F. Oliveira",
-    "dataAquisicao": "2025-09-16",
-    "anoLancamento": "2017",
-    "editora": "Wishlist",
-    "colecao": "Do décimo mundo",
-    "volume": "1,0",
-    "paginas": "295",
-    "lingua": "Wishlist",
-    "urlCapa": "http://books.google.com/books/content?id=oKg3DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-    "descricao": "Imagine abrir os olhos e perceber que você não sabe nada sobre si próprio, de onde veio, quem você conhece e, nem mesmo, quem você é! Todas suas memórias desaparecendo em um simples piscar de olhos, inclusive sua personalidade se apagou. E adicione isso ao estar em um mundo completamente estranho, com árvores imensas, criaturas que tentam te matar, elfos, espadas e magia... Eu entrei em desespero, não entendia mais o mundo, quase como se naquele breve momento nada existisse e eu estivesse completamente sozinho. Mas onde há escuridão há, também, luz, e eles foram a minha. Me apoiaram e me deram um propósito. Toda história tem um início, mesmo que eu não lembre o meu. Portanto, escolhi aquele momento como meu ponto de partida. Lentamente tomei conhecimento das coisas ao meu redor. Então, resolvi me dedicar a eles. Algumas vezes pegamos os caminhos errados, causando resultados indesejáveis. Foi assim que descobri algo importante: Somente amigos podem nos resgatar da solidão. Mas, quando pensamos que finalmente acabou...",
-    "categorias": "Fiction",
-    "leituras": [],
-    "situacao": "Wishlist"
-  },
-  {
     "id": 1758047108921,
     "nomeDoLivro": "The Killing Moon",
     "autor": "N.K. Jemisin",
@@ -12928,8 +12911,23 @@
     "urlCapa": "http://books.google.com/books/content?id=NNOn0AEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
     "descricao": "A laugh-out-loud, slice-of-life martial-arts fantasy about . . . farming Jin Rou wanted to be a cultivator. A man powerful enough to defy the heavens. A master of martial arts. A lord of spiritual power. Unfortunately for him, he died, and now I'm stuck in his body. And you know what? Things ain't actually all that bad. I mean, last year was pretty hectic. I died, got reborn, ran away from my sect and ultimate power, started a farm, made some friends, awakened all my animals into Spirit Beasts so now they're running around talking and getting into life-and-death battles with super-powered bandits . . . Oh! And I got married. Pretty neat, huh? Well, this year, after the Spring Planting season, I'm really gonna relax and put down roots. It's the slow life for me. Sure, the talking animals and cultivators coming to live with me are a bit weird, but this year everything is gonna be basically normal. There definitely won't be any Heavenly Tribulations, ancient formations, or cultivator issues to deal with . . . The second volume of the blockbuster progression-fantasy series--with more than 20 million views on Royal Road--now available on Kindle, Kindle Unlimited, and Audible!",
     "categorias": "Fiction",
-    "leituras": [],
-    "situacao": "Quero Ler"
+    "leituras": [
+      {
+        "idLeitura": 1759098617812,
+        "dataInicio": "2025-09-10",
+        "dataFim": "2025-09-26",
+        "notas": {
+          "personagens": 9.5,
+          "plot": 8.5,
+          "desenvolvimento": 7.5,
+          "pacing": 7,
+          "closing": 8
+        },
+        "notaFinal": 8.1,
+        "anotacoes": "Slice of life é muito bom. Personagens notáveis: Bi De, Tigu'er, Xiulian."
+      }
+    ],
+    "situacao": "Lido"
   },
   {
     "id": 1758047732200,
@@ -12945,8 +12943,17 @@
     "urlCapa": "http://books.google.com/books/content?id=eDmo0AEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
     "descricao": "A laugh-out-loud, slice-of-life martial-arts fantasy about . . . farming Jin Rou wanted to be a cultivator. A man powerful enough to defy the heavens. A master of martial arts. A lord of spiritual power. Unfortunately for him, he died, and now I'm stuck in his body. As Jin, I'm a man of the earth. A wielder of shovels and lord of rice and wheat. And sure, I also had to die and get pulled into another universe to end up here. But guess what? I'm starting to think it was worth it. I've somehow managed to get away from it all. Finally free of the bloodshed of cultivator fights, I figure I'll live in the slow lane from here on out, my only real concern the rain--or lack thereof. Unfortunately, I've suddenly got a shady organization looking for me, my cat has gone off to fight in a martial arts tournament, and my chicken has uncovered an ancient crystal containing portents of doom. You know, the usual stuff. I'm not worried though. Sometimes trouble finds you. And while I may not be a master cultivator . . . trouble should know better than to mess with a farmer. The third volume of the blockbuster progression-fantasy series--with more than 20 million views on Royal Road--now available on Kindle, Kindle Unlimited, and Audible!",
     "categorias": "Fiction",
-    "leituras": [],
-    "situacao": "Quero Ler"
+    "leituras": [
+      {
+        "idLeitura": 1759102219140,
+        "dataInicio": "2025-09-28",
+        "dataFim": null,
+        "notas": null,
+        "notaFinal": null,
+        "anotacoes": ""
+      }
+    ],
+    "situacao": "Lendo"
   },
   {
     "id": 1758047733068,
@@ -13080,13 +13087,18 @@
         "idLeitura": 1758047737714,
         "dataInicio": "2025-08-07",
         "dataFim": "2025-09-02",
-        "notaFinal": 8,
+        "notaFinal": 8.1,
         "notas": {
-          "personagens": 9.1,
+          "personagens": 9.4,
           "plot": 8.1,
-          "desenvolvimento": 7.2,
-          "pacing": 7.4,
-          "closing": 8.2
+          "desenvolvimento": 8.5,
+          "pacing": 8.4,
+          "closing": 8.9,
+          "prosa": 6.7,
+          "originalidade": 7.8,
+          "temas": 7.5,
+          "impacto": 7.4,
+          "releitura": 8.3
         },
         "anotacoes": ""
       }

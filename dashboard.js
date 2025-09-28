@@ -2,14 +2,12 @@ const Dashboard = {
     state: {
         todosOsLivros: [],
         anoFiltro: new Date().getFullYear().toString(),
-        abaAtiva: 'anual',
         ordenacaoTabelas: {},
+        graficoResumoAnual: null,
+        graficoGeneros: null,
     },
     cacheDOM: function() {
-        this.tabs = document.querySelectorAll('.dashboard-tabs .tab-button');
-        this.conteudoAnualEl = document.getElementById('dashboard-content-anual');
-        this.conteudoHistoricoEl = document.getElementById('dashboard-content-historico');
-        this.filtroAnoContainerEl = document.getElementById('filtro-ano-container');
+        console.log('[DEBUG] 1. Caching DOM elements...');
         this.selectAnoEl = document.getElementById('select-ano-dashboard');
         this.kpiNotaMediaEl = document.getElementById('kpi-nota-media');
         this.kpiTotalLivrosEl = document.getElementById('kpi-total-livros');
@@ -24,44 +22,44 @@ const Dashboard = {
         this.kpiLeituraLentaEl = document.getElementById('kpi-leitura-lenta');
         this.kpiMesProdutivoEl = document.getElementById('kpi-mes-produtivo');
         this.tabelaLivrosAnoEl = document.getElementById('tabela-livros-ano');
-        this.tabelaResumoAnualEl = document.getElementById('tabela-resumo-anual');
         this.tabelaMelhoresAutoresEl = document.getElementById('tabela-melhores-autores');
         this.tabelaMelhoresColecoesEl = document.getElementById('tabela-melhores-colecoes');
         this.tabelaMelhoresEditorasEl = document.getElementById('tabela-melhores-editoras');
-        this.tabelaGenerosEl = document.getElementById('tabela-generos');
         this.tabelaVergonhaEl = document.getElementById('tabela-vergonha');
+        this.graficoResumoAnualEl = document.getElementById('grafico-resumo-anual');
+        this.graficoGenerosEl = document.getElementById('grafico-generos');
+        console.log('[DEBUG] 1. DOM elements cached.');
     },
     bindEvents: function() {
+        console.log('[DEBUG] 2. Binding events...');
         this.selectAnoEl.addEventListener('change', (e) => {
             this.state.anoFiltro = e.target.value;
             this.render();
         });
-        this.tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                this.state.abaAtiva = e.target.dataset.tab;
-                this.renderAbas();
-            });
-        });
+
         const tabelas = [
-            this.tabelaLivrosAnoEl, this.tabelaResumoAnualEl, this.tabelaMelhoresAutoresEl,
-            this.tabelaMelhoresColecoesEl, this.tabelaMelhoresEditorasEl, this.tabelaGenerosEl, this.tabelaVergonhaEl
+            this.tabelaLivrosAnoEl, this.tabelaMelhoresAutoresEl,
+            this.tabelaMelhoresColecoesEl, this.tabelaMelhoresEditorasEl, this.tabelaVergonhaEl
         ];
         tabelas.forEach(tabela => {
-            tabela.addEventListener('click', (e) => {
-                const th = e.target.closest('th.sortable');
-                if (th) {
-                    const tabelaId = tabela.id;
-                    const coluna = th.dataset.coluna;
-                    const ordenacaoAtual = this.state.ordenacaoTabelas[tabelaId] || {};
-                    let direcao = 'desc';
-                    if (ordenacaoAtual.coluna === coluna && ordenacaoAtual.direcao === 'desc') {
-                        direcao = 'asc';
+            if (tabela) {
+                tabela.addEventListener('click', (e) => {
+                    const th = e.target.closest('th.sortable');
+                    if (th) {
+                        const tabelaId = tabela.id;
+                        const coluna = th.dataset.coluna;
+                        const ordenacaoAtual = this.state.ordenacaoTabelas[tabelaId] || {};
+                        let direcao = 'desc';
+                        if (ordenacaoAtual.coluna === coluna && ordenacaoAtual.direcao === 'desc') {
+                            direcao = 'asc';
+                        }
+                        this.state.ordenacaoTabelas[tabelaId] = { coluna, direcao };
+                        this.render();
                     }
-                    this.state.ordenacaoTabelas[tabelaId] = { coluna, direcao };
-                    this.render();
-                }
-            });
+                });
+            }
         });
+        console.log('[DEBUG] 2. Events bound.');
     },
     init: function(livros) {
         this.state.todosOsLivros = livros;
@@ -74,29 +72,35 @@ const Dashboard = {
         this.render();
     },
     render: function() {
-        if (!this.state.todosOsLivros) return;
+        console.log('[DEBUG] 3. Starting render process...');
+        if (!this.state.todosOsLivros || this.state.todosOsLivros.length === 0) {
+            console.error('[DEBUG] Render stopped: No books data.');
+            return;
+        }
+
         const todasAsLeituras = this.state.todosOsLivros.flatMap(livro =>
             (livro.leituras || []).map(leitura => ({ ...leitura, livro }))
         ).filter(leitura => leitura.dataFim);
+        
+        console.log(`[DEBUG] 3.1. Found ${todasAsLeituras.length} finished readings.`);
+
         this.popularFiltroDeAno(todasAsLeituras);
+
         const leiturasDoAno = this.state.anoFiltro === 'todos'
             ? todasAsLeituras
             : todasAsLeituras.filter(l => new Date(l.dataFim).getFullYear() == this.state.anoFiltro);
+        
+        console.log(`[DEBUG] 3.2. Filtered to ${leiturasDoAno.length} readings for the year ${this.state.anoFiltro}.`);
+
         this.renderKPIs(leiturasDoAno);
         this.renderListaDeLivros(leiturasDoAno);
-        this.renderTabelaResumoAnual(todasAsLeituras);
+        this.renderGraficoResumoAnual(todasAsLeituras);
+        this.renderGraficoGeneros(todasAsLeituras);
         this.renderMelhoresAutores(todasAsLeituras);
         this.renderMelhoresColecoes(todasAsLeituras);
         this.renderMelhoresEditoras(todasAsLeituras);
-        this.renderAnaliseGenero(todasAsLeituras);
         this.renderPrateleiraVergonha();
-        this.renderAbas();
-    },
-    renderAbas: function() {
-        this.tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === this.state.abaAtiva));
-        this.conteudoAnualEl.classList.toggle('active', this.state.abaAtiva === 'anual');
-        this.conteudoHistoricoEl.classList.toggle('active', this.state.abaAtiva === 'historico');
-        this.filtroAnoContainerEl.style.display = this.state.abaAtiva === 'anual' ? 'flex' : 'none';
+        console.log('[DEBUG] 9. Render process finished.');
     },
     popularFiltroDeAno: function(leituras) {
         const anos = new Set(leituras.map(l => new Date(l.dataFim).getFullYear()));
@@ -108,6 +112,7 @@ const Dashboard = {
         });
     },
     renderKPIs: function(leituras) {
+        console.log('[DEBUG] 4. Rendering KPIs...');
         const totalLivros = leituras.length;
         const totalPaginas = leituras.reduce((s, l) => s + (parseInt(l.livro.paginas, 10) || 0), 0);
         const leiturasComNota = leituras.filter(l => l.notaFinal);
@@ -147,6 +152,7 @@ const Dashboard = {
         this.kpiLeituraRapidaEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-rocket kpi-icon"></i><h4>Leitura Mais Rápida</h4></div><p class="valor-kpi">${leituraRapida ? leituraRapida.livro.nomeDoLivro : '-'}</p><p class="subtitulo-kpi">${leituraRapida ? `${leituraRapida.pagPorDia.toFixed(0)} pág/dia` : ''}</p>`;
         this.kpiLeituraLentaEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-person-walking kpi-icon"></i><h4>Leitura Mais Lenta</h4></div><p class="valor-kpi">${leituraLenta ? leituraLenta.livro.nomeDoLivro : '-'}</p><p class="subtitulo-kpi">${leituraLenta ? `${leituraLenta.pagPorDia.toFixed(1)} pág/dia` : ''}</p>`;
         this.kpiMesProdutivoEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-calendar-star kpi-icon"></i><h4>Mês Mais Produtivo</h4></div><p class="valor-kpi">${mesProdutivo ? new Date(mesProdutivo + '-02').toLocaleString('pt-BR', {month: 'long', year: 'numeric'}) : '-'}</p><p class="subtitulo-kpi">${mesProdutivo ? `${meses[mesProdutivo]} livros` : ''}</p>`;
+        console.log('[DEBUG] 4. KPIs rendered.');
     },
     getClasseNota: function(nota) {
         if (nota >= 9) return 'nota-excelente'; if (nota >= 7) return 'nota-boa'; if (nota >= 5) return 'nota-media';
@@ -171,7 +177,6 @@ const Dashboard = {
                 };
                 let valA = getVal(a, ordenacao.coluna);
                 let valB = getVal(b, ordenacao.coluna);
-
                 if (typeof valA === 'string') {
                     return ordenacao.direcao === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
                 }
@@ -195,12 +200,12 @@ const Dashboard = {
                     case 'ano': valor = item.ano; break;
                     case 'livros': valor = item.livros; break;
                     case 'paginas': valor = item.paginas.toLocaleString('pt-BR'); break;
-                    case 'notaMedia': valor = item.notaMedia.toFixed(2).replace('.', ','); break;
+                    case 'mediaNota': valor = item.mediaNota.toFixed(2).replace('.', ','); break;
                     case 'nome': valor = item.nome; break;
                     case 'count': valor = item.count; break;
                     default: valor = item[col.key] || '-';
                 }
-                const classeNota = col.key === 'notaFinal' || col.key === 'notaMedia' ? this.getClasseNota(parseFloat(valor.replace(',','.'))) : '';
+                const classeNota = col.key === 'notaFinal' || col.key === 'mediaNota' ? this.getClasseNota(parseFloat(valor.replace(',','.'))) : '';
                 return `<td class="${classeNota}">${valor}</td>`;
             }).join('');
             return `<tr>${tds}</tr>`;
@@ -208,33 +213,22 @@ const Dashboard = {
         el.innerHTML = `${thead}<tbody>${body || `<tr><td colspan="${colunas.length}">Nenhum dado encontrado.</td></tr>`}</tbody>`;
     },
     renderListaDeLivros: function(leituras) {
+        console.log('[DEBUG] 5. Rendering book list table...');
         this.renderTabela('tabela-livros-ano', this.tabelaLivrosAnoEl, leituras, [
             { header: 'Título', key: 'titulo', sortable: true }, { header: 'Autor', key: 'autor', sortable: true },
             { header: 'Nota', key: 'notaFinal', sortable: true }, { header: 'Terminei em', key: 'dataFim', sortable: true },
             { header: 'Tempo', key: 'tempo', sortable: true }, { header: 'Pág/Dia', key: 'pagPorDia', sortable: true },
         ]);
-    },
-    renderTabelaResumoAnual: function(leituras) {
-        const dadosPorAno = leituras.reduce((acc, l) => {
-            const ano = new Date(l.dataFim).getFullYear();
-            if (!acc[ano]) acc[ano] = { livros: 0, paginas: 0, notas: [], ano };
-            acc[ano].livros++;
-            acc[ano].paginas += parseInt(l.livro.paginas, 10) || 0;
-            if (l.notaFinal) acc[ano].notas.push(l.notaFinal);
-            return acc;
-        }, {});
-        const dados = Object.values(dadosPorAno).map(d => ({...d, notaMedia: d.notas.length > 0 ? d.notas.reduce((s, n) => s + n, 0) / d.notas.length : 0}));
-        this.renderTabela('tabela-resumo-anual', this.tabelaResumoAnualEl, dados, [
-            { header: 'Ano', key: 'ano', sortable: true }, { header: 'Livros', key: 'livros', sortable: true },
-            { header: 'Páginas', key: 'paginas', sortable: true }, { header: 'Nota Média', key: 'notaMedia', sortable: true }
-        ]);
+        console.log('[DEBUG] 5. Book list table rendered.');
     },
     renderMelhoresAutores: function(leituras) {
+        console.log('[DEBUG] 8. Rendering best authors table...');
         const dados = this.calcularRanking(leituras, 'autor', 3);
         this.renderTabela('tabela-melhores-autores', this.tabelaMelhoresAutoresEl, dados, [
             { header: 'Autor', key: 'nome', sortable: true }, { header: 'Nota Média', key: 'mediaNota', sortable: true },
             { header: 'Livros', key: 'count', sortable: true }
         ]);
+        console.log('[DEBUG] 8. Best authors table rendered.');
     },
     renderMelhoresColecoes: function(leituras) {
         const dados = this.calcularRanking(leituras.filter(l => l.livro.colecao && l.livro.colecao !== '-'), 'colecao', 3);
@@ -248,14 +242,6 @@ const Dashboard = {
         this.renderTabela('tabela-melhores-editoras', this.tabelaMelhoresEditorasEl, dados, [
             { header: 'Editora', key: 'nome', sortable: true }, { header: 'Nota Média', key: 'mediaNota', sortable: true },
             { header: 'Livros', key: 'count', sortable: true }
-        ]);
-    },
-    renderAnaliseGenero: function(leituras) {
-        const dados = this.calcularRanking(leituras.filter(l => l.livro.categorias), 'categorias', 1);
-        this.renderTabela('tabela-generos', this.tabelaGenerosEl, dados, [
-            { header: 'Gênero', key: 'nome', sortable: true },
-            { header: 'Nota Média', key: 'mediaNota', sortable: true },
-            { header: 'Livros Lidos', key: 'count', sortable: true }
         ]);
     },
     renderPrateleiraVergonha: function() {
@@ -292,5 +278,105 @@ const Dashboard = {
             const mediaNota = item.notas.length > 0 ? item.notas.reduce((s, n) => s + n, 0) / item.notas.length : 0;
             return { nome, mediaNota, count: item.count };
         }).filter(item => item.count >= minLivros).sort((a, b) => b.mediaNota - a.mediaNota);
+    },
+    renderGraficoResumoAnual: function(leituras) {
+        console.log('[DEBUG] 6. Rendering annual summary chart...');
+        if (this.state.graficoResumoAnual) {
+            this.state.graficoResumoAnual.destroy();
+        }
+        const dadosPorAno = leituras.reduce((acc, l) => {
+            const ano = new Date(l.dataFim).getFullYear();
+            if (!acc[ano]) acc[ano] = { livros: 0, paginas: 0, ano };
+            acc[ano].livros++;
+            acc[ano].paginas += parseInt(l.livro.paginas, 10) || 0;
+            return acc;
+        }, {});
+
+        const dadosOrdenados = Object.values(dadosPorAno).sort((a, b) => a.ano - b.ano);
+        const labels = dadosOrdenados.map(d => d.ano);
+        const dataLivros = dadosOrdenados.map(d => d.livros);
+        const dataPaginas = dadosOrdenados.map(d => d.paginas);
+
+        this.state.graficoResumoAnual = new Chart(this.graficoResumoAnualEl, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Livros Lidos',
+                        data: dataLivros,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Páginas Lidas',
+                        data: dataPaginas,
+                        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                        type: 'line',
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Nº de Livros'}
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Nº de Páginas'},
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+        console.log('[DEBUG] 6. Annual summary chart rendered.');
+    },
+    renderGraficoGeneros: function(leituras) {
+        console.log('[DEBUG] 7. Rendering genres chart...');
+        if (this.state.graficoGeneros) {
+            this.state.graficoGeneros.destroy();
+        }
+        const dados = this.calcularRanking(leituras.filter(l => l.livro.categorias), 'categorias', 1);
+        const top10 = dados.slice(0, 10);
+        const labels = top10.map(d => d.nome);
+        const data = top10.map(d => d.count);
+
+        this.state.graficoGeneros = new Chart(this.graficoGenerosEl, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Livros por Gênero',
+                    data: data,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                        '#FF9F40', '#C9CBCF', '#7CFFB2', '#FF6347', '#00CED1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        console.log('[DEBUG] 7. Genres chart rendered.');
     }
 };

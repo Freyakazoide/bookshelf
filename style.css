@@ -1374,3 +1374,109 @@ table th.sort-desc::after {
     height: auto;
     border-radius: 4px;
 }
+
+/* Estilos para o seletor de livros na meta */
+.estante-de-livros.selecionavel .card-livro {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 3px solid transparent;
+    position: relative; /* Para posicionar o checkmark */
+}
+
+.estante-de-livros.selecionavel .card-livro:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.estante-de-livros.selecionavel .card-livro.selecionado {
+    border-color: #007bff; /* Cor para indicar seleção */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+.estante-de-livros.selecionavel .card-livro.selecionado::after {
+    content: '✔️';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* Estilos para o filtro de status na meta (reaproveitando classes, mas ajustando para a nova localização) */
+.grupo-filtros .filtro-status-meta {
+    background-color: #f0f0f0;
+    color: #333;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.2s ease;
+}
+
+.grupo-filtros .filtro-status-meta:hover {
+    background-color: #e0e0e0;
+}
+
+.grupo-filtros .filtro-status-meta.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Estilos para a paginação do seletor de meta */
+#paginacao-seletor-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 10px 0;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    border-radius: 8px;
+}
+
+#paginacao-seletor-meta button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#paginacao-seletor-meta button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#paginacao-seletor-meta span {
+    font-weight: bold;
+    color: #555;
+}
+
+/* Melhoria visual para cards da meta */
+#desafio-livros-da-meta .card-livro.pendente .card-nota {
+    background-color: #ffc107; /* Amarelo para pendente */
+    color: #333;
+}
+
+.notas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 2rem;
+}
+
+@media (max-width: 768px) {
+    .notas-grid {
+        grid-template-columns: 1fr;
+    }
+}
