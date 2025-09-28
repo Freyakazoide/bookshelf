@@ -23,7 +23,6 @@ const lerDados = async (caminho) => {
     }
 };
 
-// NOVA FUNÇÃO DE ESCRITA SEGURA
 const escreverDados = async (caminho, dados) => {
     const tempPath = `${caminho}.tmp`;
     try {
@@ -111,6 +110,11 @@ app.post('/api/challenges', async (req, res) => {
         console.error('Erro ao salvar metas:', error);
         res.status(500).json({ message: "Erro ao salvar as metas." });
     }
+});
+
+// Rota para servir o index.html em qualquer rota não-API
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
