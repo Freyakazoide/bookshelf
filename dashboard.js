@@ -9,16 +9,11 @@ const Dashboard = {
     cacheDOM: function() {
         this.selectAnoEl = document.getElementById('select-ano-dashboard');
         
-        this.kpiTotalLivrosEl = document.getElementById('kpi-total-livros');
-        this.kpiTotalPaginasEl = document.getElementById('kpi-total-paginas');
-        this.kpiNotaMediaEl = document.getElementById('kpi-nota-media');
+        this.kpiHeroNovoEl = document.getElementById('kpi-hero-novo');
+        this.kpiPaginasNovoEl = document.getElementById('kpi-paginas-novo');
+        this.kpiNotaNovoEl = document.getElementById('kpi-nota-novo');
 
-        this.destaqueMelhorLivroEl = document.getElementById('destaque-melhor-livro');
-        this.destaquePiorLivroEl = document.getElementById('destaque-pior-livro');
-        this.destaqueAutorMaisLidoEl = document.getElementById('destaque-autor-mais-lido');
-        this.destaqueLeituraRapidaEl = document.getElementById('destaque-leitura-rapida');
-        this.destaqueLeituraLentaEl = document.getElementById('destaque-leitura-lenta');
-        this.destaqueMesProdutivoEl = document.getElementById('destaque-mes-produtivo');
+        this.destaquesListaNovaEl = document.getElementById('destaques-lista-nova');
 
         this.widgetResumoPorAno = document.getElementById('resumo-por-ano');
         this.widgetRankingGeneros = document.getElementById('ranking-generos');
@@ -136,9 +131,19 @@ const Dashboard = {
         const leiturasComNota = leituras.filter(l => l.notaFinal);
         const notaMedia = leiturasComNota.length > 0 ? leiturasComNota.reduce((s, l) => s + (l.notaFinal || 0), 0) / leiturasComNota.length : 0;
 
-        this.kpiTotalLivrosEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-book-open kpi-icon"></i><h4>Livros Lidos</h4></div><p class="valor-kpi">${totalLivros}</p>`;
-        this.kpiTotalPaginasEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-file-lines kpi-icon"></i><h4>Páginas Lidas</h4></div><p class="valor-kpi">${totalPaginas.toLocaleString('pt-BR')}</p>`;
-        this.kpiNotaMediaEl.innerHTML = `<div class="kpi-header"><i class="fa-solid fa-star kpi-icon"></i><h4>Nota Média</h4></div><p class="valor-kpi">${notaMedia.toFixed(2).replace('.',',')}</p>`;
+        this.kpiHeroNovoEl.innerHTML = `
+            <h4><i class="fa-solid fa-book-open"></i> Total de Livros</h4>
+            <div class="valor-kpi-hero">${totalLivros}</div>
+            <div class="subtitulo-kpi-hero">lidos neste período</div>
+        `;
+        this.kpiPaginasNovoEl.innerHTML = `
+            <h4><i class="fa-solid fa-file-lines"></i> Páginas Lidas</h4>
+            <div class="valor-kpi">${totalPaginas.toLocaleString('pt-BR')}</div>
+        `;
+        this.kpiNotaNovoEl.innerHTML = `
+            <h4><i class="fa-solid fa-star"></i> Nota Média</h4>
+            <div class="valor-kpi">${notaMedia.toFixed(2).replace('.',',')}</div>
+        `;
     },
     renderDestaques: function(leituras) {
         const leiturasComNota = leituras.filter(l => l.notaFinal);
@@ -164,12 +169,50 @@ const Dashboard = {
         }, {});
         const mesProdutivo = Object.keys(meses).length > 0 ? Object.keys(meses).reduce((a, b) => meses[a] > meses[b] ? a : b) : null;
 
-        this.destaqueMelhorLivroEl.innerHTML = `<h5><i class="fa-solid fa-trophy"></i> Melhor Livro</h5><p class="destaque-valor">${melhorLivro ? melhorLivro.livro.nomeDoLivro : '-'}</p><p class="destaque-sub">${melhorLivro ? `Nota ${melhorLivro.notaFinal.toFixed(1).replace('.',',')}` : ''}</p>`;
-        this.destaquePiorLivroEl.innerHTML = `<h5><i class="fa-solid fa-thumbs-down"></i> Pior Livro</h5><p class="destaque-valor">${piorLivro ? piorLivro.livro.nomeDoLivro : '-'}</p><p class="destaque-sub">${piorLivro ? `Nota ${piorLivro.notaFinal.toFixed(1).replace('.',',')}` : ''}</p>`;
-        this.destaqueAutorMaisLidoEl.innerHTML = `<h5><i class="fa-solid fa-pen-nib"></i> Autor Mais Lido</h5><p class="destaque-valor">${autorMaisLido || '-'}</p>`;
-        this.destaqueLeituraRapidaEl.innerHTML = `<h5><i class="fa-solid fa-rocket"></i> Leitura Mais Rápida</h5><p class="destaque-valor">${leituraRapida ? leituraRapida.livro.nomeDoLivro : '-'}</p><p class="destaque-sub">${leituraRapida ? `${leituraRapida.pagPorDia.toFixed(0)} pág/dia` : ''}</p>`;
-        this.destaqueLeituraLentaEl.innerHTML = `<h5><i class="fa-solid fa-person-walking"></i> Leitura Mais Lenta</h5><p class="destaque-valor">${leituraLenta ? leituraLenta.livro.nomeDoLivro : '-'}</p><p class="destaque-sub">${leituraLenta ? `${leituraLenta.pagPorDia.toFixed(1)} pág/dia` : ''}</p>`;
-        this.destaqueMesProdutivoEl.innerHTML = `<h5><i class="fa-solid fa-calendar-star"></i> Mês Mais Produtivo</h5><p class="destaque-valor">${mesProdutivo ? new Date(mesProdutivo + '-02').toLocaleString('pt-BR', {month: 'long', year: 'numeric'}) : '-'}</p><p class="destaque-sub">${mesProdutivo ? `${meses[mesProdutivo]} livros` : ''}</p>`;
+        let html = '';
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-trophy"></i> Melhor Livro</h5>
+                <p class="destaque-valor">${melhorLivro ? melhorLivro.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${melhorLivro ? `Nota ${melhorLivro.notaFinal.toFixed(1).replace('.',',')}` : ''}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-thumbs-down"></i> Pior Livro</h5>
+                <p class="destaque-valor">${piorLivro ? piorLivro.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${piorLivro ? `Nota ${piorLivro.notaFinal.toFixed(1).replace('.',',')}` : ''}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-pen-nib"></i> Autor Mais Lido</h5>
+                <p class="destaque-valor">${autorMaisLido || '-'}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-calendar-star"></i> Mês Mais Produtivo</h5>
+                <p class="destaque-valor">${mesProdutivo ? new Date(mesProdutivo + '-02').toLocaleString('pt-BR', {month: 'long', year: 'numeric'}) : '-'}</p>
+                <p class="destaque-sub">${mesProdutivo ? `${meses[mesProdutivo]} livros` : ''}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-rocket"></i> Leitura Mais Rápida</h5>
+                <p class="destaque-valor">${leituraRapida ? leituraRapida.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${leituraRapida ? `${leituraRapida.pagPorDia.toFixed(0)} pág/dia` : ''}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-person-walking"></i> Leitura Mais Lenta</h5>
+                <p class="destaque-valor">${leituraLenta ? leituraLenta.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${leituraLenta ? `${leituraLenta.pagPorDia.toFixed(1)} pág/dia` : ''}</p>
+            </div>
+        `;
+        
+        this.destaquesListaNovaEl.innerHTML = html;
     },
     getClasseNota: function(nota) {
         if (nota >= 9) return 'nota-excelente'; if (nota >= 7) return 'nota-boa'; if (nota >= 5) return 'nota-media';
@@ -253,7 +296,8 @@ const Dashboard = {
     renderMelhoresEditoras: function(leituras) {
         const dados = this.calcularRanking(leituras.filter(l => l.livro.editora), 'editora', 3);
         this.renderTabela('tabela-melhores-editoras', this.tabelaMelhoresEditorasEl, dados, [
-            { header: 'Editora', key: 'nome', sortable: true }, { header: 'Nota Média', key: 'mediaNota', sortable: true }, { header: 'Livros', key: 'count', sortable: true }
+            { header: 'Editora', key: 'nome', sortable: true }, { header: 'Nota Média', key: 'mediaNota', sortable: true },
+            { header: 'Livros', key: 'count', sortable: true }
         ]);
     },
     renderPrateleiraVergonha: function() {
