@@ -2038,3 +2038,379 @@ table th.sort-desc::after {
     gap: 1.5rem;
     width: 100%;
 }
+
+/* ===================================== */
+/* === REFATORAÇÃO ESTANTE: GAVETA FILTROS === */
+/* ===================================== */
+
+.gaveta-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 199;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.gaveta-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.gaveta-filtros {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    height: 100dvh;
+    background-color: var(--cor-fundo-secundario);
+    border-left: 1px solid var(--cor-borda);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--sombra-media);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+.gaveta-filtros.is-open {
+    transform: translateX(0);
+}
+
+.gaveta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--cor-borda);
+    flex-shrink: 0;
+}
+.gaveta-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gaveta-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.gaveta-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--cor-borda);
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.filtro-grupo h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+    margin-bottom: 1rem;
+}
+
+.filtro-opcoes-nota {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.filtro-opcoes-nota .btn {
+    min-width: 45px;
+    background-color: var(--cor-fundo-container);
+    border: 1px solid var(--cor-borda);
+}
+.filtro-opcoes-nota .btn.active {
+    background-color: var(--cor-amarelo-aviso);
+    color: var(--cor-texto-acao);
+    border-color: var(--cor-amarelo-aviso);
+}
+
+/* ===================================== */
+/* === REFATORAÇÃO ESTANTE: LAYOUT CONTROLES === */
+/* ===================================== */
+
+.controles-estante {
+    flex-wrap: nowrap;
+    gap: 1rem;
+}
+.controles-estante .campo-com-icone {
+    min-width: 300px;
+}
+.controles-estante .grupo-filtros {
+    margin-left: auto;
+}
+
+.controles-secundarios {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+#contador-resultados {
+    margin: 0;
+    color: var(--cor-texto-secundario);
+    font-size: 0.9em;
+}
+.controles-secundarios-direita {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.grupo-visualizacao {
+    display: flex;
+    background-color: var(--cor-fundo-principal);
+    border-radius: var(--raio-borda);
+    border: 1px solid var(--cor-borda);
+    padding: 4px;
+}
+.btn-visualizacao {
+    background: none;
+    border: none;
+    color: var(--cor-texto-secundario);
+    font-size: 1rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: var(--transicao-rapida);
+    line-height: 1;
+}
+.btn-visualizacao:hover {
+    color: var(--cor-texto-principal);
+}
+.btn-visualizacao.active {
+    background-color: var(--cor-fundo-container);
+    color: var(--cor-texto-principal);
+    box-shadow: var(--sombra-sutil);
+}
+
+/* ===================================== */
+/* === REFATORAÇÃO ESTANTE: MODO LISTA === */
+/* ===================================== */
+
+.estante-de-livros.modo-lista {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+.estante-de-livros.modo-lista .card-livro {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    overflow: visible;
+}
+.estante-de-livros.modo-lista .card-livro:hover {
+    transform: translateY(0);
+    background-color: var(--cor-fundo-container);
+}
+.estante-de-livros.modo-lista .card-livro img {
+    width: 65px;
+    aspect-ratio: 2 / 3;
+    flex-shrink: 0;
+    border-radius: 4px;
+    height: auto;
+}
+.estante-de-livros.modo-lista .card-info {
+    flex-grow: 1;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 1.5rem;
+}
+.estante-de-livros.modo-lista .card-info h3 {
+    margin-bottom: 0;
+}
+.estante-de-livros.modo-lista .card-info p {
+    font-size: 0.9em;
+}
+.estante-de-livros.modo-lista .card-nota {
+    position: static;
+    background: none;
+    backdrop-filter: none;
+    border: none;
+    padding: 0;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+.estante-de-livros.modo-lista .card-info-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    color: var(--cor-texto-secundario);
+    font-size: 0.9em;
+}
+.estante-de-livros.modo-lista .card-info-extra span {
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+}
+
+/* ===================================== */
+/* === REFATORAÇÃO ESTANTE: INDICADORES E AÇÕES === */
+/* ===================================== */
+
+.card-livro {
+    overflow: hidden;
+}
+
+.card-livro[data-status="Lendo"]::before {
+    content: 'Lendo';
+    position: absolute;
+    top: 12px;
+    left: -35px;
+    transform: rotate(-45deg);
+    background-color: var(--cor-acao-primaria);
+    color: var(--cor-texto-acao);
+    padding: 4px 35px;
+    font-size: 0.75em;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 3;
+}
+.estante-de-livros.modo-lista .card-livro[data-status="Lendo"]::before {
+    display: none;
+}
+
+.card-livro[data-status="Quero Ler"]::after {
+    content: '\f02e';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    color: var(--cor-texto-principal);
+    background-color: rgba(15, 23, 42, 0.7);
+    padding: 6px 9px;
+    border-radius: 50%;
+    font-size: 0.85em;
+    z-index: 3;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.estante-de-livros.modo-lista .card-livro[data-status="Quero Ler"]::after {
+    display: none;
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge {
+    background-color: var(--cor-fundo-principal);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+    border: 1px solid var(--cor-borda);
+    width: max-content;
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lendo {
+    border-color: var(--cor-acao-primaria);
+    color: var(--cor-acao-primaria);
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-quero-ler {
+    border-color: var(--cor-borda-foco);
+    color: var(--cor-borda-foco);
+}
+
+.card-acao-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(4px);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    z-index: 4;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: var(--transicao-rapida);
+}
+.card-livro:hover .card-acao-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+.card-acao-btn:hover {
+    background-color: var(--cor-fundo-container);
+    border-color: var(--cor-borda-foco);
+}
+.estante-de-livros.modo-lista .card-acao-btn {
+    position: static;
+    opacity: 1;
+    transform: scale(1);
+    grid-column: 3 / 4;
+}
+
+.card-acao-menu {
+    position: fixed;
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    z-index: 150;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 200px;
+}
+.card-acao-menu button {
+    background: none;
+    border: none;
+    color: var(--cor-texto-secundario);
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--fonte-principal);
+    font-weight: 500;
+    font-size: 0.9em;
+}
+.card-acao-menu button:hover {
+    background-color: var(--cor-fundo-container);
+    color: var(--cor-texto-principal);
+}
+.card-acao-menu button.perigo:hover {
+    background-color: var(--cor-perigo);
+    color: white;
+}
+.card-acao-menu button i {
+    width: 16px;
+    text-align: center;
+    color: var(--cor-texto-secundario);
+}
+.card-acao-menu button:hover i {
+    color: inherit;
+}
+.card-acao-menu .separador-menu {
+    height: 1px;
+    background-color: var(--cor-borda);
+    margin: 4px 0.75rem;
+}
+
+/* ===================================== */
+/* === REFATORAÇÃO ESTANTE: ESTADO VAZIO === */
+/* ===================================== */
+
+#estante-placeholder {
+    min-height: 40vh;
+}

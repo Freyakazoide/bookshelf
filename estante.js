@@ -10,11 +10,19 @@ const Estante = {
             ordenacao: 'data-adicao-desc',
             pagina: 0,
             porPagina: 30,
+            visualizacao: 'grid',
+            avancados: {
+                nota: null,
+                categorias: [],
+                autores: [],
+            }
         },
         criteriosDeNota: [
             'personagens', 'plot', 'desenvolvimento', 'pacing', 'prosa',
             'originalidade', 'temas', 'impacto', 'closing', 'releitura'
-        ]
+        ],
+        allCategorias: [],
+        allAutores: []
     },
 
     cacheDOM: function() {
@@ -25,6 +33,8 @@ const Estante = {
         this.contadorResultadosEl = document.getElementById('contador-resultados');
         this.selectTamanhoPaginaEl = document.getElementById('select-tamanho-pagina');
         this.linksPaginacaoEl = document.getElementById('links-paginacao');
+        this.estantePlaceholderEl = document.getElementById('estante-placeholder');
+        this.controlesPaginacaoEl = document.getElementById('controles-paginacao');
 
         this.painelLivroEl = document.getElementById('painel-livro');
         this.painelTituloEl = document.getElementById('painel-titulo');
@@ -46,12 +56,36 @@ const Estante = {
         this.notaFinalCalculadaEl = document.getElementById('nota-final-calculada');
 
         this.infoDetalhesEl = document.getElementById('info-detalhes');
+
+        this.btnsVisualizacao = document.querySelectorAll('.btn-visualizacao');
+
+        this.btnFiltrosAvancados = document.getElementById('btn-filtros-avancados');
+        this.btnFecharGaveta = document.getElementById('btn-fechar-gaveta');
+        this.gavetaOverlayEl = document.getElementById('gaveta-overlay');
+        this.gavetaFiltrosEl = document.getElementById('gaveta-filtros');
+        this.btnLimparFiltros = document.getElementById('btn-limpar-filtros');
+        this.btnAplicarFiltros = document.getElementById('btn-aplicar-filtros');
+        this.filtroGrupoNotaEl = document.getElementById('filtro-grupo-nota');
+        this.filtroBuscaCategoriaEl = document.getElementById('filtro-busca-categoria');
+        this.filtroListaCategoriasEl = document.getElementById('filtro-lista-categorias');
+        this.filtroBuscaAutorEl = document.getElementById('filtro-busca-autor');
+        this.filtroListaAutoresEl = document.getElementById('filtro-lista-autores');
     },
 
     bindEvents: function() {
         this.estanteEl.addEventListener('click', e => {
             const card = e.target.closest('.card-livro');
-            if (card) this.abrirPainel(parseInt(card.dataset.id, 10));
+            const acaoBtn = e.target.closest('.card-acao-btn');
+
+            if (acaoBtn) {
+                e.stopPropagation();
+                const livroId = parseInt(acaoBtn.closest('.card-livro').dataset.id, 10);
+                this.abrirMenuAcoes(e, livroId);
+                return;
+            }
+            if (card) {
+                this.abrirPainel(parseInt(card.dataset.id, 10));
+            }
         });
 
         this.inputBuscaEl.addEventListener('input', e => {
@@ -124,45 +158,114 @@ const Estante = {
             if (itemLeitura) {
                 const idLeitura = parseInt(itemLeitura.dataset.idleitura, 10);
                 this.state.leituraAtivaId = idLeitura;
-
                 const leituraParaEditar = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
-                if (leituraParaEditar) {
-                    this.renderFormLeitura(leituraParaEditar);
-                }
-                
+                if (leituraParaEditar) this.renderFormLeitura(leituraParaEditar);
                 this.renderPainelLeituras();
             }
         });
 
         this.painelBtnSalvarEl.addEventListener('click', () => this.salvarNotas());
+        
         this.btnEditarEl.addEventListener('click', () => {
             this.painelLivroEl.close();
             App.navegarPara('view-adicionar');
             Adicionar.modoEdicao(this.state.livroAtivo.id);
         });
+        
         this.btnExcluirEl.addEventListener('click', () => {
             if (confirm(`Tem certeza que deseja excluir "${this.state.livroAtivo.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {
                 this.painelLivroEl.close();
-                App.excluirLivro(this.state.livroAtivo.id);
+                App.excluirLivro(this.state.livroAtivo.firestoreId);
             }
         });
+
+        this.btnsVisualizacao.forEach(btn => {
+            btn.addEventListener('click', e => this.toggleVisualizacao(e));
+        });
+
+        this.btnFiltrosAvancados.addEventListener('click', () => this.abrirGavetaFiltros());
+        this.btnFecharGaveta.addEventListener('click', () => this.fecharGavetaFiltros());
+        this.gavetaOverlayEl.addEventListener('click', () => this.fecharGavetaFiltros());
+        this.btnAplicarFiltros.addEventListener('click', () => this.aplicarFiltrosAvancados());
+        this.btnLimparFiltros.addEventListener('click', () => this.limparFiltrosAvancados());
+        
+        this.bindGavetaEvents();
+    },
+
+    bindGavetaEvents: function() {
+        this.filtroGrupoNotaEl.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const nota = btn.dataset.nota;
+            const isActive = btn.classList.contains('active');
+            
+            this.filtroGrupoNotaEl.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            
+            if (isActive) {
+                this.state.filtros.avancados.nota = null;
+            } else {
+                btn.classList.add('active');
+                this.state.filtros.avancados.nota = nota;
+            }
+        });
+        
+        const bindFilterList = (inputEl, listEl, stateKey) => {
+            listEl.addEventListener('click', e => {
+                const item = e.target.closest('.filtro-ano-item');
+                if (item) {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const value = checkbox.value;
+                    const idx = this.state.filtros.avancados[stateKey].indexOf(value);
+                    
+                    if (idx > -1) {
+                        this.state.filtros.avancados[stateKey].splice(idx, 1);
+                        checkbox.checked = false;
+                    } else {
+                        this.state.filtros.avancados[stateKey].push(value);
+                        checkbox.checked = true;
+                    }
+                }
+            });
+
+            inputEl.addEventListener('input', e => {
+                const busca = e.target.value.toLowerCase();
+                listEl.querySelectorAll('.filtro-ano-item').forEach(item => {
+                    const label = item.querySelector('label').textContent.toLowerCase();
+                    item.style.display = label.includes(busca) ? 'flex' : 'none';
+                });
+            });
+        };
+
+        bindFilterList(this.filtroBuscaCategoriaEl, this.filtroListaCategoriasEl, 'categorias');
+        bindFilterList(this.filtroBuscaAutorEl, this.filtroListaAutoresEl, 'autores');
     },
 
     init: function(livros) {
         this.state.todosOsLivros = livros;
         this.cacheDOM();
         this.bindEvents();
+        this.popularOpcoesFiltros();
         this.renderEstante();
     },
 
     atualizar: function(livros) {
         this.state.todosOsLivros = livros;
+        this.popularOpcoesFiltros();
         this.renderEstante();
+    },
+
+    getNotaRecente: function(livro) {
+        if (!livro.leituras || livro.leituras.length === 0) return null;
+        const leiturasComNota = livro.leituras
+            .filter(l => l.dataFim && l.notaFinal)
+            .sort((a,b) => new Date(b.dataFim) - new Date(a.dataFim));
+        return leiturasComNota.length > 0 ? leiturasComNota[0].notaFinal : null;
     },
 
     filtrarEOrdenarLivros: function() {
         let livros = [...this.state.todosOsLivros];
-        const { busca, status } = this.state.filtros;
+        const { busca, status, avancados } = this.state.filtros;
 
         if (busca) {
             livros = livros.filter(l =>
@@ -172,7 +275,31 @@ const Estante = {
         }
 
         if (status !== 'Todos') {
-            livros = livros.filter(l => l.situacao === status);
+            livros = livros.filter(l => (l.situacao || 'Quero Ler') === status);
+        }
+
+        if (avancados.nota) {
+            livros = livros.filter(l => {
+                const nota = this.getNotaRecente(l);
+                if (avancados.nota === 'sem') return !nota;
+                if (!nota) return false;
+                return nota >= parseInt(avancados.nota, 10);
+            });
+        }
+
+        if (avancados.categorias.length > 0) {
+            livros = livros.filter(l => {
+                if (!l.categorias) return false;
+                const catsLivro = l.categorias.split(',').map(c => c.trim());
+                return avancados.categorias.some(catFiltro => catsLivro.includes(catFiltro));
+            });
+        }
+        
+        if (avancados.autores.length > 0) {
+            livros = livros.filter(l => {
+                if (!l.autor) return false;
+                return avancados.autores.includes(l.autor);
+            });
         }
 
         this.state.livrosFiltrados = livros;
@@ -188,38 +315,72 @@ const Estante = {
                 case 'autor-asc':
                     return (a.autor || '').localeCompare(b.autor || '');
                 case 'nota-desc':
-                    const notaA = (a.leituras && a.leituras[0]) ? a.leituras[0].notaFinal || 0 : 0;
-                    const notaB = (b.leituras && b.leituras[0]) ? b.leituras[0].notaFinal || 0 : 0;
+                    const notaA = this.getNotaRecente(a) || 0;
+                    const notaB = this.getNotaRecente(b) || 0;
                     return notaB - notaA;
                 case 'data-adicao-desc':
                 default:
-                    return b.id - a.id;
+                    const idA = a.id || a.firestoreId;
+                    const idB = b.id || b.firestoreId;
+                    return (typeof idB === 'string' ? 0 : idB) - (typeof idA === 'string' ? 0 : idA);
             }
         });
     },
 
     renderEstante: function() {
         this.filtrarEOrdenarLivros();
+        
+        if (this.state.filtros.visualizacao === 'list') {
+            this.estanteEl.classList.add('modo-lista');
+        } else {
+            this.estanteEl.classList.remove('modo-lista');
+        }
+
         const { pagina, porPagina } = this.state.filtros;
         const inicio = pagina * porPagina;
         const fim = inicio + porPagina;
         const livrosDaPagina = this.state.livrosFiltrados.slice(inicio, fim);
 
-        this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
-            const capa = livro.urlCapa || 'placeholder.jpg';
-            const nota = (livro.leituras && livro.leituras.length > 0 && livro.leituras[0].notaFinal)
-                ? `<div class="card-nota">★ ${livro.leituras[0].notaFinal.toFixed(1)}</div>` : '';
-            return `
-                <div class="card-livro" data-id="${livro.id}">
-                    ${nota}
-                    <img src="${capa}" alt="Capa de ${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
-                    <div class="card-info">
-                        <h3>${livro.nomeDoLivro}</h3>
-                        <p>${livro.autor || 'Autor desconhecido'}</p>
+        if (livrosDaPagina.length === 0) {
+            this.estanteEl.innerHTML = '';
+            this.estantePlaceholderEl.classList.remove('hidden');
+            this.controlesPaginacaoEl.classList.add('hidden');
+        } else {
+            this.estantePlaceholderEl.classList.add('hidden');
+            this.controlesPaginacaoEl.classList.remove('hidden');
+
+            this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
+                const capa = livro.urlCapa || 'placeholder.jpg';
+                const status = livro.situacao || 'Quero Ler';
+                const notaNum = this.getNotaRecente(livro);
+                
+                const notaCard = notaNum 
+                    ? `<div class="card-nota">★ ${notaNum.toFixed(1)}</div>` 
+                    : '<div class="card-nota" style="display: none;"></div>';
+                
+                let statusBadge = '';
+                if (status === 'Lendo') statusBadge = '<span class="status-badge status-lendo">Lendo</span>';
+                if (status === 'Quero Ler') statusBadge = '<span class="status-badge status-quero-ler">Quero Ler</span>';
+                if (status === 'Lido' && !notaNum) statusBadge = '<span class="status-badge">Lido</span>';
+                
+                const infoExtra = `<div class="card-info-extra" style="display: none;">${statusBadge}</div>`;
+
+                return `
+                    <div class="card-livro" data-id="${livro.id || livro.firestoreId}" data-status="${status}">
+                        <img src="${capa}" alt="Capa de ${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
+                        <div class="card-info">
+                            <div> 
+                                <h3>${livro.nomeDoLivro}</h3>
+                                <p>${livro.autor || 'Autor desconhecido'}</p>
+                            </div>
+                            ${infoExtra} 
+                            ${notaCard}
+                        </div>
+                        <button class="card-acao-btn" aria-label="Ações"><i class="fa-solid fa-ellipsis-h"></i></button>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        }
 
         this.contadorResultadosEl.textContent = `${this.state.livrosFiltrados.length} livros encontrados.`;
         this.renderPaginacao();
@@ -244,13 +405,13 @@ const Estante = {
     },
     
     abrirPainel: function(livroId) {
-        this.state.livroAtivo = this.state.todosOsLivros.find(l => l.id === livroId);
+        this.state.livroAtivo = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
         if (!this.state.livroAtivo) return;
 
-        const leituraMaisRecente = this.state.livroAtivo.leituras && this.state.livroAtivo.leituras.length > 0
-            ? [...this.state.livroAtivo.leituras].sort((a,b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0))[0]
-            : null;
-        this.state.leituraAtivaId = leituraMaisRecente ? leituraMaisRecente.idLeitura : null;
+        const leiturasOrdenadas = (this.state.livroAtivo.leituras || [])
+            .sort((a,b) => new Date(b.dataFim || b.dataInicio) - new Date(a.dataFim || a.dataInicio));
+        
+        this.state.leituraAtivaId = leiturasOrdenadas.length > 0 ? leiturasOrdenadas[0].idLeitura : null;
         
         this.renderPainel();
         this.painelLivroEl.showModal();
@@ -368,12 +529,15 @@ const Estante = {
             this.state.livroAtivo.leituras.push(leitura);
         }
         
+        if (dataFim) this.state.livroAtivo.situacao = 'Lido';
+        else this.state.livroAtivo.situacao = 'Lendo';
+        
         this.state.leituraAtivaId = leitura.idLeitura;
         this.formLeituraContainerEl.innerHTML = '';
         this.formLeituraContainerEl.classList.add('hidden');
         
         this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
 
@@ -388,7 +552,7 @@ const Estante = {
         }
         
         this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura excluído.');
     },
 
@@ -421,13 +585,11 @@ const Estante = {
     setupSliderEvents: function() {
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
-            if (slider) {
-                const novoSlider = slider.cloneNode(true);
-                slider.parentNode.replaceChild(novoSlider, slider);
-                
-                novoSlider.addEventListener('input', () => {
+            if (slider && !slider.dataset.listenerAttached) {
+                slider.dataset.listenerAttached = 'true';
+                slider.addEventListener('input', () => {
                     const valorSpan = document.getElementById(`valor-nota-${criterio}`);
-                    valorSpan.textContent = parseFloat(novoSlider.value).toFixed(1);
+                    valorSpan.textContent = parseFloat(slider.value).toFixed(1);
                     this.calcularNotaFinal();
                 });
             }
@@ -468,7 +630,198 @@ const Estante = {
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
 
         this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Notas salvas com sucesso!');
+    },
+
+    toggleVisualizacao: function(e) {
+        const btn = e.target.closest('.btn-visualizacao');
+        if (!btn) return;
+        
+        const view = btn.dataset.view;
+        this.state.filtros.visualizacao = view;
+        
+        this.btnsVisualizacao.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        if (view === 'list') {
+            this.estanteEl.classList.add('modo-lista');
+        } else {
+            this.estanteEl.classList.remove('modo-lista');
+        }
+    },
+
+    abrirGavetaFiltros: function() {
+        this.gavetaOverlayEl.classList.add('is-open');
+        this.gavetaFiltrosEl.classList.add('is-open');
+    },
+
+    fecharGavetaFiltros: function() {
+        this.gavetaOverlayEl.classList.remove('is-open');
+        this.gavetaFiltrosEl.classList.remove('is-open');
+    },
+
+    popularOpcoesFiltros: function() {
+        const allCats = new Set();
+        const allAutores = new Set();
+
+        this.state.todosOsLivros.forEach(l => {
+            if (l.categorias) {
+                l.categorias.split(',').forEach(cat => {
+                    const c = cat.trim();
+                    if (c) allCats.add(c);
+                });
+            }
+            if (l.autor) {
+                allAutores.add(l.autor.trim());
+            }
+        });
+
+        this.state.allCategorias = [...allCats].sort();
+        this.state.allAutores = [...allAutores].sort();
+
+        const renderList = (items, stateKey) => {
+            return items.map(item => `
+                <div class="filtro-ano-item">
+                    <input type="checkbox" id="filtro-${stateKey}-${item}" value="${item}" 
+                        ${this.state.filtros.avancados[stateKey].includes(item) ? 'checked' : ''}>
+                    <label for="filtro-${stateKey}-${item}">${item}</label>
+                </div>
+            `).join('');
+        };
+        
+        this.filtroListaCategoriasEl.innerHTML = renderList(this.state.allCategorias, 'categorias');
+        this.filtroListaAutoresEl.innerHTML = renderList(this.state.allAutores, 'autores');
+    },
+
+    aplicarFiltrosAvancados: function() {
+        this.state.filtros.pagina = 0;
+        this.renderEstante();
+        this.fecharGavetaFiltros();
+    },
+
+    limparFiltrosAvancados: function() {
+        this.state.filtros.avancados = {
+            nota: null,
+            categorias: [],
+            autores: [],
+        };
+        
+        this.filtroGrupoNotaEl.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        this.filtroListaCategoriasEl.querySelectorAll('input').forEach(chk => chk.checked = false);
+        this.filtroListaAutoresEl.querySelectorAll('input').forEach(chk => chk.checked = false);
+
+        this.state.filtros.pagina = 0;
+        this.renderEstante();
+        this.fecharGavetaFiltros();
+    },
+
+    abrirMenuAcoes: function(e, livroId) {
+        this.fecharMenuAcoes(); 
+        
+        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        if (!livro) return;
+        
+        const status = livro.situacao || 'Quero Ler';
+        
+        const menu = document.createElement('div');
+        menu.className = 'card-acao-menu';
+        
+        let botoesStatus = '';
+        if (status !== 'Lido') {
+            botoesStatus += `<button data-id="${livroId}" data-status="Lido"><i class="fa-solid fa-check-circle"></i> Mover para Lidos</button>`;
+        }
+        if (status !== 'Lendo') {
+            botoesStatus += `<button data-id="${livroId}" data-status="Lendo"><i class="fa-solid fa-book-open-reader"></i> Mover para Lendo</button>`;
+        }
+        if (status !== 'Quero Ler') {
+            botoesStatus += `<button data-id="${livroId}" data-status="Quero Ler"><i class="fa-solid fa-bookmark"></i> Mover para Quero Ler</button>`;
+        }
+
+        menu.innerHTML = `
+            ${botoesStatus}
+            <div class="separador-menu"></div>
+            <button data-id="${livroId}" data-acao="editar"><i class="fa-solid fa-edit"></i> Editar Livro</button>
+            <button data-id="${livroId}" data-acao="excluir" class="perigo"><i class="fa-solid fa-trash-alt"></i> Excluir Livro</button>
+        `;
+
+        document.body.appendChild(menu);
+        
+        const rect = e.target.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        
+        let top = rect.bottom + 8;
+        let left = rect.right - menuRect.width;
+
+        if (top + menuRect.height > window.innerHeight) {
+            top = rect.top - menuRect.height - 8;
+        }
+        if (left < 0) {
+            left = rect.left;
+        }
+
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+        
+        menu.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const id = btn.dataset.id;
+            const novoStatus = btn.dataset.status;
+            const acao = btn.dataset.acao;
+
+            if (novoStatus) this.moverLivroStatus(livroId, novoStatus);
+            if (acao === 'editar') this.editarLivro(livroId);
+            if (acao === 'excluir') this.excluirLivro(livroId);
+            
+            this.fecharMenuAcoes();
+        });
+        
+        setTimeout(() => {
+            document.addEventListener('click', this.fecharMenuAcoes, { once: true });
+        }, 0);
+    },
+
+    fecharMenuAcoes: function() {
+        const menu = document.querySelector('.card-acao-menu');
+        if (menu) {
+            menu.remove();
+        }
+        document.removeEventListener('click', this.fecharMenuAcoes);
+    },
+
+    moverLivroStatus: async function(livroId, novoStatus) {
+        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        if (!livro) return;
+
+        livro.situacao = novoStatus;
+        
+        if (novoStatus === 'Lendo' && (!livro.leituras || livro.leituras.length === 0)) {
+            if (!livro.leituras) livro.leituras = [];
+            livro.leituras.push({
+                idLeitura: Date.now(),
+                dataInicio: new Date().toISOString().split('T')[0],
+                dataFim: null,
+                anotacoes: 'Iniciado via ação rápida.',
+                notas: {}
+            });
+        }
+
+        await App.salvarLivro(livro, livro.firestoreId);
+        App.mostrarNotificacao(`Livro movido para "${novoStatus}"`);
+    },
+
+    editarLivro: function(livroId) {
+        this.abrirPainel(livroId);
+    },
+
+    excluirLivro: function(livroId) {
+        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        if (!livro) return;
+        
+        if (confirm(`Tem certeza que deseja excluir "${livro.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {
+            App.excluirLivro(livro.firestoreId);
+        }
     }
 };

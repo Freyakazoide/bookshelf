@@ -26,11 +26,13 @@
 
             <div id="view-estante" class="view active">
                 <h1>Minha Estante</h1>
+                
                 <div class="controles-estante">
                     <div class="campo-com-icone">
                         <i class="fa-solid fa-search"></i>
                         <input type="search" id="input-busca" placeholder="Buscar por título ou autor...">
                     </div>
+                    
                     <div class="grupo-filtros">
                         <span><i class="fa-solid fa-filter"></i> Filtrar por:</span>
                         <button class="filtro-status active" data-status="Todos">Todos</button>
@@ -38,20 +40,43 @@
                         <button class="filtro-status" data-status="Lendo">Lendo</button>
                         <button class="filtro-status" data-status="Quero Ler">Quero Ler</button>
                     </div>
-                    <div class="grupo-ordenacao">
-                        <label for="select-ordenacao"><i class="fa-solid fa-sort-amount-down"></i> Ordenar por:</label>
-                        <select id="select-ordenacao">
-                            <option value="data-adicao-desc">Mais Recentes (Adição)</option>
-                            <option value="nota-desc">Melhor Nota</option>
-                            <option value="titulo-asc">Título (A-Z)</option>
-                            <option value="autor-asc">Autor (A-Z)</option>
-                        </select>
+
+                    <button id="btn-filtros-avancados" class="btn btn-secundario" style="margin-left: 1rem;">
+                        <i class="fa-solid fa-sliders"></i> Filtros
+                    </button>
+                </div>
+                
+                <div class="controles-secundarios">
+                    <p id="contador-resultados"></p>
+                    <div class="controles-secundarios-direita">
+                        <div class="grupo-ordenacao">
+                            <label for="select-ordenacao"><i class="fa-solid fa-sort-amount-down"></i> Ordenar por:</label>
+                            <select id="select-ordenacao">
+                                <option value="data-adicao-desc">Mais Recentes (Adição)</option>
+                                <option value="nota-desc">Melhor Nota</option>
+                                <option value="titulo-asc">Título (A-Z)</option>
+                                <option value="autor-asc">Autor (A-Z)</option>
+                            </select>
+                        </div>
+                        <div class="grupo-visualizacao">
+                            <button class="btn-visualizacao active" data-view="grid" aria-label="Ver em grade">
+                                <i class="fa-solid fa-grip"></i>
+                            </button>
+                            <button class="btn-visualizacao" data-view="list" aria-label="Ver em lista">
+                                <i class="fa-solid fa-list"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="info-resultados">
-                    <p id="contador-resultados"></p>
-                </div>
+
                 <div id="estante-de-livros" class="estante-de-livros"></div>
+
+                <div id="estante-placeholder" class="placeholder-container hidden">
+                    <i class="fa-solid fa-book-sparkles"></i>
+                    <h2>Nenhum livro encontrado</h2>
+                    <p>Tente ajustar sua busca ou filtros para ver os resultados.</p>
+                </div>
+
                 <div class="controles-paginacao" id="controles-paginacao">
                     <div class="grupo-paginacao-tamanho">
                         <label for="select-tamanho-pagina">Mostrar por página:</label>
@@ -328,6 +353,54 @@
                     </div>
                 </div>
             </div>
+
+            <div class="gaveta-overlay" id="gaveta-overlay"></div>
+            <aside id="gaveta-filtros" class="gaveta-filtros">
+                <header class="gaveta-header">
+                    <h3><i class="fa-solid fa-sliders"></i> Filtros Avançados</h3>
+                    <button id="btn-fechar-gaveta" class="btn-acao" aria-label="Fechar filtros"><i class="fa-solid fa-times"></i></button>
+                </header>
+                <div class="gaveta-body">
+                    
+                    <div class="filtro-grupo">
+                        <h4><i class="fa-solid fa-star"></i> Filtrar por Nota</h4>
+                        <div class="filtro-opcoes-nota" id="filtro-grupo-nota">
+                            <button class="btn" data-nota="5">★ 5</button>
+                            <button class="btn" data-nota="4">★ 4+</button>
+                            <button class="btn" data-nota="3">★ 3+</button>
+                            <button class="btn" data-nota="2">★ 2+</button>
+                            <button class="btn" data-nota="1">★ 1+</button>
+                            <button class="btn" data-nota="sem">Sem Nota</button>
+                        </div>
+                    </div>
+
+                    <div class="filtro-grupo">
+                        <h4><i class="fa-solid fa-folder-tree"></i> Filtrar por Categoria</h4>
+                        <div class="form-campo">
+                            <input type="search" id="filtro-busca-categoria" placeholder="Buscar categoria...">
+                        </div>
+                        <div id="filtro-lista-categorias" style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                        </div>
+                    </div>
+
+                    <div class="filtro-grupo">
+                        <h4><i class="fa-solid fa-users"></i> Filtrar por Autor</h4>
+                        <div class="form-campo">
+                            <input type="search" id="filtro-busca-autor" placeholder="Buscar autor...">
+                        </div>
+                        <div id="filtro-lista-autores" style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                        </div>
+                    </div>
+
+                </div>
+                <footer class="gaveta-footer">
+                    <button id="btn-limpar-filtros" class="btn btn-secundario" style="margin-right: auto;"><i class="fa-solid fa-eraser"></i> Limpar Tudo</button>
+                    <button id="btn-aplicar-filtros" class="btn btn-primario"><i class="fa-solid fa-check"></i> Aplicar Filtros</button>
+                </footer>
+            </aside>
+            
+        </main>
+    </div>
 
     <dialog id="painel-livro">
         <div class="painel-container">
