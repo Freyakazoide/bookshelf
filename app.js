@@ -236,28 +236,4 @@ const App = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const dashboardView = document.getElementById('view-dashboard');
-
-    if (dashboardView) {
-        const tabButtons = dashboardView.querySelectorAll('.dashboard-tabs .tab-button');
-        const tabContents = dashboardView.querySelectorAll('.dashboard-content');
-
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                const tabId = button.dataset.tab;
-                const activeContent = document.getElementById(tabId);
-                
-                button.classList.add('active');
-                if (activeContent) {
-                    activeContent.classList.add('active');
-                }
-            });
-        });
-    }
-});
-
 App.init();

@@ -1,87 +1,99 @@
 const Dashboard = {
     state: {
         todosOsLivros: [],
-        anoFiltro: ['all-time'],
-        activeTab: 'tab-visao-geral',
+        anosDisponiveis: [],
+        anoFiltro: ['all-time'], // Agora é um array, default 'all-time'
         ordenacaoTabelas: {},
         graficoResumoAnual: null,
-        graficoGeneros: null,
         graficoLidosPorMes: null,
         graficoDistribuicaoNotas: null,
-        graficoPaginasNota: null,
     },
     cacheDOM: function() {
-        this.selectAnoEl = document.getElementById('select-ano-dashboard');
-        
-        this.dashboardTabsContainer = document.querySelector('.dashboard-tabs');
-        this.dashboardTabButtons = document.querySelectorAll('.dashboard-tabs .tab-button');
-        this.dashboardTabContents = document.querySelectorAll('.dashboard-content');
-        
+        // Novo Filtro de Ano
+        this.filtroAnoContainerEl = document.getElementById('filtro-ano-container');
+        this.filtroAnoBtnEl = document.getElementById('filtro-ano-btn');
+        this.filtroAnoDropdownEl = document.getElementById('filtro-ano-dropdown');
+
+        // KPIs
         this.kpiHeroNovoEl = document.getElementById('kpi-hero-novo');
         this.kpiPaginasNovoEl = document.getElementById('kpi-paginas-novo');
         this.kpiNotaNovoEl = document.getElementById('kpi-nota-novo');
         this.kpiAutoresNovoEl = document.getElementById('kpi-autores-novo');
 
+        // Destaques
         this.destaquesListaNovaEl = document.getElementById('destaques-lista-nova');
 
+        // Widgets (Contêineres)
         this.widgetResumoPorAno = document.getElementById('resumo-por-ano');
-        this.widgetRankingGeneros = document.getElementById('ranking-generos');
         this.widgetMelhoresAutores = document.getElementById('melhores-autores');
         this.widgetListaLivrosAno = document.getElementById('lista-livros-ano');
         this.widgetMelhoresColecoes = document.getElementById('melhores-colecoes');
         this.widgetMelhoresEditoras = document.getElementById('melhores-editoras');
-        this.widgetPrateleiraVergonha = document.getElementById('prateleira-vergonha');
         this.widgetLidosPorMes = document.getElementById('widget-lidos-por-mes');
+        this.widgetDistribuicaoNotas = document.getElementById('widget-distribuicao-notas');
+        this.melhoresRankingContainerEl = document.querySelector('.melhores-ranking-container');
 
-        this.analiseAnualPlaceholderEl = document.getElementById('analise-anual-placeholder');
-        this.analiseAnualContentEl = document.getElementById('analise-anual-content');
-        
+        // Títulos e Tabelas
         this.tituloTabelaLivrosAnoEl = document.getElementById('titulo-tabela-livros-ano');
         this.tituloGraficoMesEl = document.getElementById('titulo-grafico-mes');
         this.tabelaLivrosAnoEl = document.getElementById('tabela-livros-ano');
         this.tabelaMelhoresAutoresEl = document.getElementById('tabela-melhores-autores');
         this.tabelaMelhoresColecoesEl = document.getElementById('tabela-melhores-colecoes');
         this.tabelaMelhoresEditorasEl = document.getElementById('tabela-melhores-editoras');
-        this.tabelaVergonhaEl = document.getElementById('tabela-vergonha');
         
+        // Canvas dos Gráficos
         this.graficoResumoAnualEl = document.getElementById('grafico-resumo-anual');
-        this.graficoGenerosEl = document.getElementById('grafico-generos');
         this.graficoLidosPorMesEl = document.getElementById('grafico-lidos-por-mes');
         this.graficoDistribuicaoNotasEl = document.getElementById('grafico-distribuicao-notas');
-        this.graficoPaginasNotaEl = document.getElementById('grafico-paginas-nota');
     },
     bindEvents: function() {
-        this.selectAnoEl.addEventListener('change', (e) => {
-            let selectedOptions = Array.from(e.target.selectedOptions).map(opt => opt.value);
-            
-            if (selectedOptions.length === 0) {
-                selectedOptions = ['all-time'];
-            }
-            
-            if (selectedOptions.includes('all-time') && selectedOptions.length > 1) {
-                selectedOptions = ['all-time'];
-            }
-            
-            this.state.anoFiltro = selectedOptions;
-            
-            Array.from(this.selectAnoEl.options).forEach(opt => {
-                opt.selected = this.state.anoFiltro.includes(opt.value);
-            });
-            
-            this.render();
+        // Abre/Fecha o dropdown de anos
+        this.filtroAnoBtnEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.filtroAnoDropdownEl.classList.toggle('hidden');
+            this.filtroAnoBtnEl.classList.toggle('open');
         });
 
-        this.dashboardTabsContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('.tab-button');
-            if (button && !button.classList.contains('active')) {
-                this.state.activeTab = button.dataset.tab;
-                this.renderTabs();
+        // Fecha o dropdown se clicar fora
+        document.addEventListener('click', (e) => {
+            if (!this.filtroAnoContainerEl.contains(e.target) && !this.filtroAnoDropdownEl.classList.contains('hidden')) {
+                this.filtroAnoDropdownEl.classList.add('hidden');
+                this.filtroAnoBtnEl.classList.remove('open');
             }
         });
 
+        // Lida com a seleção de checkboxes no dropdown
+        this.filtroAnoDropdownEl.addEventListener('change', (e) => {
+            if (!e.target.matches('input[type="checkbox"]')) return;
+
+            const checkbox = e.target;
+            const valor = checkbox.value;
+            let selecaoAtual = [...this.state.anoFiltro];
+
+            if (valor === 'all-time') {
+                selecaoAtual = ['all-time'];
+            } else {
+                selecaoAtual = selecaoAtual.filter(item => item !== 'all-time');
+                if (checkbox.checked) {
+                    selecaoAtual.push(valor);
+                } else {
+                    selecaoAtual = selecaoAtual.filter(item => item !== valor);
+                }
+            }
+
+            if (selecaoAtual.length === 0) {
+                selecaoAtual = ['all-time'];
+            }
+            
+            this.state.anoFiltro = selecaoAtual;
+            this.popularFiltroDeAno(); // Atualiza os checkboxes e o texto do botão
+            this.render(); // Renderiza o dashboard com a nova seleção
+        });
+
+        // Eventos de ordenação das tabelas
         const tabelas = [
             this.tabelaLivrosAnoEl, this.tabelaMelhoresAutoresEl,
-            this.tabelaMelhoresColecoesEl, this.tabelaMelhoresEditorasEl, this.tabelaVergonhaEl
+            this.tabelaMelhoresColecoesEl, this.tabelaMelhoresEditorasEl
         ];
         tabelas.forEach(tabela => {
             if (tabela) {
@@ -104,12 +116,28 @@ const Dashboard = {
     },
     init: function(livros) {
         this.state.todosOsLivros = livros;
+        const todasAsLeituras = this.state.todosOsLivros.flatMap(livro =>
+            (livro.leituras || []).map(leitura => ({ ...leitura, livro }))
+        ).filter(leitura => leitura.dataFim);
+        
+        const anos = new Set(todasAsLeituras.map(l => new Date(l.dataFim).getFullYear()));
+        this.state.anosDisponiveis = Array.from(anos).sort((a, b) => b - a);
+
         this.cacheDOM();
         this.bindEvents();
+        this.popularFiltroDeAno();
         this.render();
     },
     atualizar: function(livros) {
         this.state.todosOsLivros = livros;
+        const todasAsLeituras = this.state.todosOsLivros.flatMap(livro =>
+            (livro.leituras || []).map(leitura => ({ ...leitura, livro }))
+        ).filter(leitura => leitura.dataFim);
+        
+        const anos = new Set(todasAsLeituras.map(l => new Date(l.dataFim).getFullYear()));
+        this.state.anosDisponiveis = Array.from(anos).sort((a, b) => b - a);
+        
+        this.popularFiltroDeAno();
         this.render();
     },
     render: function() {
@@ -121,9 +149,9 @@ const Dashboard = {
             (livro.leituras || []).map(leitura => ({ ...leitura, livro }))
         ).filter(leitura => leitura.dataFim);
         
-        this.popularFiltroDeAno(todasAsLeituras);
-
         const eTodoPeriodo = this.state.anoFiltro.includes('all-time');
+        const eAnoUnico = !eTodoPeriodo && this.state.anoFiltro.length === 1;
+
         const leiturasFiltradas = eTodoPeriodo
             ? todasAsLeituras
             : todasAsLeituras.filter(l => this.state.anoFiltro.includes(new Date(l.dataFim).getFullYear().toString()));
@@ -131,49 +159,71 @@ const Dashboard = {
         this.renderKPIs(leiturasFiltradas);
         this.renderDestaques(leiturasFiltradas);
         
-        this.renderGraficoGeneros(leiturasFiltradas);
-        this.renderMelhoresAutores(leiturasFiltradas);
-        this.renderMelhoresColecoes(leiturasFiltradas);
-        this.renderMelhoresEditoras(leiturasFiltradas);
-        this.renderPrateleiraVergonha();
-        this.renderGraficoResumoAnual(leiturasFiltradas);
-        
-        this.renderGraficoLidosPorMes(leiturasFiltradas);
-        this.renderListaDeLivros(leiturasFiltradas);
-        
         this.renderGraficoDistribuicaoNotas(leiturasFiltradas);
-        this.renderGraficoPaginasNota(leiturasFiltradas);
 
-        this.renderTabs();
-    },
-    renderTabs: function() {
-        this.dashboardTabButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === this.state.activeTab);
-        });
-        this.dashboardTabContents.forEach(content => {
-            content.classList.toggle('active', content.id === this.state.activeTab);
-        });
+        // --- INÍCIO DA CORREÇÃO ---
+        // A tabela de livros agora é SEMPRE visível.
+        // Ela é a base da visualização.
+        this.widgetListaLivrosAno.style.display = 'block';
+        this.renderListaDeLivros(leiturasFiltradas); 
 
-        const eAnoUnico = this.state.anoFiltro.length === 1 && !this.state.anoFiltro.includes('all-time');
-        
         if (eAnoUnico) {
-            this.analiseAnualContentEl.style.display = 'grid';
-            this.analiseAnualPlaceholderEl.style.display = 'none';
+            // MOSTRA VISÃO DE ANO ÚNICO
+            this.widgetResumoPorAno.style.display = 'none';
+            this.melhoresRankingContainerEl.style.display = 'none';
+            this.widgetLidosPorMes.style.display = 'block'; // Mostra o gráfico de mês
+
+            const ano = this.state.anoFiltro[0];
+            this.tituloTabelaLivrosAnoEl.textContent = `Livros Lidos em ${ano}`; // Título específico
+            this.tituloGraficoMesEl.textContent = `Leituras por Mês em ${ano}`;
+            
+            this.renderGraficoLidosPorMes(leiturasFiltradas);
         } else {
-            this.analiseAnualContentEl.style.display = 'none';
-            this.analiseAnualPlaceholderEl.style.display = 'flex';
+            // MOSTRA VISÃO DE RANKING (ALL-TIME OU MÚLTIPLOS ANOS)
+            this.widgetResumoPorAno.style.display = 'block';
+            this.melhoresRankingContainerEl.style.display = 'grid';
+            this.widgetLidosPorMes.style.display = 'none'; // Esconde o gráfico de mês
+
+            // Título genérico para a tabela de livros
+            if (eTodoPeriodo) {
+                 this.tituloTabelaLivrosAnoEl.textContent = `Todos os Livros Lidos`;
+            } else {
+                 this.tituloTabelaLivrosAnoEl.textContent = `Livros Lidos nos ${this.state.anoFiltro.length} anos selecionados`;
+            }
+
+            this.renderGraficoResumoAnual(leiturasFiltradas);
+            this.renderMelhoresColecoes(leiturasFiltradas);
+            this.renderMelhoresEditoras(leiturasFiltradas);
+            this.renderMelhoresAutores(leiturasFiltradas);
         }
     },
-    popularFiltroDeAno: function(leituras) {
-        const anos = new Set(leituras.map(l => new Date(l.dataFim).getFullYear()));
-        const anosOrdenados = Array.from(anos).sort((a, b) => b - a);
-        const anosFiltroAtuais = this.state.anoFiltro;
+    popularFiltroDeAno: function() {
+        // Atualiza os checkboxes
+        let htmlDropdown = `
+            <div class="filtro-ano-item">
+                <input type="checkbox" id="ano-all-time" value="all-time" ${this.state.anoFiltro.includes('all-time') ? 'checked' : ''}>
+                <label for="ano-all-time">Todo o Período</label>
+            </div>
+        `;
         
-        let optionsHTML = `<option value="all-time" ${anosFiltroAtuais.includes('all-time') ? 'selected' : ''}>Todo o Período</option>`;
-        anosOrdenados.forEach(ano => {
-            optionsHTML += `<option value="${ano}" ${anosFiltroAtuais.includes(ano.toString()) ? 'selected' : ''}>${ano}</option>`;
+        this.state.anosDisponiveis.forEach(ano => {
+            htmlDropdown += `
+                <div class="filtro-ano-item">
+                    <input type="checkbox" id="ano-${ano}" value="${ano}" ${this.state.anoFiltro.includes(ano.toString()) ? 'checked' : ''}>
+                    <label for="ano-${ano}">${ano}</label>
+                </div>
+            `;
         });
-        this.selectAnoEl.innerHTML = optionsHTML;
+        this.filtroAnoDropdownEl.innerHTML = htmlDropdown;
+
+        // Atualiza o texto do botão
+        if (this.state.anoFiltro.includes('all-time') || this.state.anoFiltro.length === 0) {
+            this.filtroAnoBtnEl.textContent = 'Todo o Período';
+        } else if (this.state.anoFiltro.length === 1) {
+            this.filtroAnoBtnEl.textContent = this.state.anoFiltro[0];
+        } else {
+            this.filtroAnoBtnEl.textContent = `${this.state.anoFiltro.length} anos selecionados`;
+        }
     },
     renderKPIs: function(leituras) {
         const totalLivros = leituras.length;
@@ -224,7 +274,7 @@ const Dashboard = {
         const leiturasComTempo = leituras.filter(l => l.dataInicio && l.dataFim);
         const totalDias = leiturasComTempo.reduce((s, l) => {
             const dias = ((new Date(l.dataFim) - new Date(l.dataInicio)) / (1000 * 60 * 60 * 24)) + 1;
-            return s + dias;
+            return s + (dias > 0 ? dias : 1);
         }, 0);
         const tempoMedio = leiturasComTempo.length > 0 ? (totalDias / leiturasComTempo.length) : 0;
         
@@ -321,7 +371,8 @@ const Dashboard = {
                         case 'dataAquisicao': return item.dataAquisicao ? new Date(item.dataAquisicao).getTime() : 0;
                         case 'tempo': 
                             if (!item.dataFim || !item.dataInicio) return 0;
-                            return (new Date(item.dataFim) - new Date(item.dataInicio));
+                            const diasTempo = ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1;
+                            return diasTempo > 0 ? diasTempo : 1;
 
                         case 'pagPorDia': 
                             if (!item.dataFim || !item.dataInicio) return 0;
@@ -372,8 +423,14 @@ const Dashboard = {
                     case 'notaFinal': valor = item.notaFinal ? item.notaFinal.toFixed(1).replace('.', ',') : '-'; break;
                     case 'dataFim': valor = new Date(item.dataFim).toLocaleDateString('pt-BR', {timeZone: 'UTC'}); break;
                     case 'dataAquisicao': valor = new Date(item.dataAquisicao).toLocaleDateString('pt-BR', {timeZone: 'UTC'}); break;
-                    case 'tempo': valor = `${Math.round((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1} dias`; break;
-                    case 'pagPorDia': const dias = ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1; valor = ((parseInt(livro.paginas, 10) || 0) / (dias > 0 ? dias : 1)).toFixed(1).replace('.', ','); break;
+                    case 'tempo': 
+                        const dias = item.dataInicio && item.dataFim ? Math.round((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1 : 0;
+                        valor = dias > 0 ? `${dias} dias` : '-';
+                        break;
+                    case 'pagPorDia': 
+                        const diasPag = item.dataInicio && item.dataFim ? ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1 : 0;
+                        valor = diasPag > 0 ? ((parseInt(livro.paginas, 10) || 0) / diasPag).toFixed(1).replace('.', ',') : '-';
+                        break;
                     case 'ano': valor = item.ano; break;
                     case 'livros': valor = item.livros; break;
                     case 'mediaNota': valor = item.mediaNota.toFixed(2).replace('.', ','); break;
@@ -418,16 +475,6 @@ const Dashboard = {
         this.renderTabela('tabela-melhores-editoras', this.tabelaMelhoresEditorasEl, dados, [
             { header: 'Editora', key: 'nome', sortable: true }, { header: 'Nota Média', key: 'mediaNota', sortable: true },
             { header: 'Livros', key: 'count', sortable: true }
-        ]);
-    },
-    renderPrateleiraVergonha: function() {
-        const livrosNaoLidos = this.state.todosOsLivros
-            .filter(l => (l.situacao === 'Quero Ler' || l.situacao === 'Wishlist') && l.dataAquisicao)
-            .sort((a, b) => new Date(a.dataAquisicao) - new Date(b.dataAquisicao));
-        this.renderTabela('tabela-vergonha', this.tabelaVergonhaEl, livrosNaoLidos.slice(0, 20), [
-            { header: 'Título', key: 'nomeDoLivro', sortable: true },
-            { header: 'Autor', key: 'autor', sortable: true },
-            { header: 'Adicionado em', key: 'dataAquisicao', sortable: true }
         ]);
     },
     calcularMaisFrequente: function(array) {
@@ -518,57 +565,15 @@ const Dashboard = {
             }
         });
     },
-    renderGraficoGeneros: function(leituras) {
-        if (this.state.graficoGeneros) {
-            this.state.graficoGeneros.destroy();
-        }
-        const dados = this.calcularRanking(leituras.filter(l => l.livro.categorias), 'categorias', 1);
-        const top10 = dados.slice(0, 10);
-        const labels = top10.map(d => d.nome);
-        const data = top10.map(d => d.count);
-
-        this.state.graficoGeneros = new Chart(this.graficoGenerosEl, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Livros por Gênero',
-                    data: data,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                        '#FF9F40', '#C9CBCF', '#7CFFB2', '#FF6347', '#00CED1'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                    }
-                }
-            }
-        });
-    },
-    renderGraficoLidosPorMes: function(leiturasFiltradas) {
+    renderGraficoLidosPorMes: function(leituras) {
         if (this.state.graficoLidosPorMes) {
             this.state.graficoLidosPorMes.destroy();
         }
         
-        const eAnoUnico = this.state.anoFiltro.length === 1 && !this.state.anoFiltro.includes('all-time');
-        if (!eAnoUnico) {
-            return;
-        }
-
-        const ano = this.state.anoFiltro[0];
-        this.tituloGraficoMesEl.textContent = `Leituras por Mês em ${ano}`;
-        this.tituloTabelaLivrosAnoEl.textContent = `Livros Lidos em ${ano}`;
-        
         const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const dadosMensais = new Array(12).fill(0);
         
-        leiturasFiltradas.forEach(l => {
+        leituras.forEach(l => {
             const mesIndex = new Date(l.dataFim).getUTCMonth();
             dadosMensais[mesIndex]++;
         });
@@ -647,55 +652,6 @@ const Dashboard = {
                 },
                 plugins: {
                     legend: { display: false }
-                }
-            }
-        });
-    },
-    renderGraficoPaginasNota: function(leituras) {
-        if (this.state.graficoPaginasNota) {
-            this.state.graficoPaginasNota.destroy();
-        }
-        
-        const data = leituras
-            .filter(l => l.notaFinal != null && parseInt(l.livro.paginas, 10) > 0)
-            .map(l => ({
-                x: parseInt(l.livro.paginas, 10),
-                y: l.notaFinal,
-                titulo: l.livro.nomeDoLivro
-            }));
-
-        this.state.graficoPaginasNota = new Chart(this.graficoPaginasNotaEl, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Livro',
-                    data: data,
-                    backgroundColor: 'rgba(255, 159, 64, 0.7)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'bottom',
-                        title: { display: true, text: 'Nº de Páginas' }
-                    },
-                    y: {
-                        title: { display: true, text: 'Nota' }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const raw = context.raw;
-                                return `${raw.titulo}: ${raw.x} pág, Nota ${raw.y}`;
-                            }
-                        }
-                    }
                 }
             }
         });

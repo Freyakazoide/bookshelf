@@ -1116,10 +1116,6 @@ table th.sort-desc::after {
     background-color: #f9f9f9;
     box-shadow: var(--sombra-sutil);
 }
-.sidebar-footer .btn-login img {
-    width: 18px;
-    height: 18px;
-}
 
 .dashboard-tabs {
     display: flex;
@@ -1652,21 +1648,21 @@ table th.sort-desc::after {
     border: none;
     background: none;
 }
-.dashboard-kpi-principais .dash-card .kpi-header {
+.dashboard-kpi-principais .kpi-header {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 0.5rem;
 }
-.dashboard-kpi-principais .dash-card .kpi-header .kpi-icon {
+.dashboard-kpi-principais .kpi-header .kpi-icon {
     font-size: 1.1em;
     color: var(--cor-acao-primaria);
 }
-.dashboard-kpi-principais .dash-card .kpi-header h4 {
+.dashboard-kpi-principais .kpi-header h4 {
     margin: 0;
     font-size: 1em;
 }
-.dashboard-kpi-principais .dash-card .valor-kpi {
+.dashboard-kpi-principais .valor-kpi {
     font-size: 2.25rem;
     margin-left: 5px;
 }
@@ -1792,7 +1788,7 @@ table th.sort-desc::after {
 
 /* 1. Redesenha a linha de KPIs */
 .dashboard-kpi-principais {
-    grid-template-columns: 2fr 1fr 1fr; /* 2fr para o "Hero", 1fr para os outros */
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* 2fr para o "Hero", 1fr para os outros */
     grid-column: 1 / -1;
     padding: 0;
     overflow: hidden;
@@ -1836,7 +1832,7 @@ table th.sort-desc::after {
     flex-direction: column;
     justify-content: center;
 }
-.kpi-secundario:first-of-type {
+.kpi-secundario:not(:last-child) {
     border-right: 1px solid rgba(71, 85, 105, 0.5);
 }
 .kpi-secundario h4 {
@@ -1879,7 +1875,7 @@ table th.sort-desc::after {
 .destaques-lista-nova {
     padding: 1.5rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 1.5rem;
 }
 /* Esconde o widget antigo */
@@ -1922,15 +1918,21 @@ table th.sort-desc::after {
 @media (max-width: 1200px) {
     /* Faz os KPIs secundários empilharem melhor */
     .dashboard-kpi-principais {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
     .kpi-hero {
+        grid-column: 1 / -1;
         border-right: none;
         border-bottom: 1px solid rgba(71, 85, 105, 0.5);
     }
-    .kpi-secundario:first-of-type {
+    .kpi-secundario:not(:last-child) {
         border-right: none;
-        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .kpi-secundario:nth-child(2) {
+         border-right: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .destaques-lista-nova {
+        grid-template-columns: 1fr 1fr;
     }
 }
 @media (max-width: 900px) {
@@ -1938,4 +1940,101 @@ table th.sort-desc::after {
     .destaques-lista-nova {
         grid-template-columns: 1fr;
     }
+    .kpi-secundario:nth-child(2) {
+         border-right: none;
+    }
+    .kpi-secundario {
+        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .dashboard-kpi-principais {
+        grid-template-columns: 1fr;
+    }
+}
+
+/*
+=====================================
+    NOVOS ESTILOS - FILTRO DE ANO
+=====================================
+*/
+
+#filtro-ano-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+#filtro-ano-container label {
+    font-weight: 500;
+    color: var(--cor-texto-secundario);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#filtro-ano-btn {
+    min-width: 200px;
+    text-align: left;
+    justify-content: space-between;
+}
+#filtro-ano-btn::after {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    transition: var(--transicao-rapida);
+}
+#filtro-ano-btn.open::after {
+    transform: rotate(180deg);
+}
+
+#filtro-ano-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 1rem;
+    z-index: 100;
+    min-width: 200px;
+    box-shadow: var(--sombra-media);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+#filtro-ano-dropdown.hidden {
+    display: none;
+}
+
+.filtro-ano-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.filtro-ano-item label {
+    color: var(--cor-texto-principal);
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0;
+}
+.filtro-ano-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cor-acao-primaria);
+    cursor: pointer;
+}
+
+/*
+=====================================
+    NOVOS ESTILOS - RANKINGS
+=====================================
+*/
+
+.melhores-ranking-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
 }
