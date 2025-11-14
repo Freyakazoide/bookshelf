@@ -14,8 +14,7 @@ const Estante = {
         criteriosDeNota: [
             'personagens', 'plot', 'desenvolvimento', 'pacing', 'prosa',
             'originalidade', 'temas', 'impacto', 'closing', 'releitura'
-        ],
-        initialized: false,
+        ]
     },
 
     cacheDOM: function() {
@@ -26,6 +25,7 @@ const Estante = {
         this.contadorResultadosEl = document.getElementById('contador-resultados');
         this.selectTamanhoPaginaEl = document.getElementById('select-tamanho-pagina');
         this.linksPaginacaoEl = document.getElementById('links-paginacao');
+
         this.painelLivroEl = document.getElementById('painel-livro');
         this.painelTituloEl = document.getElementById('painel-titulo');
         this.btnFecharPainelEl = document.getElementById('btn-fechar-painel');
@@ -33,29 +33,33 @@ const Estante = {
         this.btnEditarEl = document.getElementById('painel-btn-editar');
         this.btnExcluirEl = document.getElementById('painel-btn-excluir');
         this.painelBtnSalvarEl = document.getElementById('painel-btn-salvar');
+
         this.painelTabs = this.painelLivroEl.querySelectorAll('.painel-tabs .tab-button');
         this.painelTabContents = this.painelLivroEl.querySelectorAll('.tab-content');
+
         this.leiturasContainerEl = document.getElementById('leituras-container');
         this.formLeituraContainerEl = document.getElementById('form-leitura-container');
         this.btnNovaLeituraEl = document.getElementById('painel-btn-nova-leitura');
+
         this.formNotasEl = document.getElementById('form-notas');
         this.avisoNotaBloqueadaEl = document.getElementById('aviso-nota-bloqueada');
         this.notaFinalCalculadaEl = document.getElementById('nota-final-calculada');
+
         this.infoDetalhesEl = document.getElementById('info-detalhes');
     },
 
     bindEvents: function() {
-        if (this.state.initialized) return;
-
         this.estanteEl.addEventListener('click', e => {
             const card = e.target.closest('.card-livro');
-            if (card) this.abrirPainel(card.dataset.id);
+            if (card) this.abrirPainel(parseInt(card.dataset.id, 10));
         });
+
         this.inputBuscaEl.addEventListener('input', e => {
             this.state.filtros.busca = e.target.value.toLowerCase();
             this.state.filtros.pagina = 0;
             this.renderEstante();
         });
+
         this.filtrosStatusEl.forEach(btn => {
             btn.addEventListener('click', e => {
                 this.filtrosStatusEl.forEach(b => b.classList.remove('active'));
@@ -65,23 +69,28 @@ const Estante = {
                 this.renderEstante();
             });
         });
+
         this.selectOrdenacaoEl.addEventListener('change', e => {
             this.state.filtros.ordenacao = e.target.value;
             this.renderEstante();
         });
+
         this.selectTamanhoPaginaEl.addEventListener('change', e => {
             this.state.filtros.porPagina = parseInt(e.target.value, 10);
             this.state.filtros.pagina = 0;
             this.renderEstante();
         });
+
         this.linksPaginacaoEl.addEventListener('click', e => {
             if (e.target.tagName === 'BUTTON' && e.target.dataset.pagina) {
                 this.state.filtros.pagina = parseInt(e.target.dataset.pagina, 10);
                 this.renderEstante();
             }
         });
+
         this.btnFecharPainelEl.addEventListener('click', () => this.painelLivroEl.close());
         this.painelLivroEl.addEventListener('close', () => this.limparPainel());
+
         this.painelTabs.forEach(tab => {
             tab.addEventListener('click', e => {
                 const tabId = e.target.dataset.tab;
@@ -91,13 +100,18 @@ const Estante = {
                 document.getElementById(tabId).classList.add('active');
             });
         });
+
         this.btnNovaLeituraEl.addEventListener('click', () => this.renderFormLeitura());
+
         this.formLeituraContainerEl.addEventListener('click', e => {
             if (e.target.id === 'btn-salvar-leitura') this.salvarLeitura();
+            
+            // FIX: Adicionado bloco para esconder o form ao cancelar
             if (e.target.id === 'btn-cancelar-leitura') {
                 this.formLeituraContainerEl.innerHTML = '';
                 this.formLeituraContainerEl.classList.add('hidden');
             }
+            
             if (e.target.classList.contains('btn-deletar-leitura')) {
                 const id = parseInt(e.target.dataset.idleitura, 10);
                 if (confirm('Tem certeza que deseja excluir este registro de leitura?')) {
@@ -105,21 +119,24 @@ const Estante = {
                 }
             }
         });
+
+        // FIX: Alterado listener para abrir o form de edição ao clicar em uma leitura
         this.leiturasContainerEl.addEventListener('click', e => {
             const itemLeitura = e.target.closest('.item-leitura');
             if (itemLeitura) {
                 const idLeitura = parseInt(itemLeitura.dataset.idleitura, 10);
                 this.state.leituraAtivaId = idLeitura;
 
-                // FIX: Encontra a leitura e abre o formulário para edição
+                // Encontra a leitura e abre o formulário para edição
                 const leituraParaEditar = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
                 if (leituraParaEditar) {
                     this.renderFormLeitura(leituraParaEditar);
                 }
                 
-                this.renderPainelLeituras(); // Atualiza a lista (para destacar o item)
+                this.renderPainelLeituras(); // Apenas atualiza o 'active' class
             }
         });
+
         this.painelBtnSalvarEl.addEventListener('click', () => this.salvarNotas());
         this.btnEditarEl.addEventListener('click', () => {
             this.painelLivroEl.close();
@@ -129,21 +146,9 @@ const Estante = {
         this.btnExcluirEl.addEventListener('click', () => {
             if (confirm(`Tem certeza que deseja excluir "${this.state.livroAtivo.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {
                 this.painelLivroEl.close();
-                App.excluirLivro(this.state.livroAtivo.firestoreId);
+                App.excluirLivro(this.state.livroAtivo.id);
             }
         });
-        this.state.criteriosDeNota.forEach(criterio => {
-            const slider = document.getElementById(`nota-${criterio}`);
-            if (slider) {
-                slider.addEventListener('input', e => {
-                    const valorSpan = document.getElementById(`valor-nota-${criterio}`);
-                    valorSpan.textContent = parseFloat(e.target.value).toFixed(1);
-                    this.calcularNotaFinal();
-                });
-            }
-        });
-
-        this.state.initialized = true;
     },
 
     init: function(livros) {
@@ -161,22 +166,18 @@ const Estante = {
     filtrarEOrdenarLivros: function() {
         let livros = [...this.state.todosOsLivros];
         const { busca, status } = this.state.filtros;
+
         if (busca) {
             livros = livros.filter(l =>
                 l.nomeDoLivro.toLowerCase().includes(busca) ||
                 (l.autor && l.autor.toLowerCase().includes(busca))
             );
         }
+
         if (status !== 'Todos') {
-            livros = livros.filter(l => {
-                const temLeituraIniciada = (l.leituras || []).some(leitura => leitura.dataInicio);
-                const temLeituraFinalizada = (l.leituras || []).some(leitura => leitura.dataFim);
-                if (status === 'Lido') return temLeituraFinalizada;
-                if (status === 'Lendo') return temLeituraIniciada && !temLeituraFinalizada;
-                if (status === 'Quero Ler') return !temLeituraIniciada;
-                return false;
-            });
+            livros = livros.filter(l => l.situacao === status);
         }
+
         this.state.livrosFiltrados = livros;
         this.ordenarLivros();
     },
@@ -188,7 +189,7 @@ const Estante = {
                 case 'titulo-asc':
                     return a.nomeDoLivro.localeCompare(b.nomeDoLivro);
                 case 'autor-asc':
-                    return a.autor.localeCompare(b.autor);
+                    return (a.autor || '').localeCompare(b.autor || '');
                 case 'nota-desc':
                     const notaA = (a.leituras && a.leituras[0]) ? a.leituras[0].notaFinal || 0 : 0;
                     const notaB = (b.leituras && b.leituras[0]) ? b.leituras[0].notaFinal || 0 : 0;
@@ -209,19 +210,15 @@ const Estante = {
 
         this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
             const capa = livro.urlCapa || 'placeholder.jpg';
-            const leituraRecente = (livro.leituras && livro.leituras.length > 0) 
-                ? [...livro.leituras].sort((a,b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0))[0]
-                : null;
-            const nota = (leituraRecente && leituraRecente.notaFinal)
-                ? `<div class="card-nota">★ ${leituraRecente.notaFinal.toFixed(1)}</div>` : '';
-
+            const nota = (livro.leituras && livro.leituras.length > 0 && livro.leituras[0].notaFinal)
+                ? `<div class="card-nota">★ ${livro.leituras[0].notaFinal.toFixed(1)}</div>` : '';
             return `
-                <div class="card-livro" data-id="${livro.firestoreId}">
+                <div class="card-livro" data-id="${livro.id}">
                     ${nota}
                     <img src="${capa}" alt="Capa de ${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
                     <div class="card-info">
                         <h3>${livro.nomeDoLivro}</h3>
-                        <p>${livro.autor}</p>
+                        <p>${livro.autor || 'Autor desconhecido'}</p>
                     </div>
                 </div>
             `;
@@ -237,7 +234,9 @@ const Estante = {
         const { pagina, porPagina } = this.state.filtros;
         const totalPaginas = Math.ceil(totalLivros / porPagina);
         this.linksPaginacaoEl.innerHTML = '';
+
         if (totalPaginas <= 1) return;
+
         for (let i = 0; i < totalPaginas; i++) {
             const btn = document.createElement('button');
             btn.textContent = i + 1;
@@ -247,13 +246,15 @@ const Estante = {
         }
     },
     
-    abrirPainel: function(firestoreId) {
-        this.state.livroAtivo = this.state.todosOsLivros.find(l => l.firestoreId === firestoreId);
+    abrirPainel: function(livroId) {
+        this.state.livroAtivo = this.state.todosOsLivros.find(l => l.id === livroId);
         if (!this.state.livroAtivo) return;
+
         const leituraMaisRecente = this.state.livroAtivo.leituras && this.state.livroAtivo.leituras.length > 0
             ? [...this.state.livroAtivo.leituras].sort((a,b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0))[0]
             : null;
         this.state.leituraAtivaId = leituraMaisRecente ? leituraMaisRecente.idLeitura : null;
+        
         this.renderPainel();
         this.painelLivroEl.showModal();
     },
@@ -262,6 +263,8 @@ const Estante = {
         this.state.livroAtivo = null;
         this.state.leituraAtivaId = null;
         this.formLeituraContainerEl.innerHTML = '';
+        // FIX: Adicionado para garantir que o form suma ao fechar o painel
+        this.formLeituraContainerEl.classList.add('hidden');
         this.formNotasEl.classList.add('hidden');
     },
 
@@ -315,8 +318,6 @@ const Estante = {
         const btnTexto = leitura ? 'Salvar Edição' : 'Registrar Leitura';
         const deleteBtn = leitura ? `<button type="button" class="btn btn-perigo btn-deletar-leitura" data-idleitura="${leitura.idLeitura}">Excluir</button>` : '';
 
-        this.formLeituraContainerEl.classList.remove('hidden');
-
         this.formLeituraContainerEl.innerHTML = `
             <form id="form-leitura" class="painel-form">
                 <input type="hidden" id="form-leitura-id" ${id}>
@@ -341,47 +342,78 @@ const Estante = {
                 </div>
             </form>
         `;
+        
+        // FIX: Garante que o container do formulário apareça
+        this.formLeituraContainerEl.classList.remove('hidden');
     },
 
     salvarLeitura: async function() {
-        const idLeitura = document.getElementById('form-leitura-id').value;
+        const idLeituraInput = document.getElementById('form-leitura-id');
+        const idLeitura = idLeituraInput ? parseInt(idLeituraInput.value, 10) : null;
         const dataInicio = document.getElementById('form-data-inicio').value;
         const dataFim = document.getElementById('form-data-fim').value;
         const anotacoes = document.getElementById('form-anotacoes').value;
         
         if (!this.state.livroAtivo.leituras) this.state.livroAtivo.leituras = [];
-        let leitura = this.state.livroAtivo.leituras.find(l => l.idLeitura == idLeitura);
+
+        let leitura = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
+        
         if (leitura) {
+            // Editando
             leitura.dataInicio = dataInicio;
             leitura.dataFim = dataFim || null;
             leitura.anotacoes = anotacoes;
         } else {
-            leitura = { idLeitura: Date.now(), dataInicio, dataFim: dataFim || null, anotacoes, notas: {} };
+            // Novo
+            leitura = {
+                idLeitura: Date.now(),
+                dataInicio,
+                dataFim: dataFim || null,
+                anotacoes,
+                notas: {}
+            };
             this.state.livroAtivo.leituras.push(leitura);
         }
+        
         this.state.leituraAtivaId = leitura.idLeitura;
         this.formLeituraContainerEl.innerHTML = '';
+        
+        // FIX: Esconde o container do formulário após salvar
         this.formLeituraContainerEl.classList.add('hidden');
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+        
+        this.renderPainelLeituras(); // Agora a UI vai atualizar
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
 
     deletarLeitura: async function(idLeitura) {
         this.state.livroAtivo.leituras = this.state.livroAtivo.leituras.filter(l => l.idLeitura !== idLeitura);
-        this.state.leituraAtivaId = null;
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+        
+        // FIX: Esconde o form se a leitura deletada estava sendo editada
+        this.formLeituraContainerEl.innerHTML = '';
+        this.formLeituraContainerEl.classList.add('hidden');
+        
+        if (this.state.leituraAtivaId === idLeitura) {
+            this.state.leituraAtivaId = null;
+        }
+        
+        this.renderPainelLeituras();
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
         App.mostrarNotificacao('Registro de leitura excluído.');
     },
 
     renderPainelNotas: function() {
         const leitura = (this.state.livroAtivo.leituras || []).find(l => l.idLeitura === this.state.leituraAtivaId);
+
         if (!leitura || !leitura.dataFim) {
             this.formNotasEl.classList.add('hidden');
             this.avisoNotaBloqueadaEl.classList.remove('hidden');
             return;
         }
+        
         this.avisoNotaBloqueadaEl.classList.add('hidden');
         this.formNotasEl.classList.remove('hidden');
+
         const notas = leitura.notas || {};
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
@@ -391,12 +423,32 @@ const Estante = {
                 valorSpan.textContent = parseFloat(slider.value).toFixed(1);
             }
         });
+
+        this.setupSliderEvents();
         this.calcularNotaFinal();
+    },
+
+    setupSliderEvents: function() {
+        this.state.criteriosDeNota.forEach(criterio => {
+            const slider = document.getElementById(`nota-${criterio}`);
+            if (slider) {
+                // Remove listeners antigos para evitar duplicação
+                const novoSlider = slider.cloneNode(true);
+                slider.parentNode.replaceChild(novoSlider, slider);
+                
+                novoSlider.addEventListener('input', () => {
+                    const valorSpan = document.getElementById(`valor-nota-${criterio}`);
+                    valorSpan.textContent = parseFloat(novoSlider.value).toFixed(1);
+                    this.calcularNotaFinal();
+                });
+            }
+        });
     },
 
     calcularNotaFinal: function() {
         let soma = 0;
         let count = 0;
+
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
             if (slider) {
@@ -404,23 +456,30 @@ const Estante = {
                 count++;
             }
         });
+
         const media = count > 0 ? soma / count : 0;
         this.notaFinalCalculadaEl.textContent = media.toFixed(1);
     },
 
     salvarNotas: async function() {
         const leitura = (this.state.livroAtivo.leituras || []).find(l => l.idLeitura === this.state.leituraAtivaId);
-        if (!leitura) return App.mostrarNotificacao('Nenhuma leitura selecionada para salvar as notas.', 'erro');
+        if (!leitura) {
+            return App.mostrarNotificacao('Nenhuma leitura selecionada para salvar as notas.', 'erro');
+        }
+
         if (!leitura.notas) leitura.notas = {};
+
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
             if (slider) {
                 leitura.notas[criterio] = parseFloat(slider.value);
             }
         });
+        
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+
+        this.renderPainelLeituras(); // Atualiza a nota na lista de leituras
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
         App.mostrarNotificacao('Notas salvas com sucesso!');
-        this.renderPainelLeituras();
     }
 };

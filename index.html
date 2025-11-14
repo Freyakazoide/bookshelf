@@ -18,7 +18,6 @@
                 <a href="#" class="nav-link" data-view="view-adicionar">➕ Adicionar Livro</a>
                 <a href="#" class="nav-link" data-view="view-desafio">🏆 Metas de Leitura</a>
                 <a href="#" class="nav-link" data-view="view-dashboard">📊 Dashboard</a>
-                <a href="#" class="nav-link" data-view="view-financeiro">💰 Financeiro</a>
             </nav>
             <div id="auth-container" class="sidebar-footer"></div>
         </aside>
@@ -277,25 +276,6 @@
                     </div>
                 </div>
             </div>
-
-            <div id="view-financeiro" class="view">
-    <!-- ETAPA 1: Dashboard Principal -->
-    <div id="financeiro-dashboard-step">
-        <h1>Controle Financeiro</h1>
-        <div class="controles-dashboard" style="justify-content: space-between;">
-            <div class="grupo-filtros">
-                <label for="select-mes-financeiro">Analisar Mês:</label>
-                <select id="select-mes-financeiro"></select>
-            </div>
-            <div class="grupo-botoes-financeiro" style="display: flex; gap: 1rem;">
-                <button id="btn-abrir-lancamento-manual" class="btn btn-secundario">
-                    <i class="fa-solid fa-plus"></i> Adicionar Lançamento
-                </button>
-                <button id="btn-abrir-modal-importar" class="btn btn-primario">
-                    <i class="fa-solid fa-upload"></i> Importar Dados
-                </button>
-            </div>
-        </div>
 
         <div class="dashboard-layout-ano">
             <!-- Coluna Principal com Gráficos e KPIs -->
@@ -583,7 +563,6 @@
     <script src="adicionar.js"></script>
     <script src="dashboard.js"></script>
     <script src="desafio.js"></script>
-    <script src="financeiro.js"></script>
 </body>
 </html>
 
