@@ -1,5 +1,6 @@
 const Adicionar = {
     state: {
+        isInitialized: false,
         todosOsLivros: [],
         resultadosApi: [],
         livroApiSelecionado: null,
@@ -83,12 +84,16 @@ const Adicionar = {
             this.formCapaPreviewEl.src = 'placeholder.jpg';
         };
     },
-    init: function(livros) {
-        this.state.todosOsLivros = livros;
+init: function(livros) {
+    if (!this.state.isInitialized) {
         this.cacheDOM();
         this.bindEvents();
         this.formContainerEl.classList.add('hidden');
-    },
+        this.state.isInitialized = true;
+    }
+    
+    this.state.todosOsLivros = livros;
+},
     buscarNaApi: async function(novaBusca = true) {
         if (novaBusca) {
             const titulo = this.inputBuscaApiTituloEl.value.trim();

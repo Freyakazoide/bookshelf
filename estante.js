@@ -772,7 +772,7 @@ init: function(livros, metas) {
     abrirMenuAcoes: function(e, livroId) {
         this.fecharMenuAcoes(); 
         
-        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
+        const livro = this.state.todosOsLivros.find(l => this.getId(l) == livroId);
         if (!livro) return;
         
         const status = livro.situacao || 'Quero Ler';
@@ -842,7 +842,7 @@ init: function(livros, metas) {
     },
 
     moverLivroStatus: async function(livroId, novoStatus) {
-        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
+        const livro = this.state.todosOsLivros.find(l => this.getId(l) == livroId);
         if (!livro) return;
 
         livro.situacao = novoStatus;
@@ -867,7 +867,7 @@ init: function(livros, metas) {
     },
 
     excluirLivro: function(livroId) {
-        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
+       const livro = this.state.todosOsLivros.find(l => this.getId(l) == livroId);
         if (!livro) return;
         
         if (confirm(`Tem certeza que deseja excluir "${livro.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {
