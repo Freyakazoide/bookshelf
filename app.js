@@ -85,10 +85,10 @@ const App = {
             console.log(`Carregados ${this.state.livros.length} livros e ${this.state.challenges.length} desafios.`);
             this.mostrarNotificacao('Dados carregados com sucesso!');
 
-            Estante.init(this.state.livros);
+           Estante.init(this.state.livros, this.state.challenges);
             Adicionar.init(this.state.livros);
             Dashboard.init(this.state.livros);
-            Desafio.init(this.state.livros);
+            Desafio.init(this.state.livros, this.state.challenges);
 
         } catch (error) {
             console.error("Erro ao buscar dados do Firestore:", error);

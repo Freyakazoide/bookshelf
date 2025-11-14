@@ -249,28 +249,25 @@ const Estante = {
         bindFilterList(this.filtroBuscaAutorEl, this.filtroListaAutoresEl, 'autores');
     },
 
-    init: function(livros, metas) {
-        this.state.todosOsLivros = livros;
-        this.state.metas = metas || [];
-        
-        if (!this.state.isInitialized) {
-            this.cacheDOM();
-            this.bindEvents();
-            this.state.isInitialized = true;
-        }
-        
+init: function(livros, metas) {
+    this.state.todosOsLivros = livros;
+    this.state.metas = metas || [];
+    
+    if (!this.state.isInitialized) {
+        this.cacheDOM();
+        this.bindEvents();
         this.bindEstanteEvents(); 
-        
-        this.popularOpcoesFiltros();
-        this.renderEstante();
-    },
+        this.state.isInitialized = true;
+    }
+    
+    this.popularOpcoesFiltros();
+    this.renderEstante();
+},
 
     atualizar: function(livros, metas) {
         this.state.todosOsLivros = livros;
         this.state.metas = metas || [];
         
-        this.bindEstanteEvents();
-
         this.popularOpcoesFiltros();
         this.renderEstante();
     },
@@ -305,7 +302,7 @@ const Estante = {
         }
 
         if (status !== 'Todos') {
-            livros = livros.filter(l => (l.situacao || 'Quero Ler') === status);
+           livros = livros.filter(l => (l.situacao || null) === status);
         }
 
         if (avancados.nota) {
@@ -382,7 +379,7 @@ const Estante = {
             this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
                 const id = this.getId(livro);
                 const capa = livro.urlCapa || 'placeholder.jpg';
-                const status = livro.situacao || 'Quero Ler';
+                const status = livro.situacao || null;
                 const notaNum = this.getNotaRecente(livro);
                 
                 const notaCard = notaNum 
@@ -394,7 +391,6 @@ const Estante = {
                 let statusBadge = '';
                 if (status === 'Lido') statusBadge = `<span class="status-badge status-lido">Lido</span>`;
                 if (status === 'Lendo') statusBadge = `<span class="status-badge status-lendo">Lendo</span>`;
-                if (status === 'Quero Ler') statusBadge = `<span class="status-badge status-quero-ler">Quero Ler</span>`;
                 
                 const infoExtra = `<div class="card-info-extra">${statusBadge}</div>`;
 
@@ -448,8 +444,8 @@ const Estante = {
     },
     
     abrirPainel: function(livroId) {
-        this.state.livroAtivo = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
-        if (!this.state.livroAtivo) return;
+    this.state.livroAtivo = this.state.todosOsLivros.find(l => this.getId(l) == livroId);
+    if (!this.state.livroAtivo) return;
 
         const leiturasOrdenadas = (this.state.livroAtivo.leituras || [])
             .sort((a,b) => new Date(b.dataFim || b.dataInicio) - new Date(a.dataFim || a.dataInicio));
@@ -595,7 +591,7 @@ const Estante = {
         this.formLeituraContainerEl.innerHTML = '';
         this.formLeituraContainerEl.classList.add('hidden');
         
-        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
+        await this.atualizarPainelAposSalvar(this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
 
@@ -609,7 +605,7 @@ const Estante = {
             this.state.leituraAtivaId = null;
         }
         
-        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
+        await this.atualizarPainelAposSalvar(this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura excluído.');
     },
 
@@ -687,7 +683,7 @@ const Estante = {
         
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
 
-        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
+        await this.atualizarPainelAposSalvar(this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Notas salvas com sucesso!');
     },
 
@@ -790,9 +786,6 @@ const Estante = {
         }
         if (status !== 'Lendo') {
             botoesStatus += `<button data-id="${livroId}" data-status="Lendo"><i class="fa-solid fa-book-open-reader"></i> Mover para Lendo</button>`;
-        }
-        if (status !== 'Quero Ler') {
-            botoesStatus += `<button data-id="${livroId}" data-status="Quero Ler"><i class="fa-solid fa-bookmark"></i> Mover para Quero Ler</button>`;
         }
 
         menu.innerHTML = `
