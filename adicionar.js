@@ -106,6 +106,8 @@ init: function(livros) {
         }
         if (!this.state.buscaApiTermo) return App.mostrarNotificacao('Digite um título ou autor.', 'erro');
 
+        this.btnBuscaApiEl.disabled = true;
+        this.btnBuscaApiEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';
         const fonteApi = document.querySelector('input[name="api-source"]:checked').value;
         this.resultadosBuscaApiEl.innerHTML = `<div class="loader-container" style="padding: 2rem 0;"><div class="loader"></div><p>Buscando página ${this.state.buscaApiPagina + 1}...</p></div>`;
         this.buscaApiPaginacaoEl.classList.add('hidden');
@@ -138,16 +140,18 @@ init: function(livros) {
                 }
             }
 
-            this.state.resultadosApi = resultados;
-            this.state.buscaApiTotalItems = totalItems;
-            this.renderResultados();
-            this.adicionarManualContainerEl.classList.remove('hidden');
-
-        } catch (error) {
-            this.resultadosBuscaApiEl.innerHTML = '<p>Erro na busca. Tente novamente.</p>';
-            this.adicionarManualContainerEl.classList.remove('hidden');
-            console.error("Erro na busca da API:", error);
-        }
+                    this.state.resultadosApi = resultados;
+                        this.renderResultados();
+                        this.adicionarManualContainerEl.classList.remove('hidden');
+                    } catch (error) {
+                        this.resultadosBuscaApiEl.innerHTML = '<p>Erro na busca. Tente novamente.</p>';
+                        this.adicionarManualContainerEl.classList.remove('hidden');
+                        console.error("Erro na busca da API:", error);
+                    } finally {
+                    // ADICIONE ESTAS 3 LINHAS AQUI
+                    this.btnBuscaApiEl.disabled = false;
+                    this.btnBuscaApiEl.innerHTML = '<i class="fa-solid fa-globe"></i> Buscar na Internet';
+}
     },
     buscarNoGoogleBooks: async function(termo, pagina) {
         const startIndex = pagina * this.state.buscaApiPorPagina;
