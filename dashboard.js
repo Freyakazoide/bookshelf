@@ -1,17 +1,26 @@
 const Dashboard = {
     state: {
         todosOsLivros: [],
-        anoFiltro: new Date().getFullYear().toString(),
+        anoFiltro: ['all-time'],
+        activeTab: 'tab-visao-geral',
         ordenacaoTabelas: {},
         graficoResumoAnual: null,
         graficoGeneros: null,
+        graficoLidosPorMes: null,
+        graficoDistribuicaoNotas: null,
+        graficoPaginasNota: null,
     },
     cacheDOM: function() {
         this.selectAnoEl = document.getElementById('select-ano-dashboard');
         
+        this.dashboardTabsContainer = document.querySelector('.dashboard-tabs');
+        this.dashboardTabButtons = document.querySelectorAll('.dashboard-tabs .tab-button');
+        this.dashboardTabContents = document.querySelectorAll('.dashboard-content');
+        
         this.kpiHeroNovoEl = document.getElementById('kpi-hero-novo');
         this.kpiPaginasNovoEl = document.getElementById('kpi-paginas-novo');
         this.kpiNotaNovoEl = document.getElementById('kpi-nota-novo');
+        this.kpiAutoresNovoEl = document.getElementById('kpi-autores-novo');
 
         this.destaquesListaNovaEl = document.getElementById('destaques-lista-nova');
 
@@ -22,20 +31,52 @@ const Dashboard = {
         this.widgetMelhoresColecoes = document.getElementById('melhores-colecoes');
         this.widgetMelhoresEditoras = document.getElementById('melhores-editoras');
         this.widgetPrateleiraVergonha = document.getElementById('prateleira-vergonha');
+        this.widgetLidosPorMes = document.getElementById('widget-lidos-por-mes');
 
+        this.analiseAnualPlaceholderEl = document.getElementById('analise-anual-placeholder');
+        this.analiseAnualContentEl = document.getElementById('analise-anual-content');
+        
         this.tituloTabelaLivrosAnoEl = document.getElementById('titulo-tabela-livros-ano');
+        this.tituloGraficoMesEl = document.getElementById('titulo-grafico-mes');
         this.tabelaLivrosAnoEl = document.getElementById('tabela-livros-ano');
         this.tabelaMelhoresAutoresEl = document.getElementById('tabela-melhores-autores');
         this.tabelaMelhoresColecoesEl = document.getElementById('tabela-melhores-colecoes');
         this.tabelaMelhoresEditorasEl = document.getElementById('tabela-melhores-editoras');
         this.tabelaVergonhaEl = document.getElementById('tabela-vergonha');
+        
         this.graficoResumoAnualEl = document.getElementById('grafico-resumo-anual');
         this.graficoGenerosEl = document.getElementById('grafico-generos');
+        this.graficoLidosPorMesEl = document.getElementById('grafico-lidos-por-mes');
+        this.graficoDistribuicaoNotasEl = document.getElementById('grafico-distribuicao-notas');
+        this.graficoPaginasNotaEl = document.getElementById('grafico-paginas-nota');
     },
     bindEvents: function() {
         this.selectAnoEl.addEventListener('change', (e) => {
-            this.state.anoFiltro = e.target.value;
+            let selectedOptions = Array.from(e.target.selectedOptions).map(opt => opt.value);
+            
+            if (selectedOptions.length === 0) {
+                selectedOptions = ['all-time'];
+            }
+            
+            if (selectedOptions.includes('all-time') && selectedOptions.length > 1) {
+                selectedOptions = ['all-time'];
+            }
+            
+            this.state.anoFiltro = selectedOptions;
+            
+            Array.from(this.selectAnoEl.options).forEach(opt => {
+                opt.selected = this.state.anoFiltro.includes(opt.value);
+            });
+            
             this.render();
+        });
+
+        this.dashboardTabsContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.tab-button');
+            if (button && !button.classList.contains('active')) {
+                this.state.activeTab = button.dataset.tab;
+                this.renderTabs();
+            }
         });
 
         const tabelas = [
@@ -82,46 +123,55 @@ const Dashboard = {
         
         this.popularFiltroDeAno(todasAsLeituras);
 
-        const leiturasFiltradas = this.state.anoFiltro === 'all-time'
+        const eTodoPeriodo = this.state.anoFiltro.includes('all-time');
+        const leiturasFiltradas = eTodoPeriodo
             ? todasAsLeituras
-            : todasAsLeituras.filter(l => new Date(l.dataFim).getFullYear() == this.state.anoFiltro);
+            : todasAsLeituras.filter(l => this.state.anoFiltro.includes(new Date(l.dataFim).getFullYear().toString()));
         
         this.renderKPIs(leiturasFiltradas);
         this.renderDestaques(leiturasFiltradas);
         
         this.renderGraficoGeneros(leiturasFiltradas);
         this.renderMelhoresAutores(leiturasFiltradas);
+        this.renderMelhoresColecoes(leiturasFiltradas);
+        this.renderMelhoresEditoras(leiturasFiltradas);
+        this.renderPrateleiraVergonha();
+        this.renderGraficoResumoAnual(leiturasFiltradas);
+        
+        this.renderGraficoLidosPorMes(leiturasFiltradas);
+        this.renderListaDeLivros(leiturasFiltradas);
+        
+        this.renderGraficoDistribuicaoNotas(leiturasFiltradas);
+        this.renderGraficoPaginasNota(leiturasFiltradas);
 
-        if (this.state.anoFiltro === 'all-time') {
-            this.widgetResumoPorAno.style.display = 'block';
-            this.widgetPrateleiraVergonha.style.display = 'block';
-            this.widgetMelhoresColecoes.style.display = 'block';
-            this.widgetMelhoresEditoras.style.display = 'block';
-            this.widgetListaLivrosAno.style.display = 'none';
+        this.renderTabs();
+    },
+    renderTabs: function() {
+        this.dashboardTabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === this.state.activeTab);
+        });
+        this.dashboardTabContents.forEach(content => {
+            content.classList.toggle('active', content.id === this.state.activeTab);
+        });
 
-            this.renderGraficoResumoAnual(todasAsLeituras);
-            this.renderMelhoresColecoes(todasAsLeituras);
-            this.renderMelhoresEditoras(todasAsLeituras);
-            this.renderPrateleiraVergonha();
+        const eAnoUnico = this.state.anoFiltro.length === 1 && !this.state.anoFiltro.includes('all-time');
+        
+        if (eAnoUnico) {
+            this.analiseAnualContentEl.style.display = 'grid';
+            this.analiseAnualPlaceholderEl.style.display = 'none';
         } else {
-            this.widgetResumoPorAno.style.display = 'none';
-            this.widgetPrateleiraVergonha.style.display = 'none';
-            this.widgetMelhoresColecoes.style.display = 'none';
-            this.widgetMelhoresEditoras.style.display = 'none';
-            this.widgetListaLivrosAno.style.display = 'block';
-
-            this.tituloTabelaLivrosAnoEl.textContent = `Livros Lidos em ${this.state.anoFiltro}`;
-            this.renderListaDeLivros(leiturasFiltradas);
+            this.analiseAnualContentEl.style.display = 'none';
+            this.analiseAnualPlaceholderEl.style.display = 'flex';
         }
     },
     popularFiltroDeAno: function(leituras) {
         const anos = new Set(leituras.map(l => new Date(l.dataFim).getFullYear()));
         const anosOrdenados = Array.from(anos).sort((a, b) => b - a);
-        const anoAtualFiltro = this.state.anoFiltro;
+        const anosFiltroAtuais = this.state.anoFiltro;
         
-        let optionsHTML = '<option value="all-time">Todo o Período</option>';
+        let optionsHTML = `<option value="all-time" ${anosFiltroAtuais.includes('all-time') ? 'selected' : ''}>Todo o Período</option>`;
         anosOrdenados.forEach(ano => {
-            optionsHTML += `<option value="${ano}" ${ano == anoAtualFiltro ? 'selected' : ''}>${ano}</option>`;
+            optionsHTML += `<option value="${ano}" ${anosFiltroAtuais.includes(ano.toString()) ? 'selected' : ''}>${ano}</option>`;
         });
         this.selectAnoEl.innerHTML = optionsHTML;
     },
@@ -130,6 +180,7 @@ const Dashboard = {
         const totalPaginas = leituras.reduce((s, l) => s + (parseInt(l.livro.paginas, 10) || 0), 0);
         const leiturasComNota = leituras.filter(l => l.notaFinal);
         const notaMedia = leiturasComNota.length > 0 ? leiturasComNota.reduce((s, l) => s + (l.notaFinal || 0), 0) / leiturasComNota.length : 0;
+        const totalAutores = new Set(leituras.map(l => l.livro.autor)).size;
 
         this.kpiHeroNovoEl.innerHTML = `
             <h4><i class="fa-solid fa-book-open"></i> Total de Livros</h4>
@@ -144,14 +195,19 @@ const Dashboard = {
             <h4><i class="fa-solid fa-star"></i> Nota Média</h4>
             <div class="valor-kpi">${notaMedia.toFixed(2).replace('.',',')}</div>
         `;
+        this.kpiAutoresNovoEl.innerHTML = `
+            <h4><i class="fa-solid fa-pen-nib"></i> Autores Lidos</h4>
+            <div class="valor-kpi">${totalAutores}</div>
+        `;
     },
     renderDestaques: function(leituras) {
         const leiturasComNota = leituras.filter(l => l.notaFinal);
         const autorMaisLido = this.calcularMaisFrequente(leituras.map(l => l.livro.autor));
         const melhorLivro = leiturasComNota.length > 0 ? leiturasComNota.reduce((a, b) => a.notaFinal > b.notaFinal ? a : b) : null;
         const piorLivro = leiturasComNota.length > 0 ? leiturasComNota.reduce((a, b) => a.notaFinal < b.notaFinal ? a : b) : null;
+        
         const leiturasComPaginas = leituras.filter(l => parseInt(l.livro.paginas, 10) > 0);
-        let leituraRapida = null, leituraLenta = null;
+        let leituraRapida = null, leituraLenta = null, maisLongo = null, maisCurto = null;
         
         if (leiturasComPaginas.length > 0) {
             leiturasComPaginas.forEach(l => {
@@ -160,7 +216,17 @@ const Dashboard = {
             });
             leituraRapida = leiturasComPaginas.reduce((max, l) => l.pagPorDia > max.pagPorDia ? l : max, leiturasComPaginas[0]);
             leituraLenta = leiturasComPaginas.reduce((min, l) => l.pagPorDia < min.pagPorDia ? l : min, leiturasComPaginas[0]);
+            
+            maisLongo = leiturasComPaginas.reduce((a, b) => (parseInt(a.livro.paginas, 10) || 0) > (parseInt(b.livro.paginas, 10) || 0) ? a : b);
+            maisCurto = leiturasComPaginas.reduce((a, b) => (parseInt(a.livro.paginas, 10) || 0) < (parseInt(b.livro.paginas, 10) || 0) ? a : b);
         }
+        
+        const leiturasComTempo = leituras.filter(l => l.dataInicio && l.dataFim);
+        const totalDias = leiturasComTempo.reduce((s, l) => {
+            const dias = ((new Date(l.dataFim) - new Date(l.dataInicio)) / (1000 * 60 * 60 * 24)) + 1;
+            return s + dias;
+        }, 0);
+        const tempoMedio = leiturasComTempo.length > 0 ? (totalDias / leiturasComTempo.length) : 0;
         
         const meses = leituras.reduce((acc, l) => {
             const mesAno = new Date(l.dataFim).toISOString().slice(0, 7);
@@ -211,6 +277,27 @@ const Dashboard = {
                 <p class="destaque-sub">${leituraLenta ? `${leituraLenta.pagPorDia.toFixed(1)} pág/dia` : ''}</p>
             </div>
         `;
+         html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-hourglass-half"></i> Tempo Médio de Leitura</h5>
+                <p class="destaque-valor">${tempoMedio.toFixed(1).replace('.',',')} dias</p>
+                <p class="destaque-sub">por livro</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-file-arrow-up"></i> Livro Mais Longo</h5>
+                <p class="destaque-valor">${maisLongo ? maisLongo.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${maisLongo ? `${parseInt(maisLongo.livro.paginas, 10).toLocaleString('pt-BR')} pág` : ''}</p>
+            </div>
+        `;
+        html += `
+            <div class="destaque-item-novo">
+                <h5><i class="fa-solid fa-file-arrow-down"></i> Livro Mais Curto</h5>
+                <p class="destaque-valor">${maisCurto ? maisCurto.livro.nomeDoLivro : '-'}</p>
+                <p class="destaque-sub">${maisCurto ? `${parseInt(maisCurto.livro.paginas, 10).toLocaleString('pt-BR')} pág` : ''}</p>
+            </div>
+        `;
         
         this.destaquesListaNovaEl.innerHTML = html;
     },
@@ -225,18 +312,44 @@ const Dashboard = {
                 const getVal = (item, key) => {
                     const livro = item.livro || item;
                     switch(key) {
-                        case 'titulo': return livro.nomeDoLivro;
-                        case 'autor': return livro.autor;
-                        case 'nome': return item.nome;
-                        case 'dataFim': return new Date(item.dataFim);
-                        case 'dataAquisicao': return new Date(item.dataAquisicao);
-                        case 'tempo': return (new Date(item.dataFim) - new Date(item.dataInicio));
-                        case 'pagPorDia': const dias = ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000*60*60*24)) + 1; return (parseInt(livro.paginas, 10) || 0) / (dias > 0 ? dias : 1);
-                        default: return item[key] || 0;
+                        case 'titulo': return livro.nomeDoLivro || '';
+                        case 'autor': return livro.autor || '';
+                        case 'nome': return item.nome || '';
+                        case 'nomeDoLivro': return item.nomeDoLivro || '';
+                        
+                        case 'dataFim': return item.dataFim ? new Date(item.dataFim).getTime() : 0;
+                        case 'dataAquisicao': return item.dataAquisicao ? new Date(item.dataAquisicao).getTime() : 0;
+                        case 'tempo': 
+                            if (!item.dataFim || !item.dataInicio) return 0;
+                            return (new Date(item.dataFim) - new Date(item.dataInicio));
+
+                        case 'pagPorDia': 
+                            if (!item.dataFim || !item.dataInicio) return 0;
+                            const dias = ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000*60*60*24)) + 1; 
+                            return (parseInt(livro.paginas, 10) || 0) / (dias > 0 ? dias : 1);
+                        
+                        case 'paginas': 
+                            return parseInt(livro.paginas || item.paginas, 10) || 0;
+                        
+                        case 'notaFinal': 
+                            return parseFloat(item.notaFinal) || 0;
+                        case 'mediaNota': 
+                            return parseFloat(item.mediaNota) || 0;
+                        case 'count': 
+                            return parseInt(item.count, 10) || 0;
+                        case 'livros': 
+                            return parseInt(item.livros, 10) || 0;
+                        
+                        default: 
+                            const val = item[key];
+                            if (typeof val === 'number') return val;
+                            if (typeof val === 'string') return parseFloat(val.replace(',', '.')) || 0;
+                            return 0;
                     }
                 };
                 let valA = getVal(a, ordenacao.coluna);
                 let valB = getVal(b, ordenacao.coluna);
+                
                 if (typeof valA === 'string') {
                     return ordenacao.direcao === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
                 }
@@ -252,6 +365,10 @@ const Dashboard = {
                     case 'titulo': valor = livro.nomeDoLivro; break;
                     case 'autor': valor = livro.autor; break;
                     case 'nomeDoLivro': valor = item.nomeDoLivro; break;
+                    case 'paginas': 
+                        valor = parseInt(livro.paginas, 10) || '-'; 
+                        if(valor !== '-') valor = valor.toLocaleString('pt-BR');
+                        break;
                     case 'notaFinal': valor = item.notaFinal ? item.notaFinal.toFixed(1).replace('.', ',') : '-'; break;
                     case 'dataFim': valor = new Date(item.dataFim).toLocaleDateString('pt-BR', {timeZone: 'UTC'}); break;
                     case 'dataAquisicao': valor = new Date(item.dataAquisicao).toLocaleDateString('pt-BR', {timeZone: 'UTC'}); break;
@@ -259,7 +376,6 @@ const Dashboard = {
                     case 'pagPorDia': const dias = ((new Date(item.dataFim) - new Date(item.dataInicio)) / (1000 * 60 * 60 * 24)) + 1; valor = ((parseInt(livro.paginas, 10) || 0) / (dias > 0 ? dias : 1)).toFixed(1).replace('.', ','); break;
                     case 'ano': valor = item.ano; break;
                     case 'livros': valor = item.livros; break;
-                    case 'paginas': valor = item.paginas.toLocaleString('pt-BR'); break;
                     case 'mediaNota': valor = item.mediaNota.toFixed(2).replace('.', ','); break;
                     case 'nome': valor = item.nome; break;
                     case 'count': valor = item.count; break;
@@ -274,9 +390,13 @@ const Dashboard = {
     },
     renderListaDeLivros: function(leituras) {
         this.renderTabela('tabela-livros-ano', this.tabelaLivrosAnoEl, leituras, [
-            { header: 'Título', key: 'titulo', sortable: true }, { header: 'Autor', key: 'autor', sortable: true },
-            { header: 'Nota', key: 'notaFinal', sortable: true }, { header: 'Terminei em', key: 'dataFim', sortable: true },
-            { header: 'Tempo', key: 'tempo', sortable: true }, { header: 'Pág/Dia', key: 'pagPorDia', sortable: true },
+            { header: 'Título', key: 'titulo', sortable: true },
+            { header: 'Autor', key: 'autor', sortable: true },
+            { header: 'Páginas', key: 'paginas', sortable: true },
+            { header: 'Nota', key: 'notaFinal', sortable: true },
+            { header: 'Terminei em', key: 'dataFim', sortable: true },
+            { header: 'Tempo', key: 'tempo', sortable: true },
+            { header: 'Pág/Dia', key: 'pagPorDia', sortable: true },
         ]);
     },
     renderMelhoresAutores: function(leituras) {
@@ -360,8 +480,8 @@ const Dashboard = {
                     {
                         label: 'Livros Lidos',
                         data: dataLivros,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(45, 212, 191, 0.6)',
+                        borderColor: 'rgba(45, 212, 191, 1)',
                         borderWidth: 1,
                         yAxisID: 'y'
                     },
@@ -426,6 +546,155 @@ const Dashboard = {
                 plugins: {
                     legend: {
                         position: 'right',
+                    }
+                }
+            }
+        });
+    },
+    renderGraficoLidosPorMes: function(leiturasFiltradas) {
+        if (this.state.graficoLidosPorMes) {
+            this.state.graficoLidosPorMes.destroy();
+        }
+        
+        const eAnoUnico = this.state.anoFiltro.length === 1 && !this.state.anoFiltro.includes('all-time');
+        if (!eAnoUnico) {
+            return;
+        }
+
+        const ano = this.state.anoFiltro[0];
+        this.tituloGraficoMesEl.textContent = `Leituras por Mês em ${ano}`;
+        this.tituloTabelaLivrosAnoEl.textContent = `Livros Lidos em ${ano}`;
+        
+        const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const dadosMensais = new Array(12).fill(0);
+        
+        leiturasFiltradas.forEach(l => {
+            const mesIndex = new Date(l.dataFim).getUTCMonth();
+            dadosMensais[mesIndex]++;
+        });
+
+        this.state.graficoLidosPorMes = new Chart(this.graficoLidosPorMesEl, {
+            type: 'bar',
+            data: {
+                labels: mesesLabels,
+                datasets: [{
+                    label: 'Livros Lidos',
+                    data: dadosMensais,
+                    backgroundColor: 'rgba(45, 212, 191, 0.6)',
+                    borderColor: 'rgba(45, 212, 191, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                           stepSize: 1
+                        },
+                        title: { display: true, text: 'Nº de Livros'}
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    },
+    renderGraficoDistribuicaoNotas: function(leituras) {
+        if (this.state.graficoDistribuicaoNotas) {
+            this.state.graficoDistribuicaoNotas.destroy();
+        }
+        
+        const notas = new Array(11).fill(0);
+        const labels = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+        
+        leituras.filter(l => l.notaFinal != null).forEach(l => {
+            const nota = Math.round(l.notaFinal);
+            if (nota >= 0 && nota <= 10) {
+                notas[nota]++;
+            }
+        });
+        
+        this.state.graficoDistribuicaoNotas = new Chart(this.graficoDistribuicaoNotasEl, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nº de Livros',
+                    data: notas,
+                    backgroundColor: 'rgba(94, 234, 212, 0.6)',
+                    borderColor: 'rgba(94, 234, 212, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'Nº de Livros' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Nota' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    },
+    renderGraficoPaginasNota: function(leituras) {
+        if (this.state.graficoPaginasNota) {
+            this.state.graficoPaginasNota.destroy();
+        }
+        
+        const data = leituras
+            .filter(l => l.notaFinal != null && parseInt(l.livro.paginas, 10) > 0)
+            .map(l => ({
+                x: parseInt(l.livro.paginas, 10),
+                y: l.notaFinal,
+                titulo: l.livro.nomeDoLivro
+            }));
+
+        this.state.graficoPaginasNota = new Chart(this.graficoPaginasNotaEl, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Livro',
+                    data: data,
+                    backgroundColor: 'rgba(255, 159, 64, 0.7)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'Nº de Páginas' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Nota' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const raw = context.raw;
+                                return `${raw.titulo}: ${raw.x} pág, Nota ${raw.y}`;
+                            }
+                        }
                     }
                 }
             }

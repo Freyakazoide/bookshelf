@@ -249,80 +249,129 @@
                 </div>
             </div>
 
-<div id="view-dashboard" class="view">
+            <div id="view-dashboard" class="view">
                 <h1><i class="fa-solid fa-chart-line"></i> Dashboard de Leitura</h1>
                 
-                <div class="controles-dashboard" style="margin-bottom: 1.5rem;">
-                    <div class="grupo-filtros" id="filtro-ano-container">
-                        <label for="select-ano-dashboard"><i class="fa-solid fa-calendar-alt"></i> Analisar Período:</label>
-                        <select id="select-ano-dashboard"></select>
-                    </div>
-                </div>
+                <nav class="dashboard-tabs" style="margin-bottom: 1.5rem;">
+                    <button type="button" class="tab-button active" data-tab="tab-visao-geral"><i class="fa-solid fa-globe-americas"></i> Visão Geral</button>
+                    <button type="button" class="tab-button" data-tab="tab-analise-anual"><i class="fa-solid fa-calendar-day"></i> Análise Anual</button>
+                    <button type="button" class="tab-button" data-tab="tab-estatisticas"><i class="fa-solid fa-chart-pie"></i> Estatísticas</button>
+                    <button type="button" class="tab-button" data-tab="tab-biblioteca"><i class="fa-solid fa-book-shelf"></i> Biblioteca</button>
+                </nav>
 
-                <div class="dashboard-grid-geral">
+                <div id="dashboard-content-container">
                     
-                    <div class="dashboard-kpi-principais">
-                        <div id="kpi-hero-novo" class="kpi-hero"></div>
-                        
-                        <div id="kpi-paginas-novo" class="kpi-secundario"></div>
-
-                        <div id="kpi-nota-novo" class="kpi-secundario"></div>
-                    </div>
-
-                    <div id="quadro-destaques" class="widget-span-2">
-                        <h3>Destaques do Período</h3>
-                        <div id="destaques-lista-nova" class="destaques-lista-nova">
+                    <div id="tab-visao-geral" class="dashboard-content active">
+                        <div class="controles-dashboard" style="margin-bottom: 1.5rem;">
+                            <div class="grupo-filtros" id="filtro-ano-container">
+                                <label for="select-ano-dashboard"><i class="fa-solid fa-calendar-alt"></i> Analisar Período:</label>
+                                <select id="select-ano-dashboard" multiple size="6"></select>
                             </div>
+                        </div>
+
+                        <div class="dashboard-grid-geral">
+                            <div class="dashboard-kpi-principais">
+                                <div id="kpi-hero-novo" class="kpi-hero"></div>
+                                <div id="kpi-paginas-novo" class="kpi-secundario"></div>
+                                <div id="kpi-nota-novo" class="kpi-secundario"></div>
+                                <div id="kpi-autores-novo" class="kpi-secundario"></div>
+                            </div>
+        
+                            <div id="quadro-destaques" class="widget-span-2">
+                                <h3>Destaques do Período</h3>
+                                <div id="destaques-lista-nova" class="destaques-lista-nova"></div>
+                            </div>
+                            
+                            <div id="resumo-por-ano" class="tabela-card dash-card widget-span-3">
+                                <h3>Resumo por Ano</h3>
+                                <div class="grafico-container">
+                                    <canvas id="grafico-resumo-anual"></canvas>
+                                </div>
+                            </div>
+
+                            <div id="ranking-generos" class="tabela-card dash-card">
+                                <h3>Gêneros Lidos</h3>
+                                <div class="grafico-container">
+                                    <canvas id="grafico-generos"></canvas>
+                                </div>
+                            </div>
+
+                            <div id="melhores-autores" class="tabela-card dash-card">
+                                <h3>Melhores Autores (>= 3 livros)</h3>
+                                <div class="tabela-container">
+                                    <table id="tabela-melhores-autores"></table>
+                                </div>
+                            </div>
+        
+                            <div id="melhores-colecoes" class="tabela-card dash-card">
+                                <h3>Melhores Coleções (>= 3 livros)</h3>
+                                <div class="tabela-container">
+                                    <table id="tabela-melhores-colecoes"></table>
+                                </div>
+                            </div>
+        
+                            <div id="melhores-editoras" class="tabela-card dash-card">
+                                <h3>Melhores Editoras (>= 3 livros)</h3>
+                                <div class="tabela-container">
+                                    <table id="tabela-melhores-editoras"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-analise-anual" class="dashboard-content">
+                        <div class="placeholder-container" id="analise-anual-placeholder">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <h2>Selecione um Único Ano</h2>
+                            <p>Vá para a aba "Visão Geral" e selecione apenas um ano no filtro para ver a análise detalhada.</p>
+                        </div>
+
+                        <div class="dashboard-grid-geral" id="analise-anual-content" style="display: none;">
+                            <div id="widget-lidos-por-mes" class="tabela-card dash-card widget-span-3">
+                                <h3 id="titulo-grafico-mes">Leituras por Mês</h3>
+                                <div class="grafico-container">
+                                    <canvas id="grafico-lidos-por-mes"></canvas>
+                                </div>
+                            </div>
+        
+                            <div id="lista-livros-ano" class="tabela-card dash-card widget-span-3">
+                                <h3 id="titulo-tabela-livros-ano">Livros Lidos</h3>
+                                <div class="tabela-container full-height">
+                                    <table id="tabela-livros-ano"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-estatisticas" class="dashboard-content">
+                        <div class="dashboard-grid-geral">
+                            <div id="widget-distribuicao-notas" class="tabela-card dash-card widget-span-2">
+                                <h3>Distribuição de Notas</h3>
+                                <div class="grafico-container">
+                                    <canvas id="grafico-distribuicao-notas"></canvas>
+                                </div>
+                            </div>
+
+                            <div id="widget-paginas-nota" class="tabela-card dash-card widget-span-2">
+                                <h3>Páginas vs. Nota</h3>
+                                <div class="grafico-container" style="min-height: 400px;">
+                                    <canvas id="grafico-paginas-nota"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div id="ranking-generos" class="tabela-card dash-card">
-                        <h3>Gêneros Lidos</h3>
-                        <div class="grafico-container">
-                            <canvas id="grafico-generos"></canvas>
+                    <div id="tab-biblioteca" class="dashboard-content">
+                        <div class="dashboard-grid-geral">
+                            <div id="prateleira-vergonha" class="tabela-card dash-card widget-span-3">
+                                <h3>Prateleira da Vergonha (Não Lidos há mais tempo)</h3>
+                                <div class="tabela-container">
+                                    <table id="tabela-vergonha"></table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="resumo-por-ano" class="tabela-card dash-card widget-span-3">
-                        <h3>Resumo por Ano</h3>
-                        <div class="grafico-container">
-                            <canvas id="grafico-resumo-anual"></canvas>
-                        </div>
-                    </div>
-
-                    <div id="lista-livros-ano" class="tabela-card dash-card widget-span-3">
-                        <h3 id="titulo-tabela-livros-ano">Livros Lidos</h3>
-                        <div class="tabela-container full-height">
-                            <table id="tabela-livros-ano"></table>
-                        </div>
-                    </div>
-
-                    <div id="melhores-autores" class="tabela-card dash-card">
-                        <h3>Melhores Autores (>= 3 livros)</h3>
-                        <div class="tabela-container">
-                            <table id="tabela-melhores-autores"></table>
-                        </div>
-                    </div>
-
-                    <div id="melhores-colecoes" class="tabela-card dash-card">
-                        <h3>Melhores Coleções (>= 3 livros)</h3>
-                        <div class="tabela-container">
-                            <table id="tabela-melhores-colecoes"></table>
-                        </div>
-                    </div>
-
-                    <div id="melhores-editoras" class="tabela-card dash-card">
-                        <h3>Melhores Editoras (>= 3 livros)</h3>
-                        <div class="tabela-container">
-                            <table id="tabela-melhores-editoras"></table>
-                        </div>
-                    </div>
-
-                    <div id="prateleira-vergonha" class="tabela-card dash-card widget-span-3">
-                        <h3>Prateleira da Vergonha (Não Lidos há mais tempo)</h3>
-                        <div class="tabela-container">
-                            <table id="tabela-vergonha"></table>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -368,7 +417,7 @@
                                     <div class="slider-campo"><label>Personagens: <span id="valor-nota-personagens">5.0</span></label><small>Quão críveis, complexos e bem desenvolvidos são os personagens? Você se conectou com eles?</small><input type="range" id="nota-personagens" min="0" max="10" step="0.1" value="5"></div>
                                     <div class="slider-campo"><label>Trama (Plot): <span id="valor-nota-plot">5.0</span></label><small>A estrutura da história é coesa? O enredo é original, envolvente e com conflitos bem definidos?</small><input type="range" id="nota-plot" min="0" max="10" step="0.1" value="5"></div>
                                     <div class="slider-campo"><label>Construção de Mundo: <span id="valor-nota-desenvolvimento">5.0</span></label><small>O universo da história é imersivo e bem detalhado? Suas regras e cultura são consistentes?</small><input type="range" id="nota-desenvolvimento" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Ritmo (Pacing): <span id="valor-nota-pacing">5.0</span></label><small>A história flui bem? O ritmo acelera e desacelera nos momentos certos para criar tensão ou respiro?</small><input type="range" id="nota-pacing" min="0" max="10" step="0.1" value="5"></div>
+                                    <div class="slider-campo"><label>Ritmo (Pacing): <span id="valor-nota-pacing">5.0</span></label><small>A história flui bem? O ritmo acelera e desacelara nos momentos certos para criar tensão ou respiro?</small><input type="range" id="nota-pacing" min="0" max="10" step="0.1" value="5"></div>
                                     <div class="slider-campo"><label>Estilo de Escrita (Prosa): <span id="valor-nota-prosa">5.0</span></label><small>A qualidade da escrita é alta? O texto é claro, evocativo e agradável de ler?</small><input type="range" id="nota-prosa" min="0" max="10" step="0.1" value="5"></div>
                                     <div class="slider-campo"><label>Originalidade: <span id="valor-nota-originalidade">5.0</span></label><small>A premissa ou a execução da história trouxeram conceitos novos ou abordagens criativas?</small><input type="range" id="nota-originalidade" min="0" max="10" step="0.1" value="5"></div>
                                     <div class="slider-campo"><label>Temas e Profundidade: <span id="valor-nota-temas">5.0</span></label><small>Os temas abordados são relevantes e explorados com a profundidade que merecem?</small><input type="range" id="nota-temas" min="0" max="10" step="0.1" value="5"></div>
