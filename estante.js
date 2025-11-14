@@ -4,6 +4,9 @@ const Estante = {
         livrosFiltrados: [],
         livroAtivo: null,
         leituraAtivaId: null,
+        metas: [],
+        top10Ids: new Set(),
+        isInitialized: false,
         filtros: {
             busca: '',
             status: 'Todos',
@@ -79,12 +82,12 @@ const Estante = {
 
             if (acaoBtn) {
                 e.stopPropagation();
-                const livroId = parseInt(acaoBtn.closest('.card-livro').dataset.id, 10);
+                const livroId = acaoBtn.closest('.card-livro').dataset.id;
                 this.abrirMenuAcoes(e, livroId);
                 return;
             }
             if (card) {
-                this.abrirPainel(parseInt(card.dataset.id, 10));
+                this.abrirPainel(card.dataset.id);
             }
         });
 
@@ -169,7 +172,7 @@ const Estante = {
         this.btnEditarEl.addEventListener('click', () => {
             this.painelLivroEl.close();
             App.navegarPara('view-adicionar');
-            Adicionar.modoEdicao(this.state.livroAtivo.id);
+            Adicionar.modoEdicao(this.state.livroAtivo.id || this.state.livroAtivo.firestoreId);
         });
         
         this.btnExcluirEl.addEventListener('click', () => {
@@ -241,16 +244,23 @@ const Estante = {
         bindFilterList(this.filtroBuscaAutorEl, this.filtroListaAutoresEl, 'autores');
     },
 
-    init: function(livros) {
+    init: function(livros, metas) {
         this.state.todosOsLivros = livros;
-        this.cacheDOM();
-        this.bindEvents();
+        this.state.metas = metas || [];
+        
+        if (!this.state.isInitialized) {
+            this.cacheDOM();
+            this.bindEvents();
+            this.state.isInitialized = true;
+        }
+        
         this.popularOpcoesFiltros();
         this.renderEstante();
     },
 
-    atualizar: function(livros) {
+    atualizar: function(livros, metas) {
         this.state.todosOsLivros = livros;
+        this.state.metas = metas || [];
         this.popularOpcoesFiltros();
         this.renderEstante();
     },
@@ -262,8 +272,18 @@ const Estante = {
             .sort((a,b) => new Date(b.dataFim) - new Date(a.dataFim));
         return leiturasComNota.length > 0 ? leiturasComNota[0].notaFinal : null;
     },
+    
+    getId: function(livro) {
+        return livro.id || livro.firestoreId;
+    },
 
     filtrarEOrdenarLivros: function() {
+        const comNota = [...this.state.todosOsLivros]
+            .map(l => ({ id: this.getId(l), nota: this.getNotaRecente(l) }))
+            .filter(l => l.nota);
+        comNota.sort((a, b) => b.nota - a.nota);
+        this.state.top10Ids = new Set(comNota.slice(0, 10).map(l => l.id));
+
         let livros = [...this.state.todosOsLivros];
         const { busca, status, avancados } = this.state.filtros;
 
@@ -320,8 +340,8 @@ const Estante = {
                     return notaB - notaA;
                 case 'data-adicao-desc':
                 default:
-                    const idA = a.id || a.firestoreId;
-                    const idB = b.id || b.firestoreId;
+                    const idA = this.getId(a);
+                    const idB = this.getId(b);
                     return (typeof idB === 'string' ? 0 : idB) - (typeof idA === 'string' ? 0 : idA);
             }
         });
@@ -350,23 +370,36 @@ const Estante = {
             this.controlesPaginacaoEl.classList.remove('hidden');
 
             this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
+                const id = this.getId(livro);
                 const capa = livro.urlCapa || 'placeholder.jpg';
                 const status = livro.situacao || 'Quero Ler';
                 const notaNum = this.getNotaRecente(livro);
                 
                 const notaCard = notaNum 
                     ? `<div class="card-nota">★ ${notaNum.toFixed(1)}</div>` 
-                    : '<div class="card-nota" style="display: none;"></div>';
+                    : '';
                 
+                const semNotaClass = (status === 'Lido' && !notaNum) ? 'sem-nota' : '';
+
                 let statusBadge = '';
-                if (status === 'Lendo') statusBadge = '<span class="status-badge status-lendo">Lendo</span>';
-                if (status === 'Quero Ler') statusBadge = '<span class="status-badge status-quero-ler">Quero Ler</span>';
-                if (status === 'Lido' && !notaNum) statusBadge = '<span class="status-badge">Lido</span>';
+                if (status === 'Lido') statusBadge = `<span class="status-badge status-lido">Lido</span>`;
+                if (status === 'Lendo') statusBadge = `<span class="status-badge status-lendo">Lendo</span>`;
+                if (status === 'Quero Ler') statusBadge = `<span class="status-badge status-quero-ler">Quero Ler</span>`;
                 
-                const infoExtra = `<div class="card-info-extra" style="display: none;">${statusBadge}</div>`;
+                const infoExtra = `<div class="card-info-extra">${statusBadge}</div>`;
+
+                const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
+                const isTop10 = this.state.top10Ids.has(id);
+                
+                let iconBadgesHTML = '';
+                if (isTop10) iconBadgesHTML += `<span class="card-icon-badge top10" title="Top 10 - Maiores Notas"><i class="fa-solid fa-medal"></i></span>`;
+                if (isInMeta) iconBadgesHTML += `<span class="card-icon-badge meta" title="Em uma Meta de Leitura"><i class="fa-solid fa-trophy"></i></span>`;
 
                 return `
-                    <div class="card-livro" data-id="${livro.id || livro.firestoreId}" data-status="${status}">
+                    <div class="card-livro ${semNotaClass}" data-id="${id}" data-status="${status}">
+                        <div class="card-icon-badges">
+                            ${iconBadgesHTML}
+                        </div>
                         <img src="${capa}" alt="Capa de ${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
                         <div class="card-info">
                             <div> 
@@ -405,7 +438,7 @@ const Estante = {
     },
     
     abrirPainel: function(livroId) {
-        this.state.livroAtivo = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        this.state.livroAtivo = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
         if (!this.state.livroAtivo) return;
 
         const leiturasOrdenadas = (this.state.livroAtivo.leituras || [])
@@ -447,6 +480,7 @@ const Estante = {
     },
 
     renderPainelLeituras: function() {
+        if (!this.state.livroAtivo) return;
         const leituras = this.state.livroAtivo.leituras || [];
         if (leituras.length === 0) {
             this.leiturasContainerEl.innerHTML = '<p>Nenhum histórico de leitura. Clique em "Iniciar Nova Leitura".</p>';
@@ -503,6 +537,21 @@ const Estante = {
         this.formLeituraContainerEl.classList.remove('hidden');
     },
 
+    atualizarPainelAposSalvar: async function(livroId) {
+        await App.salvarLivro(this.state.livroAtivo, livroId);
+        
+        this.state.livroAtivo = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
+        
+        if (this.state.livroAtivo) {
+            const leiturasOrdenadas = (this.state.livroAtivo.leituras || [])
+                .sort((a,b) => new Date(b.dataFim || b.dataInicio) - new Date(a.dataFim || a.dataInicio));
+            this.state.leituraAtivaId = leiturasOrdenadas.length > 0 ? leiturasOrdenadas[0].idLeitura : null;
+            this.renderPainelLeituras();
+        } else {
+            this.painelLivroEl.close();
+        }
+    },
+
     salvarLeitura: async function() {
         const idLeituraInput = document.getElementById('form-leitura-id');
         const idLeitura = idLeituraInput ? parseInt(idLeituraInput.value, 10) : null;
@@ -536,8 +585,7 @@ const Estante = {
         this.formLeituraContainerEl.innerHTML = '';
         this.formLeituraContainerEl.classList.add('hidden');
         
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
 
@@ -551,12 +599,12 @@ const Estante = {
             this.state.leituraAtivaId = null;
         }
         
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
         App.mostrarNotificacao('Registro de leitura excluído.');
     },
 
     renderPainelNotas: function() {
+        if (!this.state.livroAtivo) return;
         const leitura = (this.state.livroAtivo.leituras || []).find(l => l.idLeitura === this.state.leituraAtivaId);
 
         if (!leitura || !leitura.dataFim) {
@@ -629,8 +677,7 @@ const Estante = {
         
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
 
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
+        await this.atualizarPainelAposSalvar(this.getId(this.state.livroAtivo));
         App.mostrarNotificacao('Notas salvas com sucesso!');
     },
 
@@ -719,7 +766,7 @@ const Estante = {
     abrirMenuAcoes: function(e, livroId) {
         this.fecharMenuAcoes(); 
         
-        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
         if (!livro) return;
         
         const status = livro.situacao || 'Quero Ler';
@@ -792,7 +839,7 @@ const Estante = {
     },
 
     moverLivroStatus: async function(livroId, novoStatus) {
-        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
         if (!livro) return;
 
         livro.situacao = novoStatus;
@@ -817,7 +864,7 @@ const Estante = {
     },
 
     excluirLivro: function(livroId) {
-        const livro = this.state.todosOsLivros.find(l => (l.id || l.firestoreId) === livroId);
+        const livro = this.state.todosOsLivros.find(l => this.getId(l) === livroId);
         if (!livro) return;
         
         if (confirm(`Tem certeza que deseja excluir "${livro.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {

@@ -2414,3 +2414,84 @@ table th.sort-desc::after {
 #estante-placeholder {
     min-height: 40vh;
 }
+
+/* ===================================== */
+/* === CORREÇÃO TAGS E NOVAS TAGS === */
+/* ===================================== */
+
+/* 1. Corrige a tag "Quero Ler" (passa para a direita) */
+.card-livro[data-status="Quero Ler"]::after {
+    left: auto; /* Remove o 'left' antigo */
+    right: 8px; /* Adiciona o 'right' */
+}
+
+/* 2. Badge "Lido" (quando não tem nota, no grid) */
+.card-livro[data-status="Lido"].sem-nota::after {
+    content: '\f00c'; /* Ícone de Check */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: var(--cor-texto-secundario);
+    background-color: rgba(15, 23, 42, 0.7);
+    padding: 6px 7px;
+    border-radius: 50%;
+    font-size: 0.85em;
+    z-index: 2;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 3. Container para badges de ícone (Top 10, Meta) */
+.card-icon-badges {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 3;
+}
+.card-icon-badge {
+    background-color: rgba(15, 23, 42, 0.7);
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(4px);
+}
+.card-icon-badge.top10 {
+    color: #FFD700; /* Dourado */
+    font-size: 0.95em;
+}
+.card-icon-badge.meta {
+    color: #CD7F32; /* Bronze */
+}
+
+/* 4. Tags de status no Modo Lista (corrige "Lido") */
+.estante-de-livros.modo-lista .card-info-extra .status-badge {
+    background-color: var(--cor-fundo-principal);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+    border: 1px solid var(--cor-borda);
+    width: max-content;
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lido {
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-secundario);
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lendo {
+    border-color: var(--cor-acao-primaria);
+    color: var(--cor-acao-primaria);
+}
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-quero-ler {
+    border-color: var(--cor-borda-foco);
+    color: var(--cor-borda-foco);
+}
