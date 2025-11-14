@@ -141,6 +141,10 @@ body {
     overflow-y: auto;
     padding: 2rem 3rem;
     transition: margin-left 0.3s ease-in-out;
+    background-image: radial-gradient(circle at 10% 10%, 
+        var(--cor-fundo-container) 0%, 
+        var(--cor-fundo-principal) 30%
+    );
 }
 
 .view { display: none; }
@@ -165,15 +169,21 @@ h1 {
 
 .controles-estante {
     display: flex;
-    flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
     background-color: var(--cor-fundo-secundario);
     border-radius: var(--raio-borda);
     border: 1px solid var(--cor-borda);
+    flex-wrap: nowrap;
+}
+.controles-estante .campo-com-icone {
+    min-width: 300px;
+}
+.controles-estante .grupo-filtros {
+    margin-left: auto;
 }
 
 input, select, textarea {
@@ -745,6 +755,7 @@ dialog::backdrop {
     background-color: var(--cor-fundo-secundario);
     border-radius: var(--raio-borda);
     border: 1px solid var(--cor-borda);
+    display: none;
 }
 
 .campo-selecionar-meta {
@@ -755,6 +766,7 @@ dialog::backdrop {
 
 .criar-meta-container {
      padding: 1.5rem;
+     display: none;
 }
 
 #desafio-ativo-container.hidden, #nenhuma-meta-selecionada.hidden {
@@ -879,10 +891,13 @@ dialog::backdrop {
 .dashboard-grid-geral {
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }
 
-.tabela-card { padding: 0; overflow: hidden; }
+.tabela-card { 
+    padding: 0; 
+    overflow: hidden; 
+}
 .tabela-card h3 {
     padding: 1.5rem;
     margin: 0;
@@ -1118,11 +1133,7 @@ table th.sort-desc::after {
 }
 
 .dashboard-tabs {
-    display: flex;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--cor-borda);
-    margin-bottom: 2rem;
-    overflow-x: auto;
+    display: none !important;
 }
 .dashboard-tabs .tab-button {
     padding: 10px 20px;
@@ -1151,37 +1162,53 @@ table th.sort-desc::after {
 }
 
 .dashboard-layout-ano {
-    display: grid;
-    grid-template-columns: 1fr 360px; 
-    gap: 2rem;
-    align-items: flex-start;
+    display: none !important;
 }
 
 .dashboard-main-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    display: none !important;
 }
 
 .dashboard-kpi-principais {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1.5rem;
+    background-color: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 12px;
+    padding: 0;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 .dashboard-kpi-principais .dash-card {
     text-align: center;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
 }
 .dashboard-kpi-principais .dash-card .valor-kpi {
     font-size: 2.5em;
+    margin: 0;
+}
+.dashboard-kpi-principais .kpi-header {
+    display: none;
+}
+.dashboard-kpi-principais .kpi-header .kpi-icon {
+    font-size: 1.1em;
+    color: var(--cor-acao-primaria);
+}
+.dashboard-kpi-principais .kpi-header h4 {
+    margin: 0;
+    font-size: 1em;
 }
 
 
 .dashboard-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: sticky; 
-    top: 1.5rem;
+    display: none !important;
 }
 .dashboard-sidebar h3 {
     font-weight: 600;
@@ -1208,128 +1235,10 @@ table th.sort-desc::after {
     font-size: 1.1em;
 }
 
-.dashboard-grid-geral {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 1.5rem;
-}
 .grafico-container {
     height: 350px;
     padding: 1rem;
 }
-
-@media (max-width: 1200px) {
-    .dashboard-layout-ano {
-        grid-template-columns: 1fr;
-    }
-    .dashboard-sidebar {
-        position: static;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-    .dashboard-sidebar h3 {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 900px) {
-    .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100dvh;
-        transform: translateX(-100%);
-        box-shadow: var(--sombra-media);
-    }
-    
-    .sidebar.is-open {
-        transform: translateX(0);
-    }
-    
-    .main-content {
-        padding: 1.5rem;
-    }
-    
-    h1 {
-        font-size: 1.8rem;
-    }
-
-    .painel-body {
-        flex-direction: column;
-        overflow-y: auto;
-    }
-    .painel-coluna-capa {
-        flex-basis: auto;
-        flex-shrink: 1;
-        overflow-y: visible;
-        padding: 1.5rem;
-    }
-    .painel-coluna-info {
-        overflow: visible;
-    }
-    .painel-conteudo-tabs {
-        overflow-y: visible;
-    }
-    .painel-container {
-        height: 90dvh;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    .form-campo.full-width {
-        grid-column: 1 / 1;
-    }
-    .form-botoes {
-        justify-content: flex-start;
-    }
-    .notas-grid, .detalhes-grid {
-        grid-template-columns: 1fr;
-    }
-    .detalhes-grid .detalhe-sinopse {
-        grid-column: 1 / 1;
-    }
-    #sinc-container {
-        grid-template-columns: 1fr;
-    }
-    .dashboard-sidebar {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-content {
-        padding: 1rem;
-    }
-    
-    .controles-estante {
-        padding: 1rem;
-    }
-    
-    .grupo-filtros, .grupo-ordenacao, .grupo-ordenacao select {
-        width: 100%;
-    }
-    .campo-com-icone {
-        width: 100%;
-    }
-    
-    .estante-de-livros {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 1rem;
-    }
-    
-    .painel-header {
-        padding: 1rem 1.5rem;
-    }
-    .painel-conteudo-tabs {
-        padding: 1.5rem;
-    }
-    .painel-tabs {
-        padding: 0 1.5rem;
-    }
-}
-
-/* Modernização da pág "Adicionar Livro" */
 
 #busca-api-container.dash-card {
     background-color: var(--cor-fundo-secundario);
@@ -1437,20 +1346,6 @@ table th.sort-desc::after {
 .form-tab-content.active {
     display: block;
 }
-
-/* Ajustes responsivos para o novo form */
-@media (max-width: 900px) {
-    .form-layout {
-        grid-template-columns: 1fr;
-    }
-    .form-coluna-capa {
-        position: static;
-        max-width: 300px;
-        margin: 0 auto;
-    }
-}
-
-/* Modernização da pág "Metas de Leitura" */
 
 .metas-layout {
     display: grid;
@@ -1588,36 +1483,6 @@ table th.sort-desc::after {
     animation: fadeIn 0.4s;
 }
 
-/* Esconde o card de criar meta da view, já que agora é um modal */
-#view-desafio .criar-meta-container {
-    display: none;
-}
-#view-desafio .gerenciar-metas-container {
-    display: none;
-}
-
-@media (max-width: 900px) {
-    .metas-layout {
-        grid-template-columns: 1fr;
-    }
-    .metas-sidebar {
-        position: static;
-        margin-bottom: 1.5rem;
-    }
-    .meta-lista-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        max-height: none;
-    }
-    .meta-lista-container h3 {
-        grid-column: 1 / -1;
-    }
-}
-
-/* Modernização do Dashboard */
-
-/* Remove estilos antigos */
 .dashboard-tabs,
 .dashboard-layout-ano,
 .dashboard-sidebar,
@@ -1625,134 +1490,6 @@ table th.sort-desc::after {
     display: none !important;
 }
 
-/* Novo Grid Global */
-.dashboard-grid-geral {
-    display: grid;
-    gap: 1.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-}
-
-/* Nova linha de KPIs principais */
-.dashboard-kpi-principais {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    background-color: var(--cor-fundo-secundario);
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-borda);
-    padding: 1.5rem;
-}
-.dashboard-kpi-principais .dash-card {
-    padding: 0;
-    border: none;
-    background: none;
-}
-.dashboard-kpi-principais .kpi-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 0.5rem;
-}
-.dashboard-kpi-principais .kpi-header .kpi-icon {
-    font-size: 1.1em;
-    color: var(--cor-acao-primaria);
-}
-.dashboard-kpi-principais .kpi-header h4 {
-    margin: 0;
-    font-size: 1em;
-}
-.dashboard-kpi-principais .valor-kpi {
-    font-size: 2.25rem;
-    margin-left: 5px;
-}
-
-/* Novo widget de Destaques */
-#quadro-destaques {
-    padding: 0;
-}
-#quadro-destaques h3 {
-    padding: 1.5rem;
-    margin: 0;
-    border-bottom: 1px solid var(--cor-borda);
-}
-.destaques-lista {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background-color: var(--cor-borda);
-    overflow: hidden;
-    border-radius: 0 0 var(--raio-borda) var(--raio-borda);
-}
-.destaque-item {
-    background-color: var(--cor-fundo-secundario);
-    padding: 1rem 1.5rem;
-}
-.destaque-item h5 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9em;
-    color: var(--cor-texto-secundario);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-.destaque-item .destaque-valor {
-    font-size: 1.2em;
-    font-weight: 600;
-    color: var(--cor-texto-principal);
-}
-.destaque-item .destaque-sub {
-    font-size: 0.85em;
-    color: var(--cor-texto-secundario);
-    margin-top: 2px;
-}
-
-/* Helpers de Grid Span */
-.widget-span-2 {
-    grid-column: span 2;
-}
-.widget-span-3 {
-    grid-column: 1 / -1;
-}
-
-@media (max-width: 1200px) {
-    .widget-span-2 {
-        grid-column: span 1;
-    }
-}
-
-@media (max-width: 900px) {
-    .destaques-lista {
-        grid-template-columns: 1fr;
-    }
-}
-
-/*
-=====================================
-    PASSO 1: O NOVO TEMA "GLASS"
-=====================================
-*/
-
-/* 1. Adiciona profundidade ao fundo da página */
-.main-content {
-    background-image: radial-gradient(circle at 10% 10%, 
-        var(--cor-fundo-container) 0%, 
-        var(--cor-fundo-principal) 30%
-    );
-}
-
-/* 2. O novo estilo "Glass" para os cards */
-.dash-card-glass {
-    background-color: rgba(30, 41, 59, 0.6); /* --cor-fundo-secundario com 60% opacidade */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(71, 85, 105, 0.5); /* --cor-borda com 50% opacidade */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    border-radius: 12px;
-}
-
-/* 3. Remove os estilos antigos dos widgets do dashboard */
 .dashboard-grid-geral .dash-card {
     background: none;
     border: none;
@@ -1760,6 +1497,12 @@ table th.sort-desc::after {
 }
 .dashboard-grid-geral .tabela-card {
     padding: 0;
+    background-color: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
 }
 .dashboard-grid-geral .tabela-card h3 {
     padding: 1.5rem;
@@ -1768,10 +1511,7 @@ table th.sort-desc::after {
     border-top-right-radius: 12px;
 }
 
-/* 4. Aplica o "Glass" a todos os widgets */
-.dashboard-kpi-principais,
-#quadro-destaques,
-.dashboard-grid-geral .tabela-card {
+.dash-card-glass {
     background-color: rgba(30, 41, 59, 0.6);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1780,18 +1520,20 @@ table th.sort-desc::after {
     border-radius: 12px;
 }
 
-/*
-=====================================
-    PASSO 2: O NOVO "HERO" E DESTAQUES
-=====================================
-*/
-
-/* 1. Redesenha a linha de KPIs */
-.dashboard-kpi-principais {
-    grid-template-columns: 2fr 1fr 1fr 1fr; /* 2fr para o "Hero", 1fr para os outros */
-    grid-column: 1 / -1;
+#quadro-destaques {
     padding: 0;
-    overflow: hidden;
+    background-color: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    display: block;
+}
+#quadro-destaques h3 {
+    padding: 1.5rem;
+    margin: 0;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.5);
 }
 
 .kpi-hero {
@@ -1802,7 +1544,6 @@ table th.sort-desc::after {
     border-right: 1px solid rgba(71, 85, 105, 0.5);
 }
 
-/* 2. Estilo do "Hero" (Total de Livros) */
 .kpi-hero h4 {
     font-size: 1.25rem;
     font-weight: 600;
@@ -1825,7 +1566,6 @@ table th.sort-desc::after {
     color: var(--cor-texto-secundario);
 }
 
-/* 3. Estilo dos KPIs secundários (Páginas e Nota) */
 .kpi-secundario {
     padding: 1.5rem 2rem;
     display: flex;
@@ -1851,34 +1591,12 @@ table th.sort-desc::after {
     line-height: 1.2;
 }
 
-/* 4. Remove o estilo antigo dos KPIs */
-.dashboard-kpi-principais .dash-card {
-    box-shadow: none;
-}
-.dashboard-kpi-principais .dash-card .kpi-header {
-    display: none; /* Não precisamos mais disso */
-}
-.dashboard-kpi-principais .dash-card .valor-kpi {
-    margin: 0;
-}
-
-/* 5. Redesenha o widget de Destaques */
-#quadro-destaques {
-    padding: 0;
-    display: block; /* Garante que não é flex */
-}
-#quadro-destaques h3 {
-    margin: 0;
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(71, 85, 105, 0.5);
-}
 .destaques-lista-nova {
     padding: 1.5rem;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 1.5rem;
 }
-/* Esconde o widget antigo */
 .destaques-lista {
     display: none;
 }
@@ -1914,48 +1632,12 @@ table th.sort-desc::after {
     text-align: center;
 }
 
-/* Ajustes Finais no Grid */
-@media (max-width: 1200px) {
-    /* Faz os KPIs secundários empilharem melhor */
-    .dashboard-kpi-principais {
-        grid-template-columns: 1fr 1fr;
-    }
-    .kpi-hero {
-        grid-column: 1 / -1;
-        border-right: none;
-        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
-    }
-    .kpi-secundario:not(:last-child) {
-        border-right: none;
-    }
-    .kpi-secundario:nth-child(2) {
-         border-right: 1px solid rgba(71, 85, 105, 0.5);
-    }
-    .destaques-lista-nova {
-        grid-template-columns: 1fr 1fr;
-    }
+.widget-span-2 {
+    grid-column: span 2;
 }
-@media (max-width: 900px) {
-    /* Faz os destaques empilharem */
-    .destaques-lista-nova {
-        grid-template-columns: 1fr;
-    }
-    .kpi-secundario:nth-child(2) {
-         border-right: none;
-    }
-    .kpi-secundario {
-        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
-    }
-    .dashboard-kpi-principais {
-        grid-template-columns: 1fr;
-    }
+.widget-span-3 {
+    grid-column: 1 / -1;
 }
-
-/*
-=====================================
-    NOVOS ESTILOS - FILTRO DE ANO
-=====================================
-*/
 
 #filtro-ano-container {
     position: relative;
@@ -2026,22 +1708,12 @@ table th.sort-desc::after {
     cursor: pointer;
 }
 
-/*
-=====================================
-    NOVOS ESTILOS - RANKINGS
-=====================================
-*/
-
 .melhores-ranking-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 1.5rem;
     width: 100%;
 }
-
-/* ===================================== */
-/* === REFATORAÇÃO ESTANTE: GAVETA FILTROS === */
-/* ===================================== */
 
 .gaveta-overlay {
     position: fixed;
@@ -2138,21 +1810,6 @@ table th.sort-desc::after {
     border-color: var(--cor-amarelo-aviso);
 }
 
-/* ===================================== */
-/* === REFATORAÇÃO ESTANTE: LAYOUT CONTROLES === */
-/* ===================================== */
-
-.controles-estante {
-    flex-wrap: nowrap;
-    gap: 1rem;
-}
-.controles-estante .campo-com-icone {
-    min-width: 300px;
-}
-.controles-estante .grupo-filtros {
-    margin-left: auto;
-}
-
 .controles-secundarios {
     display: flex;
     justify-content: space-between;
@@ -2200,10 +1857,6 @@ table th.sort-desc::after {
     color: var(--cor-texto-principal);
     box-shadow: var(--sombra-sutil);
 }
-
-/* ===================================== */
-/* === REFATORAÇÃO ESTANTE: MODO LISTA === */
-/* ===================================== */
 
 .estante-de-livros.modo-lista {
     grid-template-columns: 1fr;
@@ -2263,14 +1916,6 @@ table th.sort-desc::after {
     color: var(--cor-texto-principal);
 }
 
-/* ===================================== */
-/* === REFATORAÇÃO ESTANTE: INDICADORES E AÇÕES === */
-/* ===================================== */
-
-.card-livro {
-    overflow: hidden;
-}
-
 .card-livro[data-status="Lendo"]::before {
     content: 'Lendo';
     position: absolute;
@@ -2295,7 +1940,8 @@ table th.sort-desc::after {
     font-weight: 900;
     position: absolute;
     top: 8px;
-    left: 8px;
+    left: auto;
+    right: 8px;
     color: var(--cor-texto-principal);
     background-color: rgba(15, 23, 42, 0.7);
     padding: 6px 9px;
@@ -2407,27 +2053,12 @@ table th.sort-desc::after {
     margin: 4px 0.75rem;
 }
 
-/* ===================================== */
-/* === REFATORAÇÃO ESTANTE: ESTADO VAZIO === */
-/* ===================================== */
-
 #estante-placeholder {
     min-height: 40vh;
 }
 
-/* ===================================== */
-/* === CORREÇÃO TAGS E NOVAS TAGS === */
-/* ===================================== */
-
-/* 1. Corrige a tag "Quero Ler" (passa para a direita) */
-.card-livro[data-status="Quero Ler"]::after {
-    left: auto; /* Remove o 'left' antigo */
-    right: 8px; /* Adiciona o 'right' */
-}
-
-/* 2. Badge "Lido" (quando não tem nota, no grid) */
 .card-livro[data-status="Lido"].sem-nota::after {
-    content: '\f00c'; /* Ícone de Check */
+    content: '\f00c';
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     position: absolute;
@@ -2442,7 +2073,6 @@ table th.sort-desc::after {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* 3. Container para badges de ícone (Top 10, Meta) */
 .card-icon-badges {
     position: absolute;
     top: 8px;
@@ -2466,32 +2096,346 @@ table th.sort-desc::after {
     backdrop-filter: blur(4px);
 }
 .card-icon-badge.top10 {
-    color: #FFD700; /* Dourado */
+    color: #FFD700;
     font-size: 0.95em;
 }
 .card-icon-badge.meta {
-    color: #CD7F32; /* Bronze */
+    color: #CD7F32;
 }
 
-/* 4. Tags de status no Modo Lista (corrige "Lido") */
-.estante-de-livros.modo-lista .card-info-extra .status-badge {
-    background-color: var(--cor-fundo-principal);
-    padding: 4px 8px;
-    border-radius: 20px;
-    font-size: 0.9em;
-    font-weight: 500;
-    border: 1px solid var(--cor-borda);
-    width: max-content;
-}
 .estante-de-livros.modo-lista .card-info-extra .status-badge.status-lido {
     border-color: var(--cor-borda);
     color: var(--cor-texto-secundario);
 }
-.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lendo {
-    border-color: var(--cor-acao-primaria);
-    color: var(--cor-acao-primaria);
+
+@media (max-width: 1200px) {
+    .dashboard-layout-ano {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .dashboard-sidebar h3 {
+        grid-column: 1 / -1;
+    }
+    .widget-span-2 {
+        grid-column: span 1;
+    }
+    .dashboard-kpi-principais {
+        grid-template-columns: 1fr 1fr;
+    }
+    .kpi-hero {
+        grid-column: 1 / -1;
+        border-right: none;
+        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .kpi-secundario:not(:last-child) {
+        border-right: none;
+    }
+    .kpi-secundario:nth-child(2) {
+         border-right: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .destaques-lista-nova {
+        grid-template-columns: 1fr 1fr;
+    }
 }
+
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100dvh;
+        transform: translateX(-100%);
+        box-shadow: var(--sombra-media);
+    }
+    
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .painel-body {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .painel-coluna-capa {
+        flex-basis: auto;
+        flex-shrink: 1;
+        overflow-y: visible;
+        padding: 1.5rem;
+    }
+    .painel-coluna-info {
+        overflow: visible;
+    }
+    .painel-conteudo-tabs {
+        overflow-y: visible;
+    }
+    .painel-container {
+        height: 90dvh;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-campo.full-width {
+        grid-column: 1 / 1;
+    }
+    .form-botoes {
+        justify-content: flex-start;
+    }
+    .notas-grid, .detalhes-grid {
+        grid-template-columns: 1fr;
+    }
+    .detalhes-grid .detalhe-sinopse {
+        grid-column: 1 / 1;
+    }
+    #sinc-container {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        grid-template-columns: 1fr;
+    }
+    .form-layout {
+        grid-template-columns: 1fr;
+    }
+    .form-coluna-capa {
+        position: static;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    .metas-layout {
+        grid-template-columns: 1fr;
+    }
+    .metas-sidebar {
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+    .meta-lista-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        max-height: none;
+    }
+    .meta-lista-container h3 {
+        grid-column: 1 / -1;
+    }
+    .destaques-lista {
+        grid-template-columns: 1fr;
+    }
+    .destaques-lista-nova {
+        grid-template-columns: 1fr;
+    }
+    .kpi-secundario:nth-child(2) {
+         border-right: none;
+    }
+    .kpi-secundario {
+        border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+    }
+    .dashboard-kpi-principais {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .controles-estante {
+        padding: 1rem;
+    }
+    
+    .grupo-filtros, .grupo-ordenacao, .grupo-ordenacao select {
+        width: 100%;
+    }
+    .campo-com-icone {
+        width: 100%;
+    }
+    
+    .estante-de-livros {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+    
+    .painel-header {
+        padding: 1rem 1.5rem;
+    }
+    .painel-conteudo-tabs {
+        padding: 1.5rem;
+    }
+    .painel-tabs {
+        padding: 0 1.5rem;
+    }
+}
+
+/*
+=====================================
+    PASSO 1: CORREÇÃO DO STATUS "LENDO"
+    (Remove a faixa de canto e adiciona um "glow" animado)
+=====================================
+*/
+
+/* Remove a regra antiga da faixa que causava sobreposição */
+.card-livro[data-status="Lendo"]::before {
+    content: none;
+    display: none;
+}
+
+/* Adiciona um "glow" animado na borda para livros "Lendo" */
+.card-livro[data-status="Lendo"] {
+    /* Usamos a cor primária para destacar */
+    border-color: var(--cor-acao-primaria);
+    /* Sombra e animação para chamar a atenção */
+    box-shadow: 0 0 12px 3px rgba(45, 212, 191, 0.5);
+    animation: pulseLendo 2s infinite ease-in-out;
+}
+
+/* Animação de pulsação */
+@keyframes pulseLendo {
+    0% {
+        box-shadow: 0 0 12px 3px rgba(45, 212, 191, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 16px 5px rgba(45, 212, 191, 0.7);
+    }
+    100% {
+        box-shadow: 0 0 12px 3px rgba(45, 212, 191, 0.5);
+    }
+}
+
+/*
+=====================================
+    PASSO 2: DESTAQUE PARA BADGES DO CANTO ESQUERDO
+    (Top 10 e Meta)
+=====================================
+*/
+
+.card-icon-badge {
+    /* Adiciona uma borda colorida correspondente */
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Dourado para Top 10 */
+.card-icon-badge.top10 {
+    color: #FFD700; 
+    background-color: rgba(80, 62, 0, 0.7); /* Fundo dourado escuro */
+    border-color: #FFD700;
+}
+
+/* Bronze para Meta */
+.card-icon-badge.meta {
+    color: #CD7F32; 
+    background-color: rgba(66, 40, 16, 0.7); /* Fundo bronze escuro */
+    border-color: #CD7F32;
+}
+
+/*
+=====================================
+    PASSO 3: DESTAQUE PARA BADGES DO CANTO DIREITO
+    (Nota, Lido sem Nota, Quero Ler)
+=====================================
+*/
+
+/* 1. Badge de NOTA (Amarelo) */
+.card-nota {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(251, 191, 36, 0.85); /* --cor-amarelo-aviso mais forte */
+    color: var(--cor-texto-acao); /* Texto preto para legibilidade */
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.95em;
+    font-weight: 700; /* Mais forte */
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 4; /* Garante que fique no topo */
+}
+
+/* 2. Badge "LIDO (sem nota)" (Verde) */
+.card-livro[data-status="Lido"].sem-nota::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #4CAF50; /* Verde (do seu .nota-excelente) */
+    background-color: rgba(30, 60, 30, 0.7); /* Fundo verde escuro */
+    padding: 6px 7px;
+    border-radius: 50%;
+    font-size: 0.9em;
+    z-index: 2;
+    border: 1px solid #4CAF50; /* Borda verde */
+    backdrop-filter: blur(4px);
+}
+
+/* 3. Badge "QUERO LER" (Aqua/Teal) */
+.card-livro[data-status="Quero Ler"]::after {
+    content: '\f02e';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    left: auto;
+    right: 8px;
+    color: var(--cor-borda-foco); /* Aqua (do seu --cor-borda-foco) */
+    background-color: rgba(20, 50, 50, 0.7); /* Fundo aqua escuro */
+    padding: 6px 9px;
+    border-radius: 50%;
+    font-size: 0.85em;
+    z-index: 3;
+    border: 1px solid var(--cor-borda-foco); /* Borda aqua */
+    backdrop-filter: blur(4px);
+}
+
+/*
+=====================================
+    PASSO 4: CORREÇÃO STATUS MODO LISTA
+    (Transforma em "pills" coloridas)
+=====================================
+*/
+
+/* Remove o estilo antigo de borda */
+.estante-de-livros.modo-lista .card-info-extra .status-badge {
+    background-color: var(--cor-fundo-container); /* Fundo cinza padrão */
+    color: var(--cor-texto-secundario); /* Texto cinza padrão */
+    padding: 4px 10px; /* Um pouco mais de padding horizontal */
+    border-radius: 20px;
+    font-size: 0.85em; /* Um pouco menor para caber */
+    font-weight: 600; /* Mais forte */
+    border: 1px solid var(--cor-borda);
+    width: max-content;
+}
+
+/* VERDE para "Lendo" */
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lendo {
+    background-color: var(--cor-acao-primaria);
+    color: var(--cor-texto-acao); /* Texto escuro */
+    border-color: var(--cor-acao-primaria);
+}
+
+/* AQUA para "Quero Ler" */
 .estante-de-livros.modo-lista .card-info-extra .status-badge.status-quero-ler {
+    background-color: var(--cor-borda-foco);
+    color: var(--cor-texto-acao); /* Texto escuro */
     border-color: var(--cor-borda-foco);
-    color: var(--cor-borda-foco);
+}
+
+/* CINZA para "Lido" (já está no padrão, mas garantindo) */
+.estante-de-livros.modo-lista .card-info-extra .status-badge.status-lido {
+    background-color: var(--cor-fundo-container);
+    color: var(--cor-texto-secundario);
+    border-color: var(--cor-borda);
 }

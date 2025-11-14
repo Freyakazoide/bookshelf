@@ -75,7 +75,10 @@ const Estante = {
         this.filtroListaAutoresEl = document.getElementById('filtro-lista-autores');
     },
 
-    bindEvents: function() {
+    bindEstanteEvents: function() {
+        this.estanteEl = document.getElementById('estante-de-livros');
+        if (!this.estanteEl) return;
+
         this.estanteEl.addEventListener('click', e => {
             const card = e.target.closest('.card-livro');
             const acaoBtn = e.target.closest('.card-acao-btn');
@@ -90,7 +93,9 @@ const Estante = {
                 this.abrirPainel(card.dataset.id);
             }
         });
+    },
 
+    bindEvents: function() {
         this.inputBuscaEl.addEventListener('input', e => {
             this.state.filtros.busca = e.target.value.toLowerCase();
             this.state.filtros.pagina = 0;
@@ -254,6 +259,8 @@ const Estante = {
             this.state.isInitialized = true;
         }
         
+        this.bindEstanteEvents(); 
+        
         this.popularOpcoesFiltros();
         this.renderEstante();
     },
@@ -261,6 +268,9 @@ const Estante = {
     atualizar: function(livros, metas) {
         this.state.todosOsLivros = livros;
         this.state.metas = metas || [];
+        
+        this.bindEstanteEvents();
+
         this.popularOpcoesFiltros();
         this.renderEstante();
     },
