@@ -1,32 +1,58 @@
-/* --- GERAL, RESET E PALETA DE CORES --- */
+/* ==========================================================================
+   1. CONFIGURAÇÃO GLOBAL, VARIÁVEIS E RESET
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-    --cor-fundo-principal: #17313E;
-    --cor-fundo-secundario: #415E72;
-    --cor-fundo-container: #2a4a5c;
-    --cor-acao-primaria: #C5B0CD;
-    --cor-texto-principal: #F3E2D4;
-    --cor-texto-secundario: #a8bec9;
-    --cor-borda: rgba(197, 176, 205, 0.2);
+    /* Paleta de Cores (Tema "Slate" Moderno) */
+    --cor-fundo-principal: #0F172A;     /* Ardósia 900 - Um azul quase preto */
+    --cor-fundo-secundario: #1E293B;  /* Ardósia 800 - Para sidebars, paineis */
+    --cor-fundo-container: #334155; /* Ardósia 700 - Para cards, controles */
+    
+    --cor-borda: #475569;             /* Ardósia 600 - Bordas sutis */
+    --cor-borda-foco: #5EEAD4;         /* Verde Água 300 - Destaque para foco */
+
+    --cor-texto-principal: #F1F5F9;   /* Ardósia 100 - Texto claro e legível */
+    --cor-texto-secundario: #94A3B8; /* Ardósia 400 - Para labels, placeholders */
+
+    --cor-acao-primaria: #2DD4BF;      /* Verde Água 400 - Ação principal, vibrante */
+    --cor-acao-primaria-hover: #5EEAD4;/* Verde Água 300 - Hover mais claro */
+    --cor-texto-acao: #0F172A;         /* Texto escuro para botões primários */
+    
+    --cor-perigo: #F43F5E;             /* Rosa 500 - Para exclusão */
+    --cor-perigo-hover: #FB7185;       /* Rosa 400 - Hover do perigo */
+
+    /* Tipografia */
+    --fonte-principal: 'Inter', sans-serif;
+
+    /* Espaçamento e Bordas */
+    --raio-borda: 8px; /* Bordas arredondadas consistentes */
+    --sombra-sutil: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --sombra-media: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
 body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--fonte-principal);
     background-color: var(--cor-fundo-principal);
     color: var(--cor-texto-principal);
-    overflow: hidden; /* Impede o scroll do body */
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- ESTRUTURA PRINCIPAL (SIDEBAR + CONTEÚDO) --- */
+/* ==========================================================================
+   2. ESTRUTURA PRINCIPAL (LAYOUT)
+   ========================================================================== */
 .app-layout {
     display: flex;
     height: 100vh;
 }
 
 .sidebar {
-    width: 240px;
+    width: 250px;
     background-color: var(--cor-fundo-secundario);
     border-right: 1px solid var(--cor-borda);
     display: flex;
@@ -38,8 +64,8 @@ body {
 .sidebar-header h2 {
     color: var(--cor-texto-principal);
     text-align: center;
-    font-weight: 500;
-    font-size: 1.8em;
+    font-weight: 600;
+    font-size: 1.5rem;
     margin-bottom: 2rem;
 }
 
@@ -52,10 +78,10 @@ body {
 .nav-link {
     color: var(--cor-texto-secundario);
     text-decoration: none;
-    padding: 12px 15px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border-radius: var(--raio-borda);
     font-weight: 500;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    transition: background-color 0.2s ease, color 0.2s ease;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -68,22 +94,19 @@ body {
 
 .nav-link.active {
     background-color: var(--cor-acao-primaria);
-    color: var(--cor-fundo-principal);
-    font-weight: bold;
+    color: var(--cor-texto-acao);
+    font-weight: 600;
 }
 
 .main-content {
     flex-grow: 1;
-    overflow-y: auto; /* Apenas esta área terá scroll */
+    overflow-y: auto;
     padding: 2rem 3rem;
 }
 
-.view {
-    display: none; /* Esconde todas as "páginas" por padrão */
-}
-
+.view { display: none; }
 .view.active {
-    display: block; /* Mostra apenas a ativa */
+    display: block;
     animation: fadeIn 0.4s ease-in-out;
 }
 
@@ -93,15 +116,18 @@ body {
 }
 
 h1 {
-    font-weight: 500;
-    font-size: 2.5em;
+    font-weight: 700;
+    font-size: 2.25rem;
     color: var(--cor-texto-principal);
     border-bottom: 1px solid var(--cor-borda);
     padding-bottom: 1rem;
     margin-bottom: 2rem;
 }
 
-/* --- ESTILOS DA ESTANTE E CONTROLES --- */
+/* ==========================================================================
+   3. CONTROLES GERAIS (BUSCA, FILTROS, ORDENAÇÃO)
+   ========================================================================== */
+
 .controles-estante {
     display: flex;
     flex-wrap: wrap;
@@ -110,27 +136,27 @@ h1 {
     gap: 1.5rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda);
     border: 1px solid var(--cor-borda);
 }
 
-input, select {
+input, select, textarea {
     background-color: var(--cor-fundo-principal);
     border: 1px solid var(--cor-borda);
     color: var(--cor-texto-principal);
     padding: 12px;
-    border-radius: 5px;
+    border-radius: var(--raio-borda);
     font-size: 1em;
     font-family: inherit;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    caret-color: var(--cor-acao-primaria);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
 }
 
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: var(--cor-acao-primaria);
-    box-shadow: 0 0 0 3px rgba(197, 176, 205, 0.3);
+    border-color: var(--cor-borda-foco);
+    box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.2);
 }
 
 #input-busca {
@@ -153,56 +179,59 @@ input:focus, select:focus {
 .filtro-status {
     background-color: transparent;
     color: var(--cor-texto-secundario);
-    border: 2px solid var(--cor-borda);
+    border: 1px solid var(--cor-borda);
     padding: 8px 15px;
     border-radius: 20px;
     cursor: pointer;
+    font-weight: 500;
     transition: all 0.2s ease-in-out;
 }
 
 .filtro-status:hover {
-    border-color: var(--cor-acao-primaria);
-    color: var(--cor-acao-primaria);
+    border-color: var(--cor-acao-primaria-hover);
+    color: var(--cor-acao-primaria-hover);
 }
 
 .filtro-status.active {
     background-color: var(--cor-acao-primaria);
     border-color: var(--cor-acao-primaria);
-    color: var(--cor-fundo-principal);
-    font-weight: bold;
+    color: var(--cor-texto-acao);
+    font-weight: 600;
 }
 
-/* --- ESTILOS DOS CARDS DE LIVRO (VERSÃO MELHORADA) --- */
+/* ==========================================================================
+   4. CARD DE LIVRO E ESTANTE
+   ========================================================================== */
+
 .estante-de-livros {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1.5rem;
-    /* Adicione a linha abaixo */
-    justify-content: start; 
+    justify-content: start;
 }
 
 .card-livro {
     background-color: var(--cor-fundo-secundario);
-    border: 1px solid transparent;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-sutil);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
     cursor: pointer;
+    position: relative;
 }
 
 .card-livro:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-    border-color: var(--cor-acao-primaria);
+    transform: translateY(-6px);
+    box-shadow: var(--sombra-media);
 }
 
 .card-livro img {
     width: 100%;
-    aspect-ratio: 2 / 3; /* Proporção mais comum de capas de livro */
-    object-fit: cover; /* Garante que a imagem cubra a área sem distorcer */
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
     background-color: var(--cor-fundo-principal);
 }
 
@@ -211,7 +240,6 @@ input:focus, select:focus {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    justify-content: space-between;
 }
 
 .card-info h3 {
@@ -228,17 +256,37 @@ input:focus, select:focus {
     line-height: 1.4;
 }
 
-/* --- ESTILOS DO PAINEL DO LIVRO (MODAL) --- */
+.card-nota {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(15, 23, 42, 0.7);
+    color: #FFD700;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+/* ==========================================================================
+   5. PAINEL DO LIVRO (MODAL)
+   ========================================================================== */
+
 #painel-livro {
-    background: var(--cor-fundo-principal);
+    background: var(--cor-fundo-secundario);
     color: var(--cor-texto-principal);
     border: 1px solid var(--cor-borda);
     border-radius: 12px;
     padding: 0;
     width: 90%;
-    max-width: 1000px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    max-width: 1100px;
+    box-shadow: var(--sombra-media);
     overflow: hidden;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 #painel-livro::backdrop {
@@ -249,7 +297,7 @@ input:focus, select:focus {
 .painel-container {
     display: flex;
     flex-direction: column;
-    height: 85vh; /* Altura do painel */
+    height: 85vh;
 }
 
 .painel-header {
@@ -257,7 +305,8 @@ input:focus, select:focus {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: var(--cor-fundo-secundario);
+    background-color: var(--cor-fundo-container);
+    border-bottom: 1px solid var(--cor-borda);
     flex-shrink: 0;
 }
 
@@ -277,22 +326,25 @@ input:focus, select:focus {
     cursor: pointer;
     padding: 5px;
     line-height: 1;
+    transition: color 0.2s ease;
 }
 .btn-acao:hover {
     color: var(--cor-texto-principal);
 }
 
 .painel-body {
+     max-height: 70vh; /* Altura máxima de 70% da tela */
+    overflow-y: auto; /* Adiciona barra de rolagem se o conteúdo for maior */
     display: flex;
     flex-grow: 1;
     overflow: hidden;
 }
 
 .painel-coluna-capa {
-    flex-basis: 300px; /* Largura fixa para a capa */
+    flex-basis: 320px;
     flex-shrink: 0;
     padding: 2rem;
-    background-color: rgba(0,0,0,0.1);
+    background-color: var(--cor-fundo-principal);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -300,8 +352,8 @@ input:focus, select:focus {
 
 .painel-coluna-capa img {
     width: 100%;
-    border-radius: 8px;
-    box-shadow: var(--sombra-padrao);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
     margin-bottom: 1.5rem;
 }
 
@@ -311,8 +363,11 @@ input:focus, select:focus {
     width: 100%;
     gap: 0.5rem;
 }
-.painel-botoes-principais .btn { width: 100%; }
-
+.painel-botoes-principais .btn { 
+    width: 100%;
+    font-size: 0.9em;
+    padding: 10px;
+}
 
 .painel-coluna-info {
     flex-grow: 1;
@@ -350,81 +405,82 @@ input:focus, select:focus {
 }
 
 .painel-conteudo-tabs {
-    overflow-y: auto; /* Scroll apenas aqui! */
+    overflow-y: auto;
     padding: 2rem;
     flex-grow: 1;
 }
 
-.tab-content {
-    display: none; /* Esconde todas as abas */
-}
-
+.tab-content { display: none; }
 .tab-content.active {
-    display: block; /* Mostra a aba ativa */
+    display: block;
     animation: fadeIn 0.4s;
-}
-
-/* --- ESTILOS DOS FORMULÁRIOS E CONTEÚDO DO PAINEL --- */
-.painel-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.form-grid-painel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.detalhes-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem 2rem;
-}
-
-.detalhes-grid p {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--cor-borda);
-}
-
-.detalhes-grid .detalhe-sinopse {
-    grid-column: 1 / -1;
-    line-height: 1.7;
-}
-
-.detalhes-grid strong {
-    color: var(--cor-texto-secundario);
-    font-weight: 500;
 }
 
 .painel-footer {
     padding: 1rem 2rem;
-    background-color: var(--cor-fundo-secundario);
+    background-color: var(--cor-fundo-container);
     display: flex;
     justify-content: flex-end;
     border-top: 1px solid var(--cor-borda);
     flex-shrink: 0;
 }
 
-/* Correções para o Painel e Botões */
-dialog#painel-livro {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+/* ==========================================================================
+   6. PÁGINA "ADICIONAR LIVRO" E FORMULÁRIOS
+   ========================================================================== */
 
-#btn-busca-api, #form-livro button[type="submit"] {
+/* --- BOTÕES PADRÃO (REFORÇO) --- */
+.btn {
     padding: 10px 20px;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    font-weight: 600;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
-.painel-botoes-principais .btn {
-    font-size: 0.9em;
-    padding: 10px;
+.btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cor-fundo-principal), 0 0 0 5px var(--cor-borda-foco);
 }
 
-/* --- ESTILOS PARA RESULTADOS DA BUSCA (API) --- */
+.btn-primario {
+    background-color: var(--cor-acao-primaria);
+    color: var(--cor-texto-acao);
+}
+.btn-primario:hover {
+    background-color: var(--cor-acao-primaria-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+}
+
+.btn-secundario {
+    background-color: var(--cor-fundo-container);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+}
+.btn-secundario:hover {
+    background-color: var(--cor-borda);
+}
+
+.btn-perigo {
+    background-color: var(--cor-perigo);
+    color: var(--cor-texto-principal);
+}
+.btn-perigo:hover {
+    background-color: var(--cor-perigo-hover);
+    transform: translateY(-2px);
+}
+
+
+/* --- BUSCA API --- */
 #resultados-busca-api {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -434,7 +490,7 @@ dialog#painel-livro {
 
 .card-resultado-api {
     background-color: var(--cor-fundo-container);
-    border-radius: 6px;
+    border-radius: var(--raio-borda);
     padding: 10px;
     text-align: center;
     transition: background-color 0.2s;
@@ -464,17 +520,8 @@ dialog#painel-livro {
     margin-bottom: 10px;
 }
 
-.btn-selecionar-api {
-    width: 100%;
-    padding: 8px;
-    font-size: 0.9em;
-    cursor: pointer;
-}
-
-/* --- ESTILOS PARA O FORMULÁRIO DE ADIÇÃO --- */
-.hidden {
-    display: none !important;
-}
+/* --- FORMULÁRIOS --- */
+.hidden { display: none !important; }
 
 #form-container {
     margin-top: 2rem;
@@ -499,13 +546,8 @@ dialog#painel-livro {
     color: var(--cor-texto-secundario);
 }
 
-.form-campo input,
-.form-campo textarea {
-    width: 100%;
-}
-
 .form-campo.full-width {
-    grid-column: 1 / -1; /* Ocupa as duas colunas */
+    grid-column: 1 / -1;
 }
 
 .form-botoes {
@@ -515,74 +557,9 @@ dialog#painel-livro {
     margin-top: 1rem;
 }
 
-/* --- Estilo para a nota no card --- */
-.card-livro {
-    position: relative; /* Necessário para posicionar a nota */
-}
-
-.card-nota {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #FFD700; /* Cor de ouro para a estrela */
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.9em;
-    font-weight: bold;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 215, 0, 0.5);
-}
-
-/* --- ESTILOS PADRÃO PARA BOTÕES --- */
-.btn {
-    padding: 10px 20px;
-    font-size: 0.95em;
-    font-weight: 500;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease-in-out;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block; /* Garante alinhamento correto */
-}
-
-/* Botão Primário (Ações principais: Salvar, Enviar) */
-.btn-primario {
-    background-color: var(--cor-acao-primaria);
-    color: var(--cor-fundo-principal);
-    font-weight: bold;
-}
-.btn-primario:hover {
-    background-color: #d8c4e2;
-    transform: translateY(-2px);
-}
-
-/* Botão Secundário (Ações alternativas: Editar, Nova Leitura) */
-.btn-secundario {
-    background-color: transparent;
-    color: var(--cor-texto-secundario);
-    border-color: var(--cor-borda);
-}
-.btn-secundario:hover {
-    background-color: var(--cor-fundo-container);
-    color: var(--cor-texto-principal);
-    border-color: var(--cor-texto-secundario);
-}
-
-/* Botão de Perigo (Ações destrutivas: Excluir) */
-.btn-perigo {
-    background-color: #8B0000; /* Vermelho Escuro */
-    color: var(--cor-texto-principal);
-    border-color: #B22222;
-}
-.btn-perigo:hover {
-    background-color: #B22222;
-    border-color: #DC143C;
-}
-
-/* --- Ajuste para o Header da Aba de Leitura --- */
+/* ==========================================================================
+   7. CONTEÚDO ESPECÍFICO DO PAINEL
+   ========================================================================== */
 .leitura-header {
     display: flex;
     justify-content: space-between;
@@ -590,24 +567,19 @@ dialog#painel-livro {
     margin-bottom: 1.5rem;
 }
 
-/* --- Estilos para o novo sistema de notas --- */
-.slider-campo {
-    margin-bottom: 1rem;
-}
+.slider-campo { margin-bottom: 1rem; }
 .slider-campo label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--cor-texto-secundario);
 }
-.slider-campo input[type="range"] {
-    width: 100%;
-}
+.slider-campo input[type="range"] { width: 100%; }
 
 .aviso {
-    background-color: rgba(255, 235, 59, 0.1);
-    border: 1px solid #FFEB3B;
+    background-color: rgba(251, 191, 36, 0.1); /* Amarelo */
+    border: 1px solid #FBBF24;
     padding: 1rem;
-    border-radius: 6px;
+    border-radius: var(--raio-borda);
     margin: 1rem 0;
 }
 
@@ -618,14 +590,13 @@ dialog#painel-livro {
     color: var(--cor-acao-primaria);
 }
 
-/* --- Estilos para o Histórico de Leituras --- */
 .leitura-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: var(--cor-fundo-container);
     padding: 0.8rem 1.2rem;
-    border-radius: 6px;
+    border-radius: var(--raio-borda);
     margin-bottom: 0.5rem;
     border: 2px solid transparent;
     transition: all 0.2s ease-in-out;
@@ -636,495 +607,184 @@ dialog#painel-livro {
     border-color: var(--cor-acao-primaria);
 }
 
-.leitura-card-info h4 {
-    margin-bottom: 0.25rem;
-}
-
+.leitura-card-info h4 { margin-bottom: 0.25rem; }
 .leitura-card-info h4 small {
     font-weight: normal;
     color: var(--cor-texto-secundario);
     margin-left: 10px;
 }
-
 .leitura-card .btn-editar-leitura {
     padding: 5px 10px;
     font-size: 0.8em;
 }
 
-/* --- Estilo para Textarea --- */
-textarea {
-    background-color: var(--cor-fundo-principal);
-    border: 1px solid var(--cor-borda);
-    color: var(--cor-texto-principal);
-    padding: 12px;
-    border-radius: 5px;
-    font-size: 1em;
-    font-family: inherit;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    caret-color: var(--cor-acao-primaria);
-    resize: vertical; /* Permite redimensionar apenas na vertical */
-}
-
-textarea:focus {
-    outline: none;
-    border-color: var(--cor-acao-primaria);
-    box-shadow: 0 0 0 3px rgba(197, 176, 205, 0.3);
-}
-
-/* --- ESTILOS DO DASHBOARD --- */
-.kpi-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-}
-
-.kpi-card {
-    background-color: var(--cor-fundo-container);
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--cor-borda);
-}
-
-.kpi-card h3 {
-    font-size: 1em;
-    font-weight: 500;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 0.5rem;
-}
-
-.kpi-card p {
-    font-size: 2.5em;
-    font-weight: 700;
-    color: var(--cor-texto-principal);
-}
-
-.graficos-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-}
-
-.grafico-card {
-    background-color: var(--cor-fundo-container);
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--cor-borda);
-    height: 400px; /* Altura fixa para os gráficos */
-    display: flex;
-    flex-direction: column;
-}
-
-.grafico-card h3 {
-    margin-bottom: 1rem;
-    text-align: center;
-    font-weight: 500;
-}
-
-/* --- ESTILOS DO DESAFIO ANUAL --- */
-.desafio-container {
+.notas-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    background-color: var(--cor-fundo-container);
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    border: 1px solid var(--cor-borda);
+    gap: 1rem 2rem;
 }
 
-.desafio-meta h2 {
+.detalhes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 2rem;
+}
+.detalhes-grid p {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.detalhes-grid .detalhe-sinopse {
+    grid-column: 1 / -1;
+    line-height: 1.7;
+}
+.detalhes-grid strong {
     color: var(--cor-texto-secundario);
     font-weight: 500;
-    margin-bottom: 1rem;
 }
 
-#meta-display p {
-    font-size: 1.2em;
-    margin-bottom: 1rem;
-}
-
-#meta-display strong {
-    font-size: 1.5em;
-    color: var(--cor-acao-primaria);
-}
-
-#meta-edit {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-#meta-edit input {
-    max-width: 100px;
-}
-
-.desafio-progresso h3 {
-    font-weight: 500;
-    margin-bottom: 1rem;
-}
-
-.desafio-progresso p {
-    margin-bottom: 0.5rem;
-}
-
-.desafio-progresso progress {
-    width: 100%;
-    height: 25px;
-    border-radius: 20px;
-    border: 1px solid var(--cor-borda);
-}
-.desafio-progresso progress::-webkit-progress-bar {
-    background-color: var(--cor-fundo-principal);
-    border-radius: 20px;
-}
-.desafio-progresso progress::-webkit-progress-value {
-    background-color: var(--cor-acao-primaria);
-    border-radius: 20px;
-    transition: width 0.5s ease-in-out;
-}
-
-#select-livros-meta {
-    width: 100%;
-    height: 150px; /* Altura fixa para consistência */
-    background-color: var(--cor-fundo-principal);
-    color: var(--cor-texto-principal);
-    border: 1px solid var(--cor-borda);
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 0.5rem; /* Reduz a margem inferior */
-}
-.card-livro.concluido {
-    opacity: 0.6;
-    border: 2px solid #00FF7F; /* Verde-mar */
-}
-
-#select-livros-meta option {
-    padding: 5px;
-    font-size: 1.1em;
-}
-
-#form-desafio small {
-    display: block;
-    margin-bottom: 1rem;
-    color: var(--cor-texto-secundario);
-}
-
-.lista-checkboxes {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid var(--cor-borda);
-    border-radius: 6px;
-    padding: 10px;
-    background-color: var(--cor-fundo-principal);
-    margin-bottom: 1rem;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    transition: background-color 0.2s;
-}
-
-.checkbox-item:hover {
-    background-color: var(--cor-fundo-container);
-}
-
-.checkbox-item input {
-    margin-right: 10px;
-}
-
-.checkbox-item label {
-    cursor: pointer;
-}
-
-/* --- COMPONENTE DE NOTIFICAÇÃO (TOAST) --- */
-#notificacao-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-.toast {
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: var(--cor-fundo-principal);
-    font-weight: 500;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    transform: translateX(100%);
-    animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
-}
-
-.toast.sucesso {
-    background-color: #2E8B57; /* Verde Mar */
-    color: #F0FFF0;
-}
-
-.toast.erro {
-    background-color: #B22222; /* Vermelho Tijolo */
-    color: #FFF0F5;
-}
-
-@keyframes slideIn {
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-}
-
-/* Em style.css */
-
-.card-livro .card-controles {
-    padding: 0 1rem 1rem 1rem;
-    display: flex;
-}
-
-.card-livro .btn-toggle-concluido {
-    width: 100%;
-    padding: 8px;
-    font-size: 0.9em;
-    background-color: var(--cor-fundo-container);
-    color: var(--cor-texto-principal);
-    border: 1px solid var(--cor-borda);
-}
-.card-livro .btn-toggle-concluido:hover {
-    border-color: var(--cor-acao-primaria);
-}
-
-.card-livro.concluido .btn-toggle-concluido {
-    background-color: #2E8B57; /* Verde Mar */
-    color: #F0FFF0;
-    border-color: #2E8B57;
-}
-
-/* -- NOVOS ESTILOS PARA A PÁGINA DE DESAFIO -- */
+/* ==========================================================================
+   8. PÁGINA DE METAS (DESAFIO)
+   ========================================================================== */
 .gerenciar-metas-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda);
     border: 1px solid var(--cor-borda);
 }
 
-.campo-selecionar-meta, .campo-criar-meta {
+.campo-selecionar-meta {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.campo-selecionar-meta label {
-    font-weight: 500;
-    color: var(--cor-texto-secundario);
+.criar-meta-container {
+     padding: 1.5rem;
 }
 
 #desafio-ativo-container.hidden, #nenhuma-meta-selecionada.hidden {
     display: none;
 }
 
-/* -- ESTILOS PARA PAGINAÇÃO -- */
-.controles-paginacao {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    margin-bottom: 2rem;
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
+#desafio-ativo-container .desafio-progresso {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#desafio-ativo-container .desafio-progresso progress {
+    width: 100%;
+    height: 25px;
+    border-radius: 20px;
     border: 1px solid var(--cor-borda);
-    flex-wrap: wrap;
-    gap: 1rem;
 }
-
-.grupo-paginacao-tamanho, .grupo-paginacao-links {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.grupo-paginacao-links button {
+#desafio-ativo-container .desafio-progresso progress::-webkit-progress-bar {
     background-color: var(--cor-fundo-principal);
+    border-radius: 20px;
+}
+#desafio-ativo-container .desafio-progresso progress::-webkit-progress-value {
+    background-color: var(--cor-acao-primaria);
+    border-radius: 20px;
+    transition: width 0.5s ease-in-out;
+}
+
+.card-livro.concluido {
+    opacity: 0.6;
+    border: 2px solid var(--cor-acao-primaria);
+}
+
+.card-livro.concluido .btn-toggle-concluido {
+    background-color: var(--cor-acao-primaria);
+    color: var(--cor-texto-acao);
+    border-color: var(--cor-acao-primaria);
+}
+
+.estante-de-livros.selecionavel .card-livro {
+    border: 3px solid transparent;
+}
+
+.estante-de-livros.selecionavel .card-livro.selecionado {
+    border-color: var(--cor-borda-foco);
+    box-shadow: 0 0 10px rgba(94, 234, 212, 0.5);
+}
+
+.estante-de-livros.selecionavel .card-livro.selecionado::after {
+    content: '✔️';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--cor-borda-foco);
+    color: var(--cor-texto-acao);
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.grupo-filtros .filtro-status-meta {
+    background-color: var(--cor-fundo-container);
     color: var(--cor-texto-secundario);
-    border: 1px solid var(--cor-borda);
-    padding: 8px 12px;
-    border-radius: 5px;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
     cursor: pointer;
+    margin-right: 10px;
     transition: all 0.2s ease;
 }
 
-.grupo-paginacao-links button:hover {
-    background-color: var(--cor-fundo-secundario);
-    color: var(--cor-texto-principal);
+.grupo-filtros .filtro-status-meta:hover {
+    background-color: var(--cor-borda);
 }
 
-.grupo-paginacao-links button.active {
+.grupo-filtros .filtro-status-meta.active {
     background-color: var(--cor-acao-primaria);
-    color: var(--cor-fundo-principal);
-    border-color: var(--cor-acao-primaria);
-    font-weight: bold;
+    color: var(--cor-texto-acao);
+    box-shadow: 0 2px 5px rgba(45, 212, 191, 0.3);
 }
 
-.grupo-paginacao-links button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 
-/* -- ESTILOS PARA O DASHBOARD -- */
-.controles-dashboard {
-    display: flex;
-    justify-content: flex-end; /* Alinha o filtro à direita */
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
-    border: 1px solid var(--cor-borda);
-}
+/* ==========================================================================
+   9. PÁGINA DE DASHBOARD
+   ========================================================================== */
 
-/* --- NOVOS ESTILOS PARA O SUPER DASHBOARD --- */
-
-/* Grid Layout */
-.dashboard-grid-ano, .dashboard-grid-geral {
-    display: grid;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-
-.dashboard-grid-ano {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: 
-        "resumo destaques"
-        "lista  lista";
-}
-
-.dashboard-grid-geral {
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
-
-/* Atribuição das áreas do grid */
-#kpi-resumo-ano { grid-area: resumo; }
-#kpi-destaques-ano { grid-area: destaques; }
-#lista-livros-ano { grid-area: lista; }
-
-
-/* Estilos para os Cards de KPI e Tabelas */
-.kpi-card-grande, .tabela-card {
-    background-color: var(--cor-fundo-container);
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--cor-borda);
-}
-
-.tabela-card h3 {
-    margin-bottom: 1rem;
-    font-weight: 500;
-    border-bottom: 1px solid var(--cor-borda);
-    padding-bottom: 0.8rem;
-}
-
-/* Estilos para os KPIs Detalhados */
-.kpi-grid-interno {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.kpi-item h4 {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 0.25rem;
-}
-
-.kpi-item p {
-    font-size: 1.8em;
-    font-weight: 600;
-    color: var(--cor-texto-principal);
-}
-
-.kpi-item p.subtitulo {
-    font-size: 0.9em;
-    font-weight: 400;
-    color: var(--cor-texto-secundario);
-}
-
-/* Estilos para as Tabelas */
-.tabela-container {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9em;
-}
-
-th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--cor-borda);
-}
-
-thead th {
-    background-color: var(--cor-fundo-secundario);
-    position: sticky;
-    top: 0;
-}
-
-tbody tr:hover {
-    background-color: var(--cor-fundo-secundario);
-}
-
-td:nth-child(2) {
-    font-weight: bold;
-}
-
-/* --- ESTILOS DO NOVO DASHBOARD --- */
-
-/* Layout Principal com Grid */
 .dashboard-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Coluna da esquerda menor, da direita maior */
     gap: 1.5rem;
-    margin-bottom: 2.5rem;
 }
 
-.dashboard-coluna {
+.dashboard-layout {
+    grid-template-columns: 1fr 2fr;
+}
+@media (max-width: 1200px) {
+    .dashboard-layout { grid-template-columns: 1fr; }
+}
+
+.dashboard-coluna, .dashboard-coluna-kpi {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
+.dashboard-coluna-kpi {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-content: start;
+}
 
-/* Estilo Base dos Cards */
 .dash-card {
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda);
     padding: 1.5rem;
     border: 1px solid var(--cor-borda);
     display: flex;
     flex-direction: column;
 }
 
-/* Estilo para os cards de KPI (pequenos) */
 .dash-card h4 {
     font-size: 0.9em;
     font-weight: 500;
@@ -1145,156 +805,61 @@ td:nth-child(2) {
     margin: 0.2rem 0 0 0;
 }
 
-/* Cards de Destaque (Melhor/Pior Livro) */
 .dash-card.destaque .valor-kpi {
-    font-size: 1.2em; /* Fonte um pouco menor para caber o título */
+    font-size: 1.2em;
     color: var(--cor-acao-primaria);
 }
 
-/* Estilos para as Tabelas */
-.tabela-card {
-    padding: 0; /* Remove padding para a tabela ocupar todo o espaço */
+.dashboard-grid-geral {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
+
+.tabela-card { padding: 0; }
 .tabela-card h3 {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    padding: 1.5rem;
     margin: 0;
+    border-bottom: 1px solid var(--cor-borda);
 }
 .tabela-container {
     max-height: 350px;
     overflow-y: auto;
 }
 .tabela-container.full-height {
-    max-height: none; /* Remove a altura máxima para a tabela principal */
+    max-height: none;
 }
 
-/* Cores e Destaques da Tabela */
 table {
-    border-collapse: separate; /* Permite espaçamento e bordas arredondadas */
-    border-spacing: 0;
+    width: 100%;
+    border-collapse: collapse;
 }
+
 th, td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--cor-borda);
 }
 thead th {
-    background-color: var(--cor-fundo-secundario);
+    background-color: var(--cor-fundo-container);
     position: sticky;
     top: 0;
     z-index: 10;
 }
+
 tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(15, 23, 42, 0.5); /* Fundo principal com transparência */
 }
 tbody tr:hover {
-    background-color: var(--cor-fundo-secundario);
-}
-table td:first-child {
-    font-weight: bold;
+    background-color: var(--cor-fundo-container);
 }
 
-/* --- COLORAÇÃO DAS NOTAS NA TABELA --- */
 .nota-excelente { color: #4CAF50; font-weight: bold; } /* Verde */
 .nota-boa { color: #8BC34A; } /* Verde claro */
 .nota-media { color: #FFC107; } /* Amarelo */
 .nota-ruim { color: #FF9800; } /* Laranja */
 .nota-pessima { color: #F44336; font-weight: bold; } /* Vermelho */
 
-/* --- REESTRUTURAÇÃO COMPLETA DO DASHBOARD --- */
-
-/* Abas de Navegação */
-.dashboard-tabs {
-    flex-grow: 1;
-}
-.dashboard-tabs .tab-button {
-    padding: 10px 20px;
-    font-size: 1em;
-    border: none;
-    background: none;
-    color: var(--cor-texto-secundario);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-}
-.dashboard-tabs .tab-button.active {
-    color: var(--cor-acao-primaria);
-    border-bottom-color: var(--cor-acao-primaria);
-}
-
-.dashboard-content {
-    display: none;
-}
-.dashboard-content.active {
-    display: block;
-    animation: fadeIn 0.4s;
-}
-
-
-/* Layout Principal com Grid (Cards Menores) */
-.dashboard-layout {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-
-.dashboard-coluna-kpi {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1.5rem;
-    align-content: start;
-}
-
-/* Estilo Base dos Cards */
-.dash-card {
-    background-color: var(--cor-fundo-container);
-    border-radius: 8px;
-    padding: 1.2rem;
-    border: 1px solid var(--cor-borda);
-    display: flex;
-    flex-direction: column;
-}
-
-/* Estilo para os cards de KPI com Ícones */
-.dash-card .kpi-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-}
-.dash-card .kpi-icon {
-    font-size: 1.5em;
-    color: var(--cor-acao-primaria);
-    width: 30px;
-    text-align: center;
-}
-.dash-card h4 {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: var(--cor-texto-secundario);
-    margin: 0;
-}
-.dash-card .valor-kpi {
-    font-size: 2em;
-    font-weight: 600;
-    color: var(--cor-texto-principal);
-    margin: 0;
-    text-align: right;
-}
-.dash-card .subtitulo-kpi {
-    font-size: 0.8em;
-    color: var(--cor-texto-secundario);
-    margin: 0.2rem 0 0 0;
-    text-align: right;
-}
-.dash-card.destaque .valor-kpi {
-    font-size: 1.1em;
-    text-align: left;
-}
-.dash-card.destaque .subtitulo-kpi {
-    text-align: left;
-}
-
-/* Tabelas Clicáveis e Ordenáveis */
 table th.sortable {
     cursor: pointer;
     position: relative;
@@ -1322,18 +887,21 @@ table th.sort-desc::after {
     opacity: 1;
 }
 
+/* ==========================================================================
+   10. UTILITÁRIOS E COMPONENTES FINAIS
+   ========================================================================== */
 .info-resultados {
     text-align: right;
     margin: -1rem 0 1.5rem 0;
     color: var(--cor-texto-secundario);
 }
-/* --- ESTILOS DO PAINEL DE SINCRONIZAÇÃO --- */
+
 #painel-sincronizacao {
     margin-top: 2rem;
     padding: 1.5rem;
     border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    background-color: var(--cor-fundo-container);
+    border-radius: var(--raio-borda);
+    background-color: var(--cor-fundo-secundario);
 }
 #sinc-container {
     display: grid;
@@ -1345,138 +913,313 @@ table th.sort-desc::after {
 .sinc-campo {
     border: 1px solid var(--cor-borda);
     padding: 1rem;
-    border-radius: 6px;
+    border-radius: var(--raio-borda);
 }
-.sinc-campo h5 {
-    margin-top: 0;
+/* (O resto dos estilos de sinc já estão cobertos pelas regras gerais) */
+
+.controles-paginacao, #paginacao-seletor-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    margin-top: 1.5rem;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda);
+    border: 1px solid var(--cor-borda);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+#notificacao-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+.toast {
+    padding: 15px 20px;
+    border-radius: var(--raio-borda);
+    font-weight: 600;
+    box-shadow: var(--sombra-media);
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
+}
+.toast.sucesso {
+    background-color: #10B981; /* Verde Esmeralda */
+    color: white;
+}
+.toast.erro {
+    background-color: var(--cor-perigo);
+    color: white;
+}
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeOut { to { opacity: 0; transform: scale(0.9); } }
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    text-align: center;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
     color: var(--cor-texto-secundario);
 }
-.sinc-campo .valor-atual {
-    font-style: italic;
-    color: #ccc;
-}
-.sinc-campo .valor-api {
-    font-weight: bold;
-    color: var(--cor-texto-principal);
-}
-.sinc-campo button {
-    margin-top: 1rem;
-    width: 100%;
-}
-#sinc-capa-container {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-#sinc-capa-container img {
-    max-width: 100px;
-    height: auto;
-    border-radius: 4px;
-}
-
-/* Estilos para o seletor de livros na meta */
-.estante-de-livros.selecionavel .card-livro {
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 3px solid transparent;
-    position: relative; /* Para posicionar o checkmark */
-}
-
-.estante-de-livros.selecionavel .card-livro:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.estante-de-livros.selecionavel .card-livro.selecionado {
-    border-color: #007bff; /* Cor para indicar seleção */
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-}
-
-.estante-de-livros.selecionavel .card-livro.selecionado::after {
-    content: '✔️';
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #007bff;
-    color: white;
+.loader {
+    border: 4px solid var(--cor-fundo-container);
+    border-top: 4px solid var(--cor-acao-primaria);
     border-radius: 50%;
-    width: 25px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    z-index: 10;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
 }
-
-/* Estilos para o filtro de status na meta (reaproveitando classes, mas ajustando para a nova localização) */
-.grupo-filtros .filtro-status-meta {
-    background-color: #f0f0f0;
-    color: #333;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-right: 10px;
-    transition: all 0.2s ease;
-}
-
-.grupo-filtros .filtro-status-meta:hover {
-    background-color: #e0e0e0;
-}
-
-.grupo-filtros .filtro-status-meta.active {
-    background-color: #007bff;
-    color: white;
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
-}
-
-/* Estilos para a paginação do seletor de meta */
-#paginacao-seletor-meta {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-    padding: 10px 0;
-    background-color: #f9f9f9;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
-    border-radius: 8px;
-}
-
-#paginacao-seletor-meta button {
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#paginacao-seletor-meta button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#paginacao-seletor-meta span {
-    font-weight: bold;
-    color: #555;
-}
-
-/* Melhoria visual para cards da meta */
-#desafio-livros-da-meta .card-livro.pendente .card-nota {
-    background-color: #ffc107; /* Amarelo para pendente */
-    color: #333;
-}
-
-.notas-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem 2rem;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
     .notas-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ==========================================================================
+   11. REFORMULAÇÃO DO DASHBOARD
+   ========================================================================== */
+
+/* --- Estrutura de Abas --- */
+.dashboard-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-bottom: 2rem;
+}
+.dashboard-tabs .tab-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    background: none;
+    color: var(--cor-texto-secundario);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+.dashboard-tabs .tab-button:hover {
+    color: var(--cor-texto-principal);
+}
+.dashboard-tabs .tab-button.active {
+    color: var(--cor-acao-primaria);
+    border-bottom-color: var(--cor-acao-primaria);
+}
+
+.dashboard-content { display: none; }
+.dashboard-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+/* --- Layout da Aba "Resumo do Ano" --- */
+.dashboard-layout-ano {
+    display: grid;
+    grid-template-columns: 1fr 360px; 
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-layout-ano {
+        grid-template-columns: 1fr; /* Vira coluna única em telas menores */
+    }
+}
+
+.dashboard-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dashboard-kpi-principais {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+.dashboard-kpi-principais .dash-card {
+    text-align: center;
+}
+.dashboard-kpi-principais .dash-card .valor-kpi {
+    font-size: 2.5em;
+}
+
+
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky; /* Sidebar fica fixa ao rolar a tabela */
+    top: 1.5rem;
+}
+.dashboard-sidebar h3 {
+    font-weight: 600;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-sidebar .dash-card {
+    background-color: var(--cor-fundo-container);
+        padding: 1rem; 
+}
+.dashboard-sidebar .dash-card.destaque {
+    border-left: 4px solid var(--cor-acao-primaria);
+}
+
+.dashboard-sidebar .dash-card h4 {
+    font-size: 0.85em; /* Fonte do título menor */
+}
+.dashboard-sidebar .dash-card .valor-kpi {
+    font-size: 1.5em; /* Fonte do valor principal menor */
+}
+.dashboard-sidebar .dash-card.destaque .valor-kpi {
+    font-size: 1.1em; /* Ajuste fino para os cards de destaque */
+}
+
+.dashboard-sidebar .dash-card.destaque {
+    border-left: 4px solid var(--cor-acao-primaria);
+}
+
+/* --- Layout da Aba "Análise Histórica" --- */
+.dashboard-grid-geral {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 1.5rem;
+}
+.grafico-container {
+    height: 350px;
+    padding: 1rem;
+}
+
+/* ==========================================================================
+   12. COMPONENTES DO FINANCEIRO
+   ========================================================================== */
+
+.lista-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.item-checklist {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--raio-borda);
+    background-color: var(--cor-fundo-principal);
+    border: 1px solid var(--cor-borda);
+}
+
+.item-checklist .info .nome {
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+}
+
+.item-checklist .info .valor {
+    font-size: 0.9em;
+    color: var(--cor-texto-secundario);
+}
+
+.item-checklist.pendente .btn-marcar-pago {
+    padding: 5px 10px;
+    font-size: 0.85em;
+    background-color: transparent;
+    border: 1px solid var(--cor-perigo);
+    color: var(--cor-perigo);
+}
+.item-checklist.pendente .btn-marcar-pago:hover {
+    background-color: var(--cor-perigo);
+    color: var(--cor-texto-principal);
+}
+
+
+.item-checklist.pago {
+    background-color: rgba(45, 212, 191, 0.1);
+    border-color: rgba(45, 212, 191, 0.3);
+}
+
+.item-checklist.pago .info .nome {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.item-checklist.pago span {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--cor-acao-primaria);
+}
+
+/* ==========================================================================
+   13. MODAL DE CATEGORIZAÇÃO
+   ========================================================================== */
+
+#transacao-valor.despesa {
+    color: var(--cor-perigo);
+}
+
+#transacao-valor.receita {
+    color: #2DD4BF; /* Mesmo verde da ação primária */
+}
+
+/* ==========================================================================
+   14. TABELA DE CATEGORIZAÇÃO EDITÁVEL
+   ========================================================================== */
+
+#tabela-categorizacao .input-descricao-linha,
+#tabela-categorizacao .select-categoria-linha {
+    width: 100%;
+    padding: 8px; /* Mais compacto para a tabela */
+    font-size: 0.9em;
+}
+
+#tabela-categorizacao .input-descricao-linha {
+    background-color: var(--cor-fundo-container); /* Cor de fundo para destacar */
+}
+
+dialog {
+    padding: 0;
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background-color: var(--cor-fundo-secundario);
+    color: var(--cor-texto-principal);
+    max-width: 90vw; /* Garante que não ultrapasse a largura da tela */
+}
+
+/* Animação de abertura */
+dialog[open] {
+  animation: fadeIn 0.3s ease-out;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+/* Remove estilos antigos e específicos para garantir que o novo prevaleça */
+#painel-livro {
+    max-width: 900px; /* Define uma largura máxima */
+    width: 90%;      /* Ocupa 90% da tela, até o máximo de 900px */
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    padding: 0; /* O padding será controlado pelo container interno */
 }

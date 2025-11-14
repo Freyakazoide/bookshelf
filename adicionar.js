@@ -10,7 +10,8 @@ const Adicionar = {
     },
     cacheDOM: function() {
         this.formLivroEl = document.getElementById('form-livro');
-        this.inputBuscaApiEl = document.getElementById('input-busca-api');
+        this.inputBuscaApiTituloEl = document.getElementById('input-busca-api-titulo');
+        this.inputBuscaApiAutorEl = document.getElementById('input-busca-api-autor');
         this.btnBuscaApiEl = document.getElementById('btn-busca-api');
         this.resultadosBuscaApiEl = document.getElementById('resultados-busca-api');
         this.formContainerEl = document.getElementById('form-container');
@@ -56,7 +57,12 @@ const Adicionar = {
     },
     buscarNaApi: async function(novaBusca = true) {
         if (novaBusca) {
-            this.state.buscaApiTermo = this.inputBuscaApiEl.value.trim();
+            const titulo = this.inputBuscaApiTituloEl.value.trim();
+            const autor = this.inputBuscaApiAutorEl.value.trim();
+            let query = '';
+            if (titulo) query += `intitle:${titulo}`;
+            if (autor) query += `${query ? '+' : ''}inauthor:${autor}`;
+            this.state.buscaApiTermo = query;
             this.state.buscaApiPagina = 0;
         }
         if (!this.state.buscaApiTermo) return App.mostrarNotificacao('Digite um título ou autor.', 'erro');
@@ -114,7 +120,7 @@ const Adicionar = {
         return { items, total: data.totalItems || 0 };
     },
     buscarNaOpenLibrary: async function(termo) {
-        const query = encodeURIComponent(termo);
+        const query = encodeURIComponent(termo.replace(/\+/g, ' ').replace(/intitle:|inauthor:/g, ''));
         const apiUrl = `https://openlibrary.org/search.json?q=${query}&limit=40`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error('Falha na API da Open Library');
@@ -135,7 +141,7 @@ const Adicionar = {
         }));
     },
     renderResultados: function() {
-        if (this.state.resultadosApi.length === 0) {
+        if (!this.state.resultadosApi || this.state.resultadosApi.length === 0) {
             this.resultadosBuscaApiEl.innerHTML = '<p>Nenhum livro encontrado.</p>';
             this.buscaApiPaginacaoEl.classList.add('hidden');
             return;
@@ -191,7 +197,9 @@ const Adicionar = {
         };
         let html = '';
         for (const [key, value] of Object.entries(campos)) {
-            const valorAtual = document.getElementById(key).value;
+            const valorAtualEl = document.getElementById(key);
+            if (!valorAtualEl) continue;
+            const valorAtual = valorAtualEl.value;
             const valorApi = value.valorApi || '';
             if (valorApi && valorApi.toString().trim() !== valorAtual.trim()) {
                 html += `<div class="sinc-campo"><h5>${value.label}</h5><p class="valor-atual"><b>Atual:</b> ${valorAtual || 'Vazio'}</p><p class="valor-api"><b>API:</b> ${valorApi}</p><button class="btn btn-primario btn-sinc" data-campo="${key}">Usar este</button></div>`;
@@ -222,9 +230,12 @@ const Adicionar = {
     preencherFormulario: function(info, livroExistente = null) {
         this.formLivroEl.reset();
         this.formTituloEl.textContent = livroExistente ? 'Editando Cadastro do Livro' : 'Complete os dados e salve';
-        const getVal = (existente, apiVal, fallback = '') => existente || (apiVal || fallback);
-        const getArrayVal = (existente, apiVal) => existente || (Array.isArray(apiVal) ? apiVal.join(', ') : (apiVal || ''));
-        document.getElementById('livro-id').value = getVal(livroExistente?.id);
+        const getVal = (existente, apiVal, fallback = '') => existente ?? (apiVal ?? fallback);
+        const getArrayVal = (existente, apiVal) => existente ?? (Array.isArray(apiVal) ? apiVal.join(', ') : (apiVal || ''));
+        
+        const livroId = livroExistente ? (livroExistente.firestoreId || livroExistente.id) : '';
+        document.getElementById('livro-id').value = livroId;
+
         document.getElementById('nomeDoLivro').value = getVal(livroExistente?.nomeDoLivro, info?.title);
         document.getElementById('autor').value = getArrayVal(livroExistente?.autor, info?.authors);
         document.getElementById('dataAquisicao').value = getVal(livroExistente?.dataAquisicao, new Date().toISOString().split('T')[0]);
@@ -242,8 +253,9 @@ const Adicionar = {
     },
     salvar: async function(e) {
         e.preventDefault();
-        const id = document.getElementById('livro-id').value;
+        const firestoreId = document.getElementById('livro-id').value;
         const livroData = {
+            id: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.id || Date.now()) : Date.now(),
             nomeDoLivro: document.getElementById('nomeDoLivro').value,
             autor: document.getElementById('autor').value,
             dataAquisicao: document.getElementById('dataAquisicao').value,
@@ -257,8 +269,9 @@ const Adicionar = {
             categorias: document.getElementById('categorias').value,
             descricao: document.getElementById('descricao').value
         };
+
         try {
-            await App.salvarLivro(livroData, id);
+            await App.salvarLivro(livroData, firestoreId);
             App.mostrarNotificacao('Livro salvo com sucesso!');
             this.formLivroEl.reset();
             this.formContainerEl.classList.add('hidden');
@@ -266,6 +279,8 @@ const Adicionar = {
             this.adicionarManualContainerEl.classList.add('hidden');
             this.painelSincronizacaoEl.classList.add('hidden');
             this.buscaApiPaginacaoEl.classList.add('hidden');
+            this.inputBuscaApiTituloEl.value = '';
+            this.inputBuscaApiAutorEl.value = '';
             App.navegarPara('view-estante');
         } catch (error) {
             console.error('Falha ao salvar:', error);
@@ -273,6 +288,7 @@ const Adicionar = {
         }
     },
     modoEdicao: function(livroId) {
+        // Agora busca pelo ID numérico original, pois é o que temos do App
         const livro = this.state.todosOsLivros.find(l => l.id == livroId);
         if (livro) {
             this.resultadosBuscaApiEl.innerHTML = '';

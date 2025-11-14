@@ -104,23 +104,15 @@ const Desafio = {
         });
     },
 
-    init: async function(livros) {
+    init: function(livros) {
         this.state.livros = livros;
         this.cacheDOM();
         this.bindEvents();
         this.popularFiltroDeAno();
         
-        try {
-            const response = await fetch('/api/challenges');
-            if (response.ok) {
-                this.state.metas = await response.json();
-                if (this.state.metas.length > 0) {
-                    this.state.metaAtivaId = this.state.metas.sort((a,b) => b.id - a.id)[0].id;
-                }
-            }
-        } catch (error) {
-            console.error("Não foi possível carregar as metas.", error);
-            App.mostrarNotificacao("Não foi possível carregar suas metas.", 'erro');
+        this.state.metas = App.state.challenges || [];
+        if (!this.state.metaAtivaId && this.state.metas.length > 0) {
+            this.state.metaAtivaId = this.state.metas.sort((a,b) => b.id - a.id)[0].id;
         }
         
         this.render();
@@ -189,17 +181,7 @@ const Desafio = {
     },
 
     salvarMetasNoServidor: async function() {
-        try {
-            const response = await fetch('/api/challenges', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.state.metas)
-            });
-            if (!response.ok) throw new Error('Falha ao salvar no servidor');
-        } catch (error) {
-            console.error("Erro ao salvar metas:", error);
-            App.mostrarNotificacao("Ocorreu um erro ao salvar suas metas.", 'erro');
-        }
+        await App.salvarMetas(this.state.metas);
     },
 
     getMetaAtiva: function() {

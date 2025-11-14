@@ -14,7 +14,8 @@ const Estante = {
         criteriosDeNota: [
             'personagens', 'plot', 'desenvolvimento', 'pacing', 'prosa',
             'originalidade', 'temas', 'impacto', 'closing', 'releitura'
-        ]
+        ],
+        initialized: false,
     },
 
     cacheDOM: function() {
@@ -25,7 +26,6 @@ const Estante = {
         this.contadorResultadosEl = document.getElementById('contador-resultados');
         this.selectTamanhoPaginaEl = document.getElementById('select-tamanho-pagina');
         this.linksPaginacaoEl = document.getElementById('links-paginacao');
-
         this.painelLivroEl = document.getElementById('painel-livro');
         this.painelTituloEl = document.getElementById('painel-titulo');
         this.btnFecharPainelEl = document.getElementById('btn-fechar-painel');
@@ -33,33 +33,29 @@ const Estante = {
         this.btnEditarEl = document.getElementById('painel-btn-editar');
         this.btnExcluirEl = document.getElementById('painel-btn-excluir');
         this.painelBtnSalvarEl = document.getElementById('painel-btn-salvar');
-
         this.painelTabs = this.painelLivroEl.querySelectorAll('.painel-tabs .tab-button');
         this.painelTabContents = this.painelLivroEl.querySelectorAll('.tab-content');
-
         this.leiturasContainerEl = document.getElementById('leituras-container');
         this.formLeituraContainerEl = document.getElementById('form-leitura-container');
         this.btnNovaLeituraEl = document.getElementById('painel-btn-nova-leitura');
-
         this.formNotasEl = document.getElementById('form-notas');
         this.avisoNotaBloqueadaEl = document.getElementById('aviso-nota-bloqueada');
         this.notaFinalCalculadaEl = document.getElementById('nota-final-calculada');
-
         this.infoDetalhesEl = document.getElementById('info-detalhes');
     },
 
     bindEvents: function() {
+        if (this.state.initialized) return;
+
         this.estanteEl.addEventListener('click', e => {
             const card = e.target.closest('.card-livro');
-            if (card) this.abrirPainel(parseInt(card.dataset.id, 10));
+            if (card) this.abrirPainel(card.dataset.id);
         });
-
         this.inputBuscaEl.addEventListener('input', e => {
             this.state.filtros.busca = e.target.value.toLowerCase();
             this.state.filtros.pagina = 0;
             this.renderEstante();
         });
-
         this.filtrosStatusEl.forEach(btn => {
             btn.addEventListener('click', e => {
                 this.filtrosStatusEl.forEach(b => b.classList.remove('active'));
@@ -69,28 +65,23 @@ const Estante = {
                 this.renderEstante();
             });
         });
-
         this.selectOrdenacaoEl.addEventListener('change', e => {
             this.state.filtros.ordenacao = e.target.value;
             this.renderEstante();
         });
-
         this.selectTamanhoPaginaEl.addEventListener('change', e => {
             this.state.filtros.porPagina = parseInt(e.target.value, 10);
             this.state.filtros.pagina = 0;
             this.renderEstante();
         });
-
         this.linksPaginacaoEl.addEventListener('click', e => {
             if (e.target.tagName === 'BUTTON' && e.target.dataset.pagina) {
                 this.state.filtros.pagina = parseInt(e.target.dataset.pagina, 10);
                 this.renderEstante();
             }
         });
-
         this.btnFecharPainelEl.addEventListener('click', () => this.painelLivroEl.close());
         this.painelLivroEl.addEventListener('close', () => this.limparPainel());
-
         this.painelTabs.forEach(tab => {
             tab.addEventListener('click', e => {
                 const tabId = e.target.dataset.tab;
@@ -100,12 +91,13 @@ const Estante = {
                 document.getElementById(tabId).classList.add('active');
             });
         });
-
         this.btnNovaLeituraEl.addEventListener('click', () => this.renderFormLeitura());
-
         this.formLeituraContainerEl.addEventListener('click', e => {
             if (e.target.id === 'btn-salvar-leitura') this.salvarLeitura();
-            if (e.target.id === 'btn-cancelar-leitura') this.formLeituraContainerEl.innerHTML = '';
+            if (e.target.id === 'btn-cancelar-leitura') {
+                this.formLeituraContainerEl.innerHTML = '';
+                this.formLeituraContainerEl.classList.add('hidden');
+            }
             if (e.target.classList.contains('btn-deletar-leitura')) {
                 const id = parseInt(e.target.dataset.idleitura, 10);
                 if (confirm('Tem certeza que deseja excluir este registro de leitura?')) {
@@ -113,15 +105,21 @@ const Estante = {
                 }
             }
         });
-
         this.leiturasContainerEl.addEventListener('click', e => {
             const itemLeitura = e.target.closest('.item-leitura');
             if (itemLeitura) {
-                this.state.leituraAtivaId = parseInt(itemLeitura.dataset.idleitura, 10);
-                this.renderPainelLeituras();
+                const idLeitura = parseInt(itemLeitura.dataset.idleitura, 10);
+                this.state.leituraAtivaId = idLeitura;
+
+                // FIX: Encontra a leitura e abre o formulário para edição
+                const leituraParaEditar = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
+                if (leituraParaEditar) {
+                    this.renderFormLeitura(leituraParaEditar);
+                }
+                
+                this.renderPainelLeituras(); // Atualiza a lista (para destacar o item)
             }
         });
-
         this.painelBtnSalvarEl.addEventListener('click', () => this.salvarNotas());
         this.btnEditarEl.addEventListener('click', () => {
             this.painelLivroEl.close();
@@ -131,9 +129,21 @@ const Estante = {
         this.btnExcluirEl.addEventListener('click', () => {
             if (confirm(`Tem certeza que deseja excluir "${this.state.livroAtivo.nomeDoLivro}"? Esta ação não pode ser desfeita.`)) {
                 this.painelLivroEl.close();
-                App.excluirLivro(this.state.livroAtivo.id);
+                App.excluirLivro(this.state.livroAtivo.firestoreId);
             }
         });
+        this.state.criteriosDeNota.forEach(criterio => {
+            const slider = document.getElementById(`nota-${criterio}`);
+            if (slider) {
+                slider.addEventListener('input', e => {
+                    const valorSpan = document.getElementById(`valor-nota-${criterio}`);
+                    valorSpan.textContent = parseFloat(e.target.value).toFixed(1);
+                    this.calcularNotaFinal();
+                });
+            }
+        });
+
+        this.state.initialized = true;
     },
 
     init: function(livros) {
@@ -151,18 +161,22 @@ const Estante = {
     filtrarEOrdenarLivros: function() {
         let livros = [...this.state.todosOsLivros];
         const { busca, status } = this.state.filtros;
-
         if (busca) {
             livros = livros.filter(l =>
                 l.nomeDoLivro.toLowerCase().includes(busca) ||
-                l.autor.toLowerCase().includes(busca)
+                (l.autor && l.autor.toLowerCase().includes(busca))
             );
         }
-
         if (status !== 'Todos') {
-            livros = livros.filter(l => l.situacao === status);
+            livros = livros.filter(l => {
+                const temLeituraIniciada = (l.leituras || []).some(leitura => leitura.dataInicio);
+                const temLeituraFinalizada = (l.leituras || []).some(leitura => leitura.dataFim);
+                if (status === 'Lido') return temLeituraFinalizada;
+                if (status === 'Lendo') return temLeituraIniciada && !temLeituraFinalizada;
+                if (status === 'Quero Ler') return !temLeituraIniciada;
+                return false;
+            });
         }
-
         this.state.livrosFiltrados = livros;
         this.ordenarLivros();
     },
@@ -195,10 +209,14 @@ const Estante = {
 
         this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
             const capa = livro.urlCapa || 'placeholder.jpg';
-            const nota = (livro.leituras && livro.leituras.length > 0 && livro.leituras[0].notaFinal)
-                ? `<div class="card-nota">★ ${livro.leituras[0].notaFinal.toFixed(1)}</div>` : '';
+            const leituraRecente = (livro.leituras && livro.leituras.length > 0) 
+                ? [...livro.leituras].sort((a,b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0))[0]
+                : null;
+            const nota = (leituraRecente && leituraRecente.notaFinal)
+                ? `<div class="card-nota">★ ${leituraRecente.notaFinal.toFixed(1)}</div>` : '';
+
             return `
-                <div class="card-livro" data-id="${livro.id}">
+                <div class="card-livro" data-id="${livro.firestoreId}">
                     ${nota}
                     <img src="${capa}" alt="Capa de ${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
                     <div class="card-info">
@@ -219,9 +237,7 @@ const Estante = {
         const { pagina, porPagina } = this.state.filtros;
         const totalPaginas = Math.ceil(totalLivros / porPagina);
         this.linksPaginacaoEl.innerHTML = '';
-
         if (totalPaginas <= 1) return;
-
         for (let i = 0; i < totalPaginas; i++) {
             const btn = document.createElement('button');
             btn.textContent = i + 1;
@@ -231,15 +247,13 @@ const Estante = {
         }
     },
     
-    abrirPainel: function(livroId) {
-        this.state.livroAtivo = this.state.todosOsLivros.find(l => l.id === livroId);
+    abrirPainel: function(firestoreId) {
+        this.state.livroAtivo = this.state.todosOsLivros.find(l => l.firestoreId === firestoreId);
         if (!this.state.livroAtivo) return;
-
         const leituraMaisRecente = this.state.livroAtivo.leituras && this.state.livroAtivo.leituras.length > 0
-            ? [...this.state.livroAtivo.leituras].sort((a,b) => new Date(b.dataFim) - new Date(a.dataFim))[0]
+            ? [...this.state.livroAtivo.leituras].sort((a,b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0))[0]
             : null;
         this.state.leituraAtivaId = leituraMaisRecente ? leituraMaisRecente.idLeitura : null;
-        
         this.renderPainel();
         this.painelLivroEl.showModal();
     },
@@ -301,6 +315,8 @@ const Estante = {
         const btnTexto = leitura ? 'Salvar Edição' : 'Registrar Leitura';
         const deleteBtn = leitura ? `<button type="button" class="btn btn-perigo btn-deletar-leitura" data-idleitura="${leitura.idLeitura}">Excluir</button>` : '';
 
+        this.formLeituraContainerEl.classList.remove('hidden');
+
         this.formLeituraContainerEl.innerHTML = `
             <form id="form-leitura" class="painel-form">
                 <input type="hidden" id="form-leitura-id" ${id}>
@@ -334,50 +350,38 @@ const Estante = {
         const anotacoes = document.getElementById('form-anotacoes').value;
         
         if (!this.state.livroAtivo.leituras) this.state.livroAtivo.leituras = [];
-
         let leitura = this.state.livroAtivo.leituras.find(l => l.idLeitura == idLeitura);
         if (leitura) {
             leitura.dataInicio = dataInicio;
             leitura.dataFim = dataFim || null;
             leitura.anotacoes = anotacoes;
         } else {
-            leitura = {
-                idLeitura: Date.now(),
-                dataInicio,
-                dataFim: dataFim || null,
-                anotacoes,
-                notas: {}
-            };
+            leitura = { idLeitura: Date.now(), dataInicio, dataFim: dataFim || null, anotacoes, notas: {} };
             this.state.livroAtivo.leituras.push(leitura);
         }
-        
         this.state.leituraAtivaId = leitura.idLeitura;
         this.formLeituraContainerEl.innerHTML = '';
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        this.formLeituraContainerEl.classList.add('hidden');
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
 
     deletarLeitura: async function(idLeitura) {
         this.state.livroAtivo.leituras = this.state.livroAtivo.leituras.filter(l => l.idLeitura !== idLeitura);
         this.state.leituraAtivaId = null;
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Registro de leitura excluído.');
     },
 
     renderPainelNotas: function() {
         const leitura = (this.state.livroAtivo.leituras || []).find(l => l.idLeitura === this.state.leituraAtivaId);
-
         if (!leitura || !leitura.dataFim) {
             this.formNotasEl.classList.add('hidden');
             this.avisoNotaBloqueadaEl.classList.remove('hidden');
             return;
         }
-        
         this.avisoNotaBloqueadaEl.classList.add('hidden');
         this.formNotasEl.classList.remove('hidden');
-
         const notas = leitura.notas || {};
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
@@ -387,28 +391,12 @@ const Estante = {
                 valorSpan.textContent = parseFloat(slider.value).toFixed(1);
             }
         });
-
-        this.setupSliderEvents();
         this.calcularNotaFinal();
-    },
-
-    setupSliderEvents: function() {
-        this.state.criteriosDeNota.forEach(criterio => {
-            const slider = document.getElementById(`nota-${criterio}`);
-            if (slider) {
-                slider.addEventListener('input', () => {
-                    const valorSpan = document.getElementById(`valor-nota-${criterio}`);
-                    valorSpan.textContent = parseFloat(slider.value).toFixed(1);
-                    this.calcularNotaFinal();
-                });
-            }
-        });
     },
 
     calcularNotaFinal: function() {
         let soma = 0;
         let count = 0;
-
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
             if (slider) {
@@ -416,30 +404,23 @@ const Estante = {
                 count++;
             }
         });
-
         const media = count > 0 ? soma / count : 0;
         this.notaFinalCalculadaEl.textContent = media.toFixed(1);
     },
 
     salvarNotas: async function() {
         const leitura = (this.state.livroAtivo.leituras || []).find(l => l.idLeitura === this.state.leituraAtivaId);
-        if (!leitura) {
-            return App.mostrarNotificacao('Nenhuma leitura selecionada para salvar as notas.', 'erro');
-        }
-
+        if (!leitura) return App.mostrarNotificacao('Nenhuma leitura selecionada para salvar as notas.', 'erro');
         if (!leitura.notas) leitura.notas = {};
-
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
             if (slider) {
                 leitura.notas[criterio] = parseFloat(slider.value);
             }
         });
-        
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
-
-        this.renderPainelLeituras();
-        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
+        await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.firestoreId);
         App.mostrarNotificacao('Notas salvas com sucesso!');
+        this.renderPainelLeituras();
     }
 };

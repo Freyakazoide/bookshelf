@@ -1,0 +1,9 @@
+# Pasta de dependências do Node (nunca deve ir para o GitHub)
+node_modules/
+
+# Arquivos de credenciais e senhas
+firebase-credentials.json
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
