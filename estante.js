@@ -106,7 +106,6 @@ const Estante = {
         this.formLeituraContainerEl.addEventListener('click', e => {
             if (e.target.id === 'btn-salvar-leitura') this.salvarLeitura();
             
-            // FIX: Adicionado bloco para esconder o form ao cancelar
             if (e.target.id === 'btn-cancelar-leitura') {
                 this.formLeituraContainerEl.innerHTML = '';
                 this.formLeituraContainerEl.classList.add('hidden');
@@ -120,20 +119,18 @@ const Estante = {
             }
         });
 
-        // FIX: Alterado listener para abrir o form de edição ao clicar em uma leitura
         this.leiturasContainerEl.addEventListener('click', e => {
             const itemLeitura = e.target.closest('.item-leitura');
             if (itemLeitura) {
                 const idLeitura = parseInt(itemLeitura.dataset.idleitura, 10);
                 this.state.leituraAtivaId = idLeitura;
 
-                // Encontra a leitura e abre o formulário para edição
                 const leituraParaEditar = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
                 if (leituraParaEditar) {
                     this.renderFormLeitura(leituraParaEditar);
                 }
                 
-                this.renderPainelLeituras(); // Apenas atualiza o 'active' class
+                this.renderPainelLeituras();
             }
         });
 
@@ -263,7 +260,6 @@ const Estante = {
         this.state.livroAtivo = null;
         this.state.leituraAtivaId = null;
         this.formLeituraContainerEl.innerHTML = '';
-        // FIX: Adicionado para garantir que o form suma ao fechar o painel
         this.formLeituraContainerEl.classList.add('hidden');
         this.formNotasEl.classList.add('hidden');
     },
@@ -343,7 +339,6 @@ const Estante = {
             </form>
         `;
         
-        // FIX: Garante que o container do formulário apareça
         this.formLeituraContainerEl.classList.remove('hidden');
     },
 
@@ -359,12 +354,10 @@ const Estante = {
         let leitura = this.state.livroAtivo.leituras.find(l => l.idLeitura === idLeitura);
         
         if (leitura) {
-            // Editando
             leitura.dataInicio = dataInicio;
             leitura.dataFim = dataFim || null;
             leitura.anotacoes = anotacoes;
         } else {
-            // Novo
             leitura = {
                 idLeitura: Date.now(),
                 dataInicio,
@@ -377,11 +370,9 @@ const Estante = {
         
         this.state.leituraAtivaId = leitura.idLeitura;
         this.formLeituraContainerEl.innerHTML = '';
-        
-        // FIX: Esconde o container do formulário após salvar
         this.formLeituraContainerEl.classList.add('hidden');
         
-        this.renderPainelLeituras(); // Agora a UI vai atualizar
+        this.renderPainelLeituras();
         await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
         App.mostrarNotificacao('Registro de leitura salvo!');
     },
@@ -389,7 +380,6 @@ const Estante = {
     deletarLeitura: async function(idLeitura) {
         this.state.livroAtivo.leituras = this.state.livroAtivo.leituras.filter(l => l.idLeitura !== idLeitura);
         
-        // FIX: Esconde o form se a leitura deletada estava sendo editada
         this.formLeituraContainerEl.innerHTML = '';
         this.formLeituraContainerEl.classList.add('hidden');
         
@@ -432,7 +422,6 @@ const Estante = {
         this.state.criteriosDeNota.forEach(criterio => {
             const slider = document.getElementById(`nota-${criterio}`);
             if (slider) {
-                // Remove listeners antigos para evitar duplicação
                 const novoSlider = slider.cloneNode(true);
                 slider.parentNode.replaceChild(novoSlider, slider);
                 
@@ -478,7 +467,7 @@ const Estante = {
         
         leitura.notaFinal = parseFloat(this.notaFinalCalculadaEl.textContent);
 
-        this.renderPainelLeituras(); // Atualiza a nota na lista de leituras
+        this.renderPainelLeituras();
         await App.salvarLivro(this.state.livroAtivo, this.state.livroAtivo.id);
         App.mostrarNotificacao('Notas salvas com sucesso!');
     }

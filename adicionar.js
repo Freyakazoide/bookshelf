@@ -7,6 +7,7 @@ const Adicionar = {
         buscaApiPagina: 0,
         buscaApiTotalItems: 0,
         buscaApiPorPagina: 40,
+        debounceTimer: null,
     },
     cacheDOM: function() {
         this.formLivroEl = document.getElementById('form-livro');
@@ -25,6 +26,15 @@ const Adicionar = {
         this.btnBuscaAnteriorEl = document.getElementById('btn-busca-anterior');
         this.btnBuscaProximaEl = document.getElementById('btn-busca-proxima');
         this.buscaApiInfoPaginaEl = document.getElementById('busca-api-info-pagina');
+
+        this.formCapaPreviewEl = document.getElementById('form-capa-preview');
+        this.inputUrlCapaEl = document.getElementById('urlCapa');
+        this.formTabs = document.querySelectorAll('.form-tabs .tab-button');
+        this.formTabContents = document.querySelectorAll('.form-tab-content');
+    },
+    debounce: function(func, delay) {
+        clearTimeout(this.state.debounceTimer);
+        this.state.debounceTimer = setTimeout(func, delay);
     },
     bindEvents: function() {
         this.formLivroEl.addEventListener('submit', this.salvar.bind(this));
@@ -48,6 +58,30 @@ const Adicionar = {
             this.state.buscaApiPagina++;
             this.buscarNaApi(false);
         });
+
+        this.inputUrlCapaEl.addEventListener('input', () => {
+            this.debounce(() => this.atualizarPreviewCapa(this.inputUrlCapaEl.value), 500);
+        });
+
+        this.formTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabId = e.target.dataset.tab;
+                this.formTabs.forEach(t => t.classList.remove('active'));
+                this.formTabContents.forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    },
+    atualizarPreviewCapa: function(url) {
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            this.formCapaPreviewEl.src = url;
+        } else {
+            this.formCapaPreviewEl.src = 'placeholder.jpg';
+        }
+        this.formCapaPreviewEl.onerror = () => {
+            this.formCapaPreviewEl.src = 'placeholder.jpg';
+        };
     },
     init: function(livros) {
         this.state.todosOsLivros = livros;
@@ -68,7 +102,7 @@ const Adicionar = {
         if (!this.state.buscaApiTermo) return App.mostrarNotificacao('Digite um título ou autor.', 'erro');
 
         const fonteApi = document.querySelector('input[name="api-source"]:checked').value;
-        this.resultadosBuscaApiEl.innerHTML = `<p>Buscando página ${this.state.buscaApiPagina + 1}...</p>`;
+        this.resultadosBuscaApiEl.innerHTML = `<div class="loader-container" style="padding: 2rem 0;"><div class="loader"></div><p>Buscando página ${this.state.buscaApiPagina + 1}...</p></div>`;
         this.buscaApiPaginacaoEl.classList.add('hidden');
         this.adicionarManualContainerEl.classList.add('hidden');
         this.painelSincronizacaoEl.classList.add('hidden');
@@ -142,7 +176,7 @@ const Adicionar = {
     },
     renderResultados: function() {
         if (!this.state.resultadosApi || this.state.resultadosApi.length === 0) {
-            this.resultadosBuscaApiEl.innerHTML = '<p>Nenhum livro encontrado.</p>';
+            this.resultadosBuscaApiEl.innerHTML = '<p style="text-align: center; padding: 2rem 0;">Nenhum livro encontrado.</p>';
             this.buscaApiPaginacaoEl.classList.add('hidden');
             return;
         }
@@ -150,7 +184,7 @@ const Adicionar = {
             const info = livro.volumeInfo;
             const capa = info.imageLinks?.thumbnail || 'placeholder.jpg';
             const autor = Array.isArray(info.authors) ? info.authors.join(', ') : (info.authors || 'Autor desconhecido');
-            return `<div class="card-resultado-api"><img src="${capa}" alt="Capa de ${info.title}"><h5>${info.title}</h5><p>${autor}</p><p class="fonte-api">Fonte: ${livro.fonte}</p><button class="btn btn-primario btn-selecionar-api" data-index="${index}">Selecionar</button></div>`;
+            return `<div class="card-resultado-api"><img src="${capa}" alt="Capa de ${info.title}"><h5>${info.title}</h5><p>${autor}</p><p class="fonte-api">Fonte: ${livro.fonte}</p><button class="btn btn-primario btn-selecionar-api" data-index="${index}"><i class="fa-solid fa-check"></i> Selecionar</button></div>`;
         }).join('');
         this.renderPaginacaoBusca();
     },
@@ -222,7 +256,11 @@ const Adicionar = {
             case 'categorias': valorApi = Array.isArray(infoApi.categories) ? infoApi.categories.join(', ') : infoApi.categories; break;
         }
         if (typeof valorApi !== 'undefined') {
-            document.getElementById(campo).value = valorApi;
+            const el = document.getElementById(campo);
+            el.value = valorApi;
+            if (campo === 'urlCapa') {
+                this.atualizarPreviewCapa(valorApi);
+            }
             App.mostrarNotificacao(`Campo "${campo}" atualizado!`);
             this.renderPainelSincronizacao();
         }
@@ -245,9 +283,17 @@ const Adicionar = {
         document.getElementById('volume').value = getVal(livroExistente?.volume);
         document.getElementById('paginas').value = getVal(livroExistente?.paginas, info?.pageCount);
         document.getElementById('lingua').value = getVal(livroExistente?.lingua, info?.language?.toUpperCase());
-        document.getElementById('urlCapa').value = getVal(livroExistente?.urlCapa, info?.imageLinks?.thumbnail);
+        const urlCapa = getVal(livroExistente?.urlCapa, info?.imageLinks?.thumbnail);
+        document.getElementById('urlCapa').value = urlCapa;
+        this.atualizarPreviewCapa(urlCapa);
         document.getElementById('categorias').value = getArrayVal(livroExistente?.categorias, info?.categories);
         document.getElementById('descricao').value = getVal(livroExistente?.descricao, info?.description);
+        
+        this.formTabs.forEach(t => t.classList.remove('active'));
+        this.formTabContents.forEach(c => c.classList.remove('active'));
+        this.formTabs[0].classList.add('active');
+        this.formTabContents[0].classList.add('active');
+
         this.formContainerEl.classList.remove('hidden');
         this.formContainerEl.scrollIntoView({ behavior: 'smooth' });
     },
@@ -281,6 +327,7 @@ const Adicionar = {
             this.buscaApiPaginacaoEl.classList.add('hidden');
             this.inputBuscaApiTituloEl.value = '';
             this.inputBuscaApiAutorEl.value = '';
+            this.atualizarPreviewCapa('');
             App.navegarPara('view-estante');
         } catch (error) {
             console.error('Falha ao salvar:', error);
@@ -288,7 +335,6 @@ const Adicionar = {
         }
     },
     modoEdicao: function(livroId) {
-        // Agora busca pelo ID numérico original, pois é o que temos do App
         const livro = this.state.todosOsLivros.find(l => l.id == livroId);
         if (livro) {
             this.resultadosBuscaApiEl.innerHTML = '';

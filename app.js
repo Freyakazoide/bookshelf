@@ -122,7 +122,7 @@ const App = {
                 <div class="auth-info">
                     <img src="${this.state.user.photoURL}" alt="Foto de perfil">
                     <p>${this.state.user.displayName}</p>
-                    <button id="btn-logout" class="btn-logout">Sair</button>
+                    <button id="btn-logout" class="btn-logout"><i class="fa-solid fa-sign-out-alt"></i> Sair</button>
                 </div>
             `;
         } else {
@@ -236,22 +236,18 @@ const App = {
     }
 };
 
-// --- CONTROLE DAS ABAS DO DASHBOARD ---
 document.addEventListener('DOMContentLoaded', () => {
     const dashboardView = document.getElementById('view-dashboard');
 
-    // Executa o código apenas se estivermos na view do dashboard
     if (dashboardView) {
         const tabButtons = dashboardView.querySelectorAll('.dashboard-tabs .tab-button');
         const tabContents = dashboardView.querySelectorAll('.dashboard-content');
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Remove 'active' de todos os botões e conteúdos
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
 
-                // Adiciona 'active' ao botão clicado e ao conteúdo correspondente
                 const tabId = button.dataset.tab;
                 const activeContent = document.getElementById(tabId);
                 
@@ -261,50 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-    const views = document.querySelectorAll('.main-content .view');
-
-    const changeView = (viewId) => {
-        // Esconde todas as views
-        views.forEach(view => view.classList.remove('active'));
-        // Remove 'active' de todos os links
-        navLinks.forEach(link => link.classList.remove('active'));
-
-        // Encontra a view e o link correspondentes
-        const newActiveView = document.getElementById(viewId);
-        const newActiveLink = document.querySelector(`.nav-link[data-view="${viewId}"]`);
-
-        // Ativa a view e o link corretos
-        if (newActiveView) {
-            newActiveView.classList.add('active');
-        }
-        if (newActiveLink) {
-            newActiveLink.classList.add('active');
-        }
-    };
-
-    // Adiciona o evento de clique a cada link da navegação
-    navLinks.forEach(link => {
-        link.addEventListener('click', (event) => {
-            event.preventDefault(); // Impede o comportamento padrão do link
-            const viewId = link.getAttribute('data-view');
-            changeView(viewId);
-        });
-    });
-
-    // Garante que a view inicial correta seja exibida ao carregar a página
-    const initialActiveLink = document.querySelector('.sidebar-nav .nav-link.active');
-    if (initialActiveLink) {
-        const initialViewId = initialActiveLink.getAttribute('data-view');
-        changeView(initialViewId);
-    } else if (navLinks.length > 0) {
-        // Se nenhum link estiver ativo por padrão, ativa o primeiro
-        const firstViewId = navLinks[0].getAttribute('data-view');
-        changeView(firstViewId);
     }
 });
 

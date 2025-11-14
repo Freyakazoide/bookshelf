@@ -10,7 +10,14 @@ const Desafio = {
     },
 
     cacheDOM: function() {
-        this.selectMetaAtivaEl = document.getElementById('select-meta-ativa');
+        this.modalCriarMetaEl = document.getElementById('modal-criar-meta');
+        this.btnAbrirModalMetaEl = document.getElementById('btn-abrir-modal-meta');
+        this.btnFecharModalMetaEl = document.getElementById('btn-fechar-modal-meta');
+        
+        this.listaMetasAtivasEl = document.getElementById('lista-metas-ativas');
+        this.listaMetasConcluidasEl = document.getElementById('lista-metas-concluidas');
+        this.metaDetalheContainerEl = document.getElementById('meta-detalhe-container');
+
         this.btnDeletarMetaAtivaEl = document.getElementById('btn-deletar-meta-ativa');
         
         this.formCriarMetaEl = document.getElementById('form-criar-meta');
@@ -28,6 +35,10 @@ const Desafio = {
         this.progressoBarraEl = document.getElementById('progresso-barra');
         this.livrosDaMetaEl = document.getElementById('desafio-livros-da-meta');
 
+        this.metaTabsContainerEl = document.getElementById('meta-tabs-container');
+        this.metaTabButtons = document.querySelectorAll('.meta-detalhe-tabs .tab-button');
+        this.metaTabContents = document.querySelectorAll('.meta-tab-content');
+
         this.gerenciarListaContainerEl = document.getElementById('gerenciar-lista-container');
         this.inputBuscaLivrosMetaEl = document.getElementById('input-busca-livros-meta');
         this.filtrosStatusMeta = document.querySelectorAll('.filtro-status-meta');
@@ -40,16 +51,17 @@ const Desafio = {
     },
 
     bindEvents: function() {
+        this.btnAbrirModalMetaEl.addEventListener('click', () => this.abrirModalMeta());
+        this.btnFecharModalMetaEl.addEventListener('click', () => this.modalCriarMetaEl.close());
+        this.modalCriarMetaEl.addEventListener('close', () => this.formCriarMetaEl.reset());
+
         this.formCriarMetaEl.addEventListener('submit', (e) => {
             e.preventDefault();
             this.criarNovaMeta();
         });
 
-        this.selectMetaAtivaEl.addEventListener('change', (e) => {
-            this.state.metaAtivaId = e.target.value ? parseInt(e.target.value, 10) : null;
-            this.state.paginaMetaAtual = 0;
-            this.render();
-        });
+        this.listaMetasAtivasEl.addEventListener('click', (e) => this.handleMetaCardClick(e));
+        this.listaMetasConcluidasEl.addEventListener('click', (e) => this.handleMetaCardClick(e));
 
         this.btnDeletarMetaAtivaEl.addEventListener('click', () => {
             if (!this.state.metaAtivaId) return App.mostrarNotificacao('Selecione uma meta para deletar.', 'erro');
@@ -102,13 +114,22 @@ const Desafio = {
                 this.renderizarSeletorDeLivros();
             }
         });
+
+        this.metaTabButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tabId = e.target.dataset.tab;
+                this.metaTabButtons.forEach(btn => btn.classList.remove('active'));
+                this.metaTabContents.forEach(content => content.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
     },
 
     init: function(livros) {
         this.state.livros = livros;
         this.cacheDOM();
         this.bindEvents();
-        this.popularFiltroDeAno();
         
         this.state.metas = App.state.challenges || [];
         if (!this.state.metaAtivaId && this.state.metas.length > 0) {
@@ -118,6 +139,12 @@ const Desafio = {
         this.render();
     },
     
+    abrirModalMeta: function() {
+        this.popularFiltroDeAno();
+        this.campoObjetivoContainerEl.style.display = this.selectMetaTipoEl.value === 'lista' ? 'none' : 'block';
+        this.modalCriarMetaEl.showModal();
+    },
+
     popularFiltroDeAno: function() {
         const anoAtual = new Date().getFullYear();
         let options = '';
@@ -125,6 +152,15 @@ const Desafio = {
             options += `<option value="${i}" ${i === anoAtual ? 'selected' : ''}>${i}</option>`;
         }
         this.selectMetaAnoEl.innerHTML = options;
+    },
+
+    handleMetaCardClick: function(e) {
+        const card = e.target.closest('.meta-card');
+        if (card) {
+            this.state.metaAtivaId = parseInt(card.dataset.metaid, 10);
+            this.state.paginaMetaAtual = 0;
+            this.render();
+        }
     },
 
     criarNovaMeta: async function() {
@@ -150,7 +186,7 @@ const Desafio = {
         this.state.metaAtivaId = novaMeta.id;
         await this.salvarMetasNoServidor();
         this.formCriarMetaEl.reset();
-        this.popularFiltroDeAno();
+        this.modalCriarMetaEl.close();
         this.render();
         App.mostrarNotificacao(`Meta "${nome}" criada com sucesso!`);
     },
@@ -158,7 +194,7 @@ const Desafio = {
     deletarMetaAtiva: async function() {
         const idParaDeletar = this.state.metaAtivaId;
         this.state.metas = this.state.metas.filter(meta => meta.id !== idParaDeletar);
-        this.state.metaAtivaId = this.state.metas.length > 0 ? this.state.metas.sort((a,b) => b.id - a.id)[0].id : null;
+        this.state.metaAtivaId = null;
         await this.salvarMetasNoServidor();
         this.render();
         App.mostrarNotificacao('Meta deletada com sucesso!');
@@ -176,8 +212,8 @@ const Desafio = {
         }
         metaAtiva.objetivo = metaAtiva.livrosDaMeta.length;
         
-        this.render(); 
         await this.salvarMetasNoServidor();
+        this.render();
     },
 
     salvarMetasNoServidor: async function() {
@@ -189,39 +225,104 @@ const Desafio = {
         return this.state.metas.find(m => m.id === this.state.metaAtivaId);
     },
 
+    calcularProgressoMeta: function(meta) {
+        let progresso = 0, objetivo = meta.objetivo, unidade = '';
+        const anoAtual = new Date().getFullYear();
+
+        const leiturasDoAno = this.state.livros
+            .flatMap(livro => (livro.leituras || []).map(leitura => ({ ...leitura, livro })))
+            .filter(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === meta.ano);
+
+        if (meta.tipo === 'lista') {
+            const idsMeta = new Set(meta.livrosDaMeta);
+            const livrosDaMeta = this.state.livros.filter(livro => idsMeta.has(livro.id));
+            progresso = livrosDaMeta.filter(livro => 
+                (livro.leituras || []).some(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === meta.ano)
+            ).length;
+            objetivo = livrosDaMeta.length;
+            unidade = 'livros';
+        } else if (meta.tipo === 'livros') {
+            progresso = leiturasDoAno.length;
+            unidade = 'livros';
+        } else if (meta.tipo === 'paginas') {
+            progresso = leiturasDoAno.reduce((total, leitura) => total + (parseInt(leitura.livro.paginas) || 0), 0);
+            unidade = 'páginas';
+        }
+        
+        const porcentagem = objetivo > 0 ? (progresso / objetivo) * 100 : 0;
+        const concluida = (progresso >= objetivo && objetivo > 0) || (meta.ano < anoAtual);
+        
+        return { progresso, objetivo, porcentagem, unidade, concluida };
+    },
+
     render: function() {
-        this.renderSeletorDeMetas();
+        this.renderListaDeMetas();
         const metaAtiva = this.getMetaAtiva();
 
         if (metaAtiva) {
             this.desafioAtivoContainerEl.classList.remove('hidden');
+            this.nenhumaMetaContainerEl.classList.remove('hidden');
             this.nenhumaMetaContainerEl.classList.add('hidden');
             this.renderDetalhesDaMeta(metaAtiva);
         } else {
             this.desafioAtivoContainerEl.classList.add('hidden');
             this.nenhumaMetaContainerEl.classList.remove('hidden');
+            this.nenhumaMetaContainerEl.classList.add('active');
         }
     },
 
-    renderSeletorDeMetas: function() {
+    renderListaDeMetas: function() {
+        let ativasHTML = '';
+        let concluidasHTML = '';
+        const anoAtual = new Date().getFullYear();
+
         const metasOrdenadas = [...this.state.metas].sort((a, b) => b.ano - a.ano || a.nome.localeCompare(b.nome));
-        this.selectMetaAtivaEl.innerHTML = '<option value="">-- Nenhuma --</option>' + 
-        metasOrdenadas.map(meta => {
-            const selecionado = meta.id === this.state.metaAtivaId ? 'selected' : '';
+
+        if (metasOrdenadas.length === 0) {
+            this.listaMetasAtivasEl.innerHTML = '<p class="info-empty">Nenhuma meta ativa.</p>';
+            this.listaMetasConcluidasEl.innerHTML = '<p class="info-empty">Nenhuma meta concluída.</p>';
+            return;
+        }
+
+        metasOrdenadas.forEach(meta => {
+            const { progresso, objetivo, porcentagem, unidade, concluida } = this.calcularProgressoMeta(meta);
             const tipoMetaTexto = meta.tipo === 'lista' ? 'Lista' : (meta.tipo === 'livros' ? 'Livros' : 'Páginas');
-            return `<option value="${meta.id}" ${selecionado}>${meta.nome} (${tipoMetaTexto} - ${meta.ano})</option>`;
-        }).join('');
+            const selecionado = meta.id === this.state.metaAtivaId ? 'active' : '';
+
+            const cardHTML = `
+                <div class="meta-card ${selecionado}" data-metaid="${meta.id}">
+                    <h4>${meta.nome}</h4>
+                    <div class="meta-card-info">
+                        <span>${tipoMetaTexto} (${meta.ano})</span>
+                        <strong>${progresso.toLocaleString('pt-BR')} / ${objetivo.toLocaleString('pt-BR')}</strong>
+                    </div>
+                    <progress class="meta-card-progresso" value="${porcentagem}" max="100"></progress>
+                </div>
+            `;
+            
+            if (meta.ano < anoAtual || (concluida && meta.ano === anoAtual)) {
+                concluidasHTML += cardHTML;
+            } else {
+                ativasHTML += cardHTML;
+            }
+        });
+
+        this.listaMetasAtivasEl.innerHTML = ativasHTML || '<p class="info-empty" style="text-align: center; color: var(--cor-texto-secundario);">Nenhuma meta ativa.</p>';
+        this.listaMetasConcluidasEl.innerHTML = concluidasHTML || '<p class="info-empty" style="text-align: center; color: var(--cor-texto-secundario);">Nenhuma meta concluída.</p>';
     },
 
     renderDetalhesDaMeta: function(meta) {
         this.metaAtivaTituloEl.textContent = meta.nome;
         let progressoAtual = 0, objetivo = meta.objetivo, unidade = '', livrosParaRenderizar = [];
 
-        if (meta.tipo === 'lista') {
-            this.gerenciarListaContainerEl.classList.remove('hidden');
-            this.campoObjetivoContainerEl.style.display = 'none';
-            this.renderizarSeletorDeLivros();
+        const leiturasDoAno = this.state.livros
+            .flatMap(livro => (livro.leituras || []).map(leitura => ({ ...leitura, livro })))
+            .filter(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === meta.ano);
 
+        if (meta.tipo === 'lista') {
+            this.metaTabsContainerEl.style.display = 'flex';
+            this.renderizarSeletorDeLivros();
+            
             const idsMeta = new Set(meta.livrosDaMeta);
             livrosParaRenderizar = this.state.livros.filter(livro => idsMeta.has(livro.id));
             
@@ -231,15 +332,9 @@ const Desafio = {
             
             objetivo = livrosParaRenderizar.length;
             unidade = 'livros da lista';
-
         } else { 
-            this.gerenciarListaContainerEl.classList.add('hidden');
-            this.campoObjetivoContainerEl.style.display = 'block';
+            this.metaTabsContainerEl.style.display = 'none';
 
-            const leiturasDoAno = this.state.livros
-                .flatMap(livro => (livro.leituras || []).map(leitura => ({ ...leitura, livro })))
-                .filter(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === meta.ano);
-            
             if (meta.tipo === 'livros') {
                 progressoAtual = leiturasDoAno.length;
                 unidade = 'livros';
@@ -320,7 +415,7 @@ const Desafio = {
 
     renderListaDeLivrosDaMeta: function(livros, anoMeta) {
         if (!livros || livros.length === 0) {
-            this.livrosDaMetaEl.innerHTML = '<p style="text-align: center; width: 100%;">Nenhum livro para exibir nesta meta.</p>';
+            this.livrosDaMetaEl.innerHTML = '<p style="text-align: center; width: 100%; color: var(--cor-texto-secundario); margin-top: 1rem;">Nenhum livro para exibir nesta meta.</p>';
             return;
         }
 
@@ -331,7 +426,13 @@ const Desafio = {
             const leituraFinalizada = (livro.leituras || []).find(l => l.dataFim && new Date(l.dataFim).getFullYear() === anoMeta);
             const isLido = !!leituraFinalizada;
             const dataFimFormatada = isLido ? new Date(leituraFinalizada.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
-            const statusInfo = isLido ? `<div class="card-nota">✔️ Lido em ${dataFimFormatada}</div>` : `<div class="card-nota status-pendente">⏳ Pendente</div>`;
+            
+            let statusInfo = '';
+            if (isLido) {
+                statusInfo = `<div class="card-nota" style="border-color: var(--cor-acao-primaria); color: var(--cor-acao-primaria);">✔️ Lido em ${dataFimFormatada}</div>`;
+            } else {
+                statusInfo = `<div class="card-nota" style="border-color: var(--cor-amarelo-aviso); color: var(--cor-amarelo-aviso);">⏳ Pendente</div>`;
+            }
             
             return `
                <div class="card-livro ${isLido ? 'concluido' : 'pendente'}" data-id="${livro.id}">
@@ -347,6 +448,7 @@ const Desafio = {
     
     atualizar: function(livros) {
         this.state.livros = livros;
+        this.state.metas = App.state.challenges || [];
         this.render();
     }
 };

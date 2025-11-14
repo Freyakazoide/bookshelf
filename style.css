@@ -1,34 +1,32 @@
-/* ==========================================================================
-   1. CONFIGURAÇÃO GLOBAL, VARIÁVEIS E RESET
-   ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    /* Paleta de Cores (Tema "Slate" Moderno) */
-    --cor-fundo-principal: #0F172A;     /* Ardósia 900 - Um azul quase preto */
-    --cor-fundo-secundario: #1E293B;  /* Ardósia 800 - Para sidebars, paineis */
-    --cor-fundo-container: #334155; /* Ardósia 700 - Para cards, controles */
+    --cor-fundo-principal: #0F172A;
+    --cor-fundo-secundario: #1E293B;
+    --cor-fundo-container: #334155;
     
-    --cor-borda: #475569;             /* Ardósia 600 - Bordas sutis */
-    --cor-borda-foco: #5EEAD4;         /* Verde Água 300 - Destaque para foco */
+    --cor-borda: #475569;
+    --cor-borda-foco: #5EEAD4;
 
-    --cor-texto-principal: #F1F5F9;   /* Ardósia 100 - Texto claro e legível */
-    --cor-texto-secundario: #94A3B8; /* Ardósia 400 - Para labels, placeholders */
+    --cor-texto-principal: #F1F5F9;
+    --cor-texto-secundario: #94A3B8;
 
-    --cor-acao-primaria: #2DD4BF;      /* Verde Água 400 - Ação principal, vibrante */
-    --cor-acao-primaria-hover: #5EEAD4;/* Verde Água 300 - Hover mais claro */
-    --cor-texto-acao: #0F172A;         /* Texto escuro para botões primários */
+    --cor-acao-primaria: #2DD4BF;
+    --cor-acao-primaria-hover: #5EEAD4;
+    --cor-texto-acao: #0F172A;
     
-    --cor-perigo: #F43F5E;             /* Rosa 500 - Para exclusão */
-    --cor-perigo-hover: #FB7185;       /* Rosa 400 - Hover do perigo */
+    --cor-perigo: #F43F5E;
+    --cor-perigo-hover: #FB7185;
+    --cor-amarelo-aviso: #FBBF24;
 
-    /* Tipografia */
     --fonte-principal: 'Inter', sans-serif;
 
-    /* Espaçamento e Bordas */
-    --raio-borda: 8px; /* Bordas arredondadas consistentes */
+    --raio-borda: 8px;
     --sombra-sutil: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --sombra-media: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+    --transicao-rapida: all 0.2s ease-in-out;
+    --transicao-media: all 0.3s ease-in-out;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,17 +36,40 @@ body {
     font-family: var(--fonte-principal);
     background-color: var(--cor-fundo-principal);
     color: var(--cor-texto-principal);
-    overflow: hidden;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* ==========================================================================
-   2. ESTRUTURA PRINCIPAL (LAYOUT)
-   ========================================================================== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--cor-fundo-principal);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--cor-fundo-container);
+    border-radius: 10px;
+    border: 2px solid var(--cor-fundo-principal);
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--cor-borda);
+}
+
+:focus-visible {
+    outline: 2px solid var(--cor-borda-foco);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.2);
+    border-radius: 4px;
+}
+
 .app-layout {
     display: flex;
     height: 100vh;
+    height: 100dvh;
+    max-width: 100vw;
+    overflow: hidden;
 }
 
 .sidebar {
@@ -59,6 +80,8 @@ body {
     flex-direction: column;
     padding: 1.5rem;
     flex-shrink: 0;
+    transition: transform 0.3s ease-in-out;
+    z-index: 100;
 }
 
 .sidebar-header h2 {
@@ -67,6 +90,10 @@ body {
     font-weight: 600;
     font-size: 1.5rem;
     margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
 }
 
 .sidebar-nav {
@@ -81,10 +108,17 @@ body {
     padding: 12px 16px;
     border-radius: var(--raio-borda);
     font-weight: 500;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: var(--transicao-rapida);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+.nav-link i {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    text-align: center;
 }
 
 .nav-link:hover {
@@ -97,11 +131,16 @@ body {
     color: var(--cor-texto-acao);
     font-weight: 600;
 }
+.nav-link.active i {
+    color: var(--cor-texto-acao);
+    transform: scale(1.1);
+}
 
 .main-content {
     flex-grow: 1;
     overflow-y: auto;
     padding: 2rem 3rem;
+    transition: margin-left 0.3s ease-in-out;
 }
 
 .view { display: none; }
@@ -124,14 +163,10 @@ h1 {
     margin-bottom: 2rem;
 }
 
-/* ==========================================================================
-   3. CONTROLES GERAIS (BUSCA, FILTROS, ORDENAÇÃO)
-   ========================================================================== */
-
 .controles-estante {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     gap: 1.5rem;
     padding: 1.5rem;
@@ -149,7 +184,7 @@ input, select, textarea {
     border-radius: var(--raio-borda);
     font-size: 1em;
     font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: var(--transicao-rapida);
     width: 100%;
 }
 
@@ -159,8 +194,19 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.2);
 }
 
-#input-busca {
+.campo-com-icone {
+    position: relative;
     flex-grow: 1;
+}
+.campo-com-icone i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cor-texto-secundario);
+}
+.campo-com-icone input {
+    padding-left: 40px;
     min-width: 250px;
 }
 
@@ -168,12 +214,16 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .grupo-filtros span, .grupo-ordenacao label {
     font-weight: 500;
     color: var(--cor-texto-secundario);
     margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .filtro-status {
@@ -184,7 +234,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: 20px;
     cursor: pointer;
     font-weight: 500;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transicao-rapida);
 }
 
 .filtro-status:hover {
@@ -197,15 +247,12 @@ input:focus, select:focus, textarea:focus {
     border-color: var(--cor-acao-primaria);
     color: var(--cor-texto-acao);
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.3);
 }
-
-/* ==========================================================================
-   4. CARD DE LIVRO E ESTANTE
-   ========================================================================== */
 
 .estante-de-livros {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
     justify-content: start;
 }
@@ -218,7 +265,7 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
     cursor: pointer;
     position: relative;
 }
@@ -226,6 +273,7 @@ input:focus, select:focus, textarea:focus {
 .card-livro:hover {
     transform: translateY(-6px);
     box-shadow: var(--sombra-media);
+    border-color: var(--cor-borda-foco);
 }
 
 .card-livro img {
@@ -261,43 +309,50 @@ input:focus, select:focus, textarea:focus {
     top: 10px;
     right: 10px;
     background-color: rgba(15, 23, 42, 0.7);
-    color: #FFD700;
+    color: var(--cor-amarelo-aviso);
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 0.9em;
     font-weight: bold;
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 215, 0, 0.5);
+    border: 1px solid rgba(251, 191, 36, 0.5);
 }
 
-/* ==========================================================================
-   5. PAINEL DO LIVRO (MODAL)
-   ========================================================================== */
-
-#painel-livro {
-    background: var(--cor-fundo-secundario);
-    color: var(--cor-texto-principal);
+dialog {
+    padding: 0;
     border: 1px solid var(--cor-borda);
     border-radius: 12px;
-    padding: 0;
-    width: 90%;
-    max-width: 1100px;
-    box-shadow: var(--sombra-media);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background-color: var(--cor-fundo-secundario);
+    color: var(--cor-texto-principal);
+    max-width: 90vw;
     overflow: hidden;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
-#painel-livro::backdrop {
+dialog[open] {
+  animation: fadeInModal 0.3s ease-out;
+}
+
+dialog::backdrop {
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(5px);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#painel-livro {
+    max-width: 1100px;
+    width: 90%;
 }
 
 .painel-container {
     display: flex;
     flex-direction: column;
     height: 85vh;
+    height: 85dvh;
 }
 
 .painel-header {
@@ -316,25 +371,35 @@ input:focus, select:focus, textarea:focus {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 1rem;
 }
 
 .btn-acao {
     background: none;
     border: none;
     color: var(--cor-texto-secundario);
-    font-size: 1.5rem;
+    font-size: 1rem;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px;
     line-height: 1;
-    transition: color 0.2s ease;
+    transition: var(--transicao-rapida);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+}
+.btn-acao i {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
 }
 .btn-acao:hover {
     color: var(--cor-texto-principal);
+    background-color: var(--cor-borda);
+}
+.btn-acao:hover i {
+    transform: rotate(90deg);
 }
 
 .painel-body {
-     max-height: 70vh; /* Altura máxima de 70% da tela */
-    overflow-y: auto; /* Adiciona barra de rolagem se o conteúdo for maior */
     display: flex;
     flex-grow: 1;
     overflow: hidden;
@@ -348,10 +413,12 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: auto;
 }
 
 .painel-coluna-capa img {
     width: 100%;
+    max-width: 280px;
     border-radius: var(--raio-borda);
     box-shadow: var(--sombra-media);
     margin-bottom: 1.5rem;
@@ -361,6 +428,7 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 280px;
     gap: 0.5rem;
 }
 .painel-botoes-principais .btn { 
@@ -381,6 +449,7 @@ input:focus, select:focus, textarea:focus {
     border-bottom: 1px solid var(--cor-borda);
     padding: 0 2rem;
     flex-shrink: 0;
+    overflow-x: auto;
 }
 
 .tab-button {
@@ -392,7 +461,16 @@ input:focus, select:focus, textarea:focus {
     font-weight: 500;
     cursor: pointer;
     border-bottom: 3px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition: var(--transicao-rapida);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tab-button i {
+    width: 18px;
+    height: 18px;
+    text-align: center;
 }
 
 .tab-button:hover {
@@ -425,11 +503,6 @@ input:focus, select:focus, textarea:focus {
     flex-shrink: 0;
 }
 
-/* ==========================================================================
-   6. PÁGINA "ADICIONAR LIVRO" E FORMULÁRIOS
-   ========================================================================== */
-
-/* --- BOTÕES PADRÃO (REFORÇO) --- */
 .btn {
     padding: 10px 20px;
     font-size: 0.95em;
@@ -437,13 +510,17 @@ input:focus, select:focus, textarea:focus {
     border-radius: var(--raio-borda);
     cursor: pointer;
     border: none;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transicao-rapida);
     text-align: center;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    transform: translateY(0);
+}
+.btn i {
+    transition: transform 0.2s ease;
 }
 
 .btn:focus-visible {
@@ -459,6 +536,9 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--cor-acao-primaria-hover);
     transform: translateY(-2px);
     box-shadow: var(--sombra-media);
+}
+.btn-primario:hover i {
+    transform: scale(1.1);
 }
 
 .btn-secundario {
@@ -479,11 +559,9 @@ input:focus, select:focus, textarea:focus {
     transform: translateY(-2px);
 }
 
-
-/* --- BUSCA API --- */
 #resultados-busca-api {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
 }
@@ -493,11 +571,15 @@ input:focus, select:focus, textarea:focus {
     border-radius: var(--raio-borda);
     padding: 10px;
     text-align: center;
-    transition: background-color 0.2s;
+    transition: var(--transicao-rapida);
+    border: 1px solid transparent;
+    cursor: pointer;
 }
 
 .card-resultado-api:hover {
     background-color: var(--cor-fundo-secundario);
+    transform: translateY(-4px);
+    border-color: var(--cor-borda);
 }
 
 .card-resultado-api img {
@@ -520,7 +602,6 @@ input:focus, select:focus, textarea:focus {
     margin-bottom: 10px;
 }
 
-/* --- FORMULÁRIOS --- */
 .hidden { display: none !important; }
 
 #form-container {
@@ -554,12 +635,10 @@ input:focus, select:focus, textarea:focus {
     grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
+    gap: 0.75rem;
     margin-top: 1rem;
 }
 
-/* ==========================================================================
-   7. CONTEÚDO ESPECÍFICO DO PAINEL
-   ========================================================================== */
 .leitura-header {
     display: flex;
     justify-content: space-between;
@@ -569,18 +648,40 @@ input:focus, select:focus, textarea:focus {
 
 .slider-campo { margin-bottom: 1rem; }
 .slider-campo label {
-    display: block;
-    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
     color: var(--cor-texto-secundario);
 }
-.slider-campo input[type="range"] { width: 100%; }
+.slider-campo label span {
+    color: var(--cor-texto-principal);
+    font-weight: 500;
+}
+.slider-campo small {
+    display: block;
+    font-size: 0.85em;
+    color: var(--cor-texto-secundario);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+.slider-campo input[type="range"] { 
+    width: 100%;
+    padding: 0;
+}
 
 .aviso {
-    background-color: rgba(251, 191, 36, 0.1); /* Amarelo */
-    border: 1px solid #FBBF24;
+    background-color: rgba(251, 191, 36, 0.1);
+    border: 1px solid var(--cor-amarelo-aviso);
     padding: 1rem;
     border-radius: var(--raio-borda);
     margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--cor-amarelo-aviso);
+}
+.aviso p {
+    color: var(--cor-texto-principal);
 }
 
 .nota-final-display {
@@ -589,8 +690,11 @@ input:focus, select:focus, textarea:focus {
     margin-top: 1.5rem;
     color: var(--cor-acao-primaria);
 }
+.nota-final-display strong {
+    font-size: 1.5em;
+}
 
-.leitura-card {
+.item-leitura {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -599,23 +703,16 @@ input:focus, select:focus, textarea:focus {
     border-radius: var(--raio-borda);
     margin-bottom: 0.5rem;
     border: 2px solid transparent;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transicao-rapida);
+    cursor: pointer;
+}
+.item-leitura:hover {
+    border-color: var(--cor-borda);
 }
 
-.leitura-card.active {
+.item-leitura.active {
     background-color: var(--cor-fundo-secundario);
     border-color: var(--cor-acao-primaria);
-}
-
-.leitura-card-info h4 { margin-bottom: 0.25rem; }
-.leitura-card-info h4 small {
-    font-weight: normal;
-    color: var(--cor-texto-secundario);
-    margin-left: 10px;
-}
-.leitura-card .btn-editar-leitura {
-    padding: 5px 10px;
-    font-size: 0.8em;
 }
 
 .notas-grid {
@@ -642,9 +739,6 @@ input:focus, select:focus, textarea:focus {
     font-weight: 500;
 }
 
-/* ==========================================================================
-   8. PÁGINA DE METAS (DESAFIO)
-   ========================================================================== */
 .gerenciar-metas-container {
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -709,21 +803,22 @@ input:focus, select:focus, textarea:focus {
 }
 
 .estante-de-livros.selecionavel .card-livro.selecionado::after {
-    content: '✔️';
+    content: '✔';
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 8px;
+    right: 8px;
     background-color: var(--cor-borda-foco);
     color: var(--cor-texto-acao);
     border-radius: 50%;
-    width: 25px;
-    height: 25px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     z-index: 10;
+    border: 2px solid var(--cor-fundo-secundario);
 }
 
 .grupo-filtros .filtro-status-meta {
@@ -734,7 +829,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: 20px;
     cursor: pointer;
     margin-right: 10px;
-    transition: all 0.2s ease;
+    transition: var(--transicao-rapida);
 }
 
 .grupo-filtros .filtro-status-meta:hover {
@@ -745,35 +840,6 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--cor-acao-primaria);
     color: var(--cor-texto-acao);
     box-shadow: 0 2px 5px rgba(45, 212, 191, 0.3);
-}
-
-
-/* ==========================================================================
-   9. PÁGINA DE DASHBOARD
-   ========================================================================== */
-
-.dashboard-layout {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.dashboard-layout {
-    grid-template-columns: 1fr 2fr;
-}
-@media (max-width: 1200px) {
-    .dashboard-layout { grid-template-columns: 1fr; }
-}
-
-.dashboard-coluna, .dashboard-coluna-kpi {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-.dashboard-coluna-kpi {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    align-content: start;
 }
 
 .dash-card {
@@ -816,7 +882,7 @@ input:focus, select:focus, textarea:focus {
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
-.tabela-card { padding: 0; }
+.tabela-card { padding: 0; overflow: hidden; }
 .tabela-card h3 {
     padding: 1.5rem;
     margin: 0;
@@ -825,6 +891,7 @@ input:focus, select:focus, textarea:focus {
 .tabela-container {
     max-height: 350px;
     overflow-y: auto;
+    overflow-x: auto;
 }
 .tabela-container.full-height {
     max-height: none;
@@ -839,6 +906,7 @@ th, td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--cor-borda);
+    white-space: nowrap; 
 }
 thead th {
     background-color: var(--cor-fundo-container);
@@ -848,17 +916,17 @@ thead th {
 }
 
 tbody tr:nth-child(even) {
-    background-color: rgba(15, 23, 42, 0.5); /* Fundo principal com transparência */
+    background-color: rgba(15, 23, 42, 0.5);
 }
 tbody tr:hover {
     background-color: var(--cor-fundo-container);
 }
 
-.nota-excelente { color: #4CAF50; font-weight: bold; } /* Verde */
-.nota-boa { color: #8BC34A; } /* Verde claro */
-.nota-media { color: #FFC107; } /* Amarelo */
-.nota-ruim { color: #FF9800; } /* Laranja */
-.nota-pessima { color: #F44336; font-weight: bold; } /* Vermelho */
+.nota-excelente { color: #4CAF50; font-weight: bold; }
+.nota-boa { color: #8BC34A; }
+.nota-media { color: var(--cor-amarelo-aviso); }
+.nota-ruim { color: #FF9800; }
+.nota-pessima { color: #F44336; font-weight: bold; }
 
 table th.sortable {
     cursor: pointer;
@@ -887,9 +955,6 @@ table th.sort-desc::after {
     opacity: 1;
 }
 
-/* ==========================================================================
-   10. UTILITÁRIOS E COMPONENTES FINAIS
-   ========================================================================== */
 .info-resultados {
     text-align: right;
     margin: -1rem 0 1.5rem 0;
@@ -915,7 +980,6 @@ table th.sort-desc::after {
     padding: 1rem;
     border-radius: var(--raio-borda);
 }
-/* (O resto dos estilos de sinc já estão cobertos pelas regras gerais) */
 
 .controles-paginacao, #paginacao-seletor-meta {
     display: flex;
@@ -930,13 +994,45 @@ table th.sort-desc::after {
     gap: 1rem;
 }
 
+.grupo-paginacao-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.grupo-paginacao-links button {
+    background-color: var(--cor-fundo-container);
+    color: var(--cor-texto-secundario);
+    border: 1px solid var(--cor-borda);
+    min-width: 40px;
+    height: 40px;
+    padding: 0 10px;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transicao-rapida);
+}
+.grupo-paginacao-links button:hover {
+    background-color: var(--cor-borda);
+    color: var(--cor-texto-principal);
+}
+.grupo-paginacao-links button.active {
+    background-color: var(--cor-acao-primaria);
+    border-color: var(--cor-acao-primaria);
+    color: var(--cor-texto-acao);
+    font-weight: 600;
+}
+
 #notificacao-container {
     position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
-.toast {
+.notificacao {
     padding: 15px 20px;
     border-radius: var(--raio-borda);
     font-weight: 600;
@@ -944,13 +1040,18 @@ table th.sort-desc::after {
     opacity: 0;
     transform: translateX(100%);
     animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
+    min-width: 250px;
 }
-.toast.sucesso {
-    background-color: #10B981; /* Verde Esmeralda */
+.notificacao.sucesso {
+    background-color: #10B981; 
     color: white;
 }
-.toast.erro {
+.notificacao.erro {
     background-color: var(--cor-perigo);
+    color: white;
+}
+.notificacao.info {
+    background-color: #3B82F6;
     color: white;
 }
 @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
@@ -963,44 +1064,69 @@ table th.sort-desc::after {
     border-top: 1px solid var(--cor-borda);
 }
 
-.loader-container {
+.sidebar-footer .auth-info {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 4rem;
-    color: var(--cor-texto-secundario);
+    gap: 10px;
 }
-.loader {
-    border: 4px solid var(--cor-fundo-container);
-    border-top: 4px solid var(--cor-acao-primaria);
+.sidebar-footer .auth-info img {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
+    border: 2px solid var(--cor-borda);
 }
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.sidebar-footer .auth-info p {
+    font-weight: 600;
+    word-break: break-all;
+}
+.sidebar-footer .btn-logout {
+    background: none;
+    border: none;
+    color: var(--cor-texto-secundario);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9em;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.sidebar-footer .btn-logout:hover {
+    color: var(--cor-perigo);
 }
 
-@media (max-width: 768px) {
-    .notas-grid {
-        grid-template-columns: 1fr;
-    }
+.sidebar-footer .btn-login {
+    background-color: #fff;
+    color: #444;
+    border: 1px solid #ccc;
+    padding: 10px 15px;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    font-family: var(--fonte-principal);
+    width: 100%;
+    transition: var(--transicao-rapida);
+}
+.sidebar-footer .btn-login:hover {
+    background-color: #f9f9f9;
+    box-shadow: var(--sombra-sutil);
+}
+.sidebar-footer .btn-login img {
+    width: 18px;
+    height: 18px;
 }
 
-/* ==========================================================================
-   11. REFORMULAÇÃO DO DASHBOARD
-   ========================================================================== */
-
-/* --- Estrutura de Abas --- */
 .dashboard-tabs {
     display: flex;
     gap: 0.5rem;
     border-bottom: 1px solid var(--cor-borda);
     margin-bottom: 2rem;
+    overflow-x: auto;
 }
 .dashboard-tabs .tab-button {
     padding: 10px 20px;
@@ -1011,7 +1137,8 @@ table th.sort-desc::after {
     color: var(--cor-texto-secundario);
     cursor: pointer;
     border-bottom: 3px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition: var(--transicao-rapida);
+    white-space: nowrap;
 }
 .dashboard-tabs .tab-button:hover {
     color: var(--cor-texto-principal);
@@ -1027,18 +1154,11 @@ table th.sort-desc::after {
     animation: fadeIn 0.5s ease;
 }
 
-/* --- Layout da Aba "Resumo do Ano" --- */
 .dashboard-layout-ano {
     display: grid;
     grid-template-columns: 1fr 360px; 
     gap: 2rem;
     align-items: flex-start;
-}
-
-@media (max-width: 1200px) {
-    .dashboard-layout-ano {
-        grid-template-columns: 1fr; /* Vira coluna única em telas menores */
-    }
 }
 
 .dashboard-main-content {
@@ -1049,7 +1169,7 @@ table th.sort-desc::after {
 
 .dashboard-kpi-principais {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1.5rem;
 }
 .dashboard-kpi-principais .dash-card {
@@ -1064,7 +1184,7 @@ table th.sort-desc::after {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    position: sticky; /* Sidebar fica fixa ao rolar a tabela */
+    position: sticky; 
     top: 1.5rem;
 }
 .dashboard-sidebar h3 {
@@ -1076,30 +1196,25 @@ table th.sort-desc::after {
 
 .dashboard-sidebar .dash-card {
     background-color: var(--cor-fundo-container);
-        padding: 1rem; 
+    padding: 1rem; 
 }
 .dashboard-sidebar .dash-card.destaque {
     border-left: 4px solid var(--cor-acao-primaria);
 }
 
 .dashboard-sidebar .dash-card h4 {
-    font-size: 0.85em; /* Fonte do título menor */
+    font-size: 0.85em;
 }
 .dashboard-sidebar .dash-card .valor-kpi {
-    font-size: 1.5em; /* Fonte do valor principal menor */
+    font-size: 1.5em; 
 }
 .dashboard-sidebar .dash-card.destaque .valor-kpi {
-    font-size: 1.1em; /* Ajuste fino para os cards de destaque */
+    font-size: 1.1em;
 }
 
-.dashboard-sidebar .dash-card.destaque {
-    border-left: 4px solid var(--cor-acao-primaria);
-}
-
-/* --- Layout da Aba "Análise Histórica" --- */
 .dashboard-grid-geral {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 1.5rem;
 }
 .grafico-container {
@@ -1107,119 +1222,512 @@ table th.sort-desc::after {
     padding: 1rem;
 }
 
-/* ==========================================================================
-   12. COMPONENTES DO FINANCEIRO
-   ========================================================================== */
-
-.lista-checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+@media (max-width: 1200px) {
+    .dashboard-layout-ano {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .dashboard-sidebar h3 {
+        grid-column: 1 / -1;
+    }
 }
 
-.item-checklist {
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100dvh;
+        transform: translateX(-100%);
+        box-shadow: var(--sombra-media);
+    }
+    
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .painel-body {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .painel-coluna-capa {
+        flex-basis: auto;
+        flex-shrink: 1;
+        overflow-y: visible;
+        padding: 1.5rem;
+    }
+    .painel-coluna-info {
+        overflow: visible;
+    }
+    .painel-conteudo-tabs {
+        overflow-y: visible;
+    }
+    .painel-container {
+        height: 90dvh;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-campo.full-width {
+        grid-column: 1 / 1;
+    }
+    .form-botoes {
+        justify-content: flex-start;
+    }
+    .notas-grid, .detalhes-grid {
+        grid-template-columns: 1fr;
+    }
+    .detalhes-grid .detalhe-sinopse {
+        grid-column: 1 / 1;
+    }
+    #sinc-container {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .controles-estante {
+        padding: 1rem;
+    }
+    
+    .grupo-filtros, .grupo-ordenacao, .grupo-ordenacao select {
+        width: 100%;
+    }
+    .campo-com-icone {
+        width: 100%;
+    }
+    
+    .estante-de-livros {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+    
+    .painel-header {
+        padding: 1rem 1.5rem;
+    }
+    .painel-conteudo-tabs {
+        padding: 1.5rem;
+    }
+    .painel-tabs {
+        padding: 0 1.5rem;
+    }
+}
+
+/* Modernização da pág "Adicionar Livro" */
+
+#busca-api-container.dash-card {
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+}
+
+.busca-api-botoes {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.opcoes-busca-api {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.opcoes-busca-api span {
+    color: var(--cor-texto-secundario);
+    font-weight: 500;
+}
+.opcoes-busca-api input[type="radio"] {
+    width: auto;
+    accent-color: var(--cor-acao-primaria);
+}
+.opcoes-busca-api label {
+    color: var(--cor-texto-secundario);
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+.opcoes-busca-api label:hover {
+    color: var(--cor-texto-principal);
+}
+
+.separador-form {
+    border: none;
+    height: 1px;
+    background-color: var(--cor-borda);
+    margin: 2rem 0;
+}
+
+.form-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+}
+
+.form-coluna-capa {
+    background-color: var(--cor-fundo-secundario);
+    padding: 1rem;
+    border-radius: var(--raio-borda);
+    border: 1px solid var(--cor-borda);
+    position: sticky;
+    top: 1.5rem;
+    height: max-content;
+}
+
+#form-capa-preview {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
     border-radius: var(--raio-borda);
     background-color: var(--cor-fundo-principal);
     border: 1px solid var(--cor-borda);
+    margin-bottom: 1rem;
 }
 
-.item-checklist .info .nome {
-    font-weight: 600;
-    color: var(--cor-texto-principal);
+.form-coluna-info {
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda);
+    border: 1px solid var(--cor-borda);
+    overflow: hidden;
 }
 
-.item-checklist .info .valor {
-    font-size: 0.9em;
+.form-tabs {
+    display: flex;
+    background-color: var(--cor-fundo-container);
+    border-bottom: 1px solid var(--cor-borda);
+    padding: 0 1rem;
+    overflow-x: auto;
+}
+.form-tabs .tab-button {
     color: var(--cor-texto-secundario);
 }
-
-.item-checklist.pendente .btn-marcar-pago {
-    padding: 5px 10px;
-    font-size: 0.85em;
-    background-color: transparent;
-    border: 1px solid var(--cor-perigo);
-    color: var(--cor-perigo);
+.form-tabs .tab-button.active {
+    color: var(--cor-acao-primaria);
+    border-bottom-color: var(--cor-acao-primaria);
 }
-.item-checklist.pendente .btn-marcar-pago:hover {
-    background-color: var(--cor-perigo);
+
+.form-conteudo-tabs {
+    padding: 1.5rem;
+}
+
+.form-tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.form-tab-content.active {
+    display: block;
+}
+
+/* Ajustes responsivos para o novo form */
+@media (max-width: 900px) {
+    .form-layout {
+        grid-template-columns: 1fr;
+    }
+    .form-coluna-capa {
+        position: static;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+}
+
+/* Modernização da pág "Metas de Leitura" */
+
+.metas-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.metas-sidebar {
+    position: sticky;
+    top: 1.5rem;
+}
+
+.meta-lista-container {
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 1rem;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+
+.metas-sidebar h3 {
+    font-weight: 600;
+    font-size: 1.1em;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-bottom: 0.75rem;
     color: var(--cor-texto-principal);
 }
 
-
-.item-checklist.pago {
-    background-color: rgba(45, 212, 191, 0.1);
-    border-color: rgba(45, 212, 191, 0.3);
+.metas-main-content {
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    min-height: 70vh;
 }
 
-.item-checklist.pago .info .nome {
-    text-decoration: line-through;
-    opacity: 0.6;
+#meta-detalhe-container {
+    padding: 1.5rem;
 }
 
-.item-checklist.pago span {
+.meta-card {
+    background-color: var(--cor-fundo-container);
+    border-radius: var(--raio-borda);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 2px solid var(--cor-borda);
+    cursor: pointer;
+    transition: var(--transicao-rapida);
+    position: relative;
+}
+.meta-card:hover {
+    border-color: var(--cor-borda-foco);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-sutil);
+}
+.meta-card.active {
+    border-color: var(--cor-acao-primaria);
+    background-color: var(--cor-fundo-secundario);
+}
+
+.meta-card h4 {
+    font-size: 1em;
     font-weight: 600;
-    font-size: 0.9em;
+    color: var(--cor-texto-principal);
+    margin-bottom: 0.5rem;
+}
+.meta-card .meta-card-info {
+    font-size: 0.85em;
+    color: var(--cor-texto-secundario);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+.meta-card .meta-card-progresso {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+}
+.meta-card .meta-card-progresso::-webkit-progress-bar {
+    background-color: var(--cor-fundo-principal);
+    border-radius: 3px;
+}
+.meta-card .meta-card-progresso::-webkit-progress-value {
+    background-color: var(--cor-acao-primaria);
+    border-radius: 3px;
+}
+
+.placeholder-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    color: var(--cor-texto-secundario);
+}
+.placeholder-container i {
+    font-size: 4rem;
+    color: var(--cor-borda);
+    margin-bottom: 1.5rem;
+}
+.placeholder-container h2 {
+    color: var(--cor-texto-principal);
+    font-size: 1.5rem;
+}
+
+.meta-detalhe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+.meta-detalhe-header h2 {
+    font-size: 1.8rem;
+    color: var(--cor-texto-principal);
+    margin: 0;
+}
+.meta-detalhe-header .btn-perigo {
+    padding: 8px 15px;
+}
+
+.meta-detalhe-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--cor-borda);
+    margin-top: 1.5rem;
+}
+
+.meta-tab-content { display: none; }
+.meta-tab-content.active {
+    display: block;
+    animation: fadeIn 0.4s;
+}
+
+/* Esconde o card de criar meta da view, já que agora é um modal */
+#view-desafio .criar-meta-container {
+    display: none;
+}
+#view-desafio .gerenciar-metas-container {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .metas-layout {
+        grid-template-columns: 1fr;
+    }
+    .metas-sidebar {
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+    .meta-lista-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        max-height: none;
+    }
+    .meta-lista-container h3 {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Modernização do Dashboard */
+
+/* Remove estilos antigos */
+.dashboard-tabs,
+.dashboard-layout-ano,
+.dashboard-sidebar,
+.dashboard-main-content {
+    display: none !important;
+}
+
+/* Novo Grid Global */
+.dashboard-grid-geral {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* Nova linha de KPIs principais */
+.dashboard-kpi-principais {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 1.5rem;
+}
+.dashboard-kpi-principais .dash-card {
+    padding: 0;
+    border: none;
+    background: none;
+}
+.dashboard-kpi-principais .dash-card .kpi-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+.dashboard-kpi-principais .dash-card .kpi-header .kpi-icon {
+    font-size: 1.1em;
     color: var(--cor-acao-primaria);
 }
-
-/* ==========================================================================
-   13. MODAL DE CATEGORIZAÇÃO
-   ========================================================================== */
-
-#transacao-valor.despesa {
-    color: var(--cor-perigo);
+.dashboard-kpi-principais .dash-card .kpi-header h4 {
+    margin: 0;
+    font-size: 1em;
+}
+.dashboard-kpi-principais .dash-card .valor-kpi {
+    font-size: 2.25rem;
+    margin-left: 5px;
 }
 
-#transacao-valor.receita {
-    color: #2DD4BF; /* Mesmo verde da ação primária */
-}
-
-/* ==========================================================================
-   14. TABELA DE CATEGORIZAÇÃO EDITÁVEL
-   ========================================================================== */
-
-#tabela-categorizacao .input-descricao-linha,
-#tabela-categorizacao .select-categoria-linha {
-    width: 100%;
-    padding: 8px; /* Mais compacto para a tabela */
-    font-size: 0.9em;
-}
-
-#tabela-categorizacao .input-descricao-linha {
-    background-color: var(--cor-fundo-container); /* Cor de fundo para destacar */
-}
-
-dialog {
+/* Novo widget de Destaques */
+#quadro-destaques {
     padding: 0;
-    border: 1px solid var(--cor-borda);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+#quadro-destaques h3 {
+    padding: 1.5rem;
+    margin: 0;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.destaques-lista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background-color: var(--cor-borda);
+    overflow: hidden;
+    border-radius: 0 0 var(--raio-borda) var(--raio-borda);
+}
+.destaque-item {
     background-color: var(--cor-fundo-secundario);
+    padding: 1rem 1.5rem;
+}
+.destaque-item h5 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: var(--cor-texto-secundario);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.destaque-item .destaque-valor {
+    font-size: 1.2em;
+    font-weight: 600;
     color: var(--cor-texto-principal);
-    max-width: 90vw; /* Garante que não ultrapasse a largura da tela */
+}
+.destaque-item .destaque-sub {
+    font-size: 0.85em;
+    color: var(--cor-texto-secundario);
+    margin-top: 2px;
 }
 
-/* Animação de abertura */
-dialog[open] {
-  animation: fadeIn 0.3s ease-out;
+/* Helpers de Grid Span */
+.widget-span-2 {
+    grid-column: span 2;
+}
+.widget-span-3 {
+    grid-column: 1 / -1;
 }
 
-dialog::backdrop {
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
+@media (max-width: 1200px) {
+    .widget-span-2 {
+        grid-column: span 1;
+    }
 }
 
-/* Remove estilos antigos e específicos para garantir que o novo prevaleça */
-#painel-livro {
-    max-width: 900px; /* Define uma largura máxima */
-    width: 90%;      /* Ocupa 90% da tela, até o máximo de 900px */
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    padding: 0; /* O padding será controlado pelo container interno */
+@media (max-width: 900px) {
+    .destaques-lista {
+        grid-template-columns: 1fr;
+    }
 }
