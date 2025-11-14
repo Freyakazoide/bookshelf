@@ -1,7 +1,7 @@
 // Sua configuração do Firebase. Este arquivo DEVE conter APENAS esta variável.
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCByzecSN2FuQ-o5AkNj1yhyLEO9653QaM", // Substitua pela sua chave se estiver vazia
+  apiKey: "AIzaSyAv-FknrSOvhI2EZxEOfdTTtAwkykQ9aPk", // Substitua pela sua chave se estiver vazia
   authDomain: "estante-souza.firebaseapp.com",
   projectId: "estante-souza",
   storageBucket: "estante-souza.appspot.com",
