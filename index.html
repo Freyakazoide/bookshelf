@@ -117,33 +117,41 @@
                 </div>
             </div>
 
-            <div id="view-inventario" class="view">
-                <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila de Itens</h1>
-                
-                <div class="inventario-stats-container dash-card">
-                    <div class="inv-stat">
-                        <span class="inv-label">Itens Coletados</span>
-                        <span id="inv-total-items" class="inv-value">0</span>
-                    </div>
-                    <div class="inv-stat">
-                        <span class="inv-label">Raridade Média</span>
-                        <span id="inv-rarity-avg" class="inv-value">-</span>
-                    </div>
-                    <div class="inv-stat">
-                        <span class="inv-label">Valor Estimado</span>
-                        <span id="inv-gold-value" class="inv-value" style="color: #fcd34d;">0 <i class="fa-solid fa-coins"></i></span>
-                    </div>
-                </div>
+<div id="view-inventario" class="view">
+    <div class="inventario-header">
+        <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila</h1>
+        <button onclick="Inventario.sincronizarLootAntigo()" class="btn btn-secundario" style="border-color: var(--loot-rare); color: var(--loot-rare);">
+            <i class="fa-solid fa-gem"></i> Resgatar Loot Passado
+        </button>
+    </div>
+    
+    <div class="inventario-stats-container dash-card">
+        <div class="inv-stat">
+            <span class="inv-label">Itens</span>
+            <span id="inv-total-items" class="inv-value">0</span>
+        </div>
+        <div class="inv-stat">
+            <span class="inv-label">Raridade Média</span>
+            <span id="inv-rarity-avg" class="inv-value">-</span>
+        </div>
+        <div class="inv-stat">
+            <span class="inv-label">Ouro Estimado</span>
+            <span id="inv-gold-value" class="inv-value" style="color: #fcd34d;">0 <i class="fa-solid fa-coins"></i></span>
+        </div>
+    </div>
 
-                <div class="grupo-filtros" style="margin: 1.5rem 0;">
-                    <button class="filtro-status active" onclick="Inventario.filtrar('Todos')">Todos</button>
-                    <button class="filtro-status" onclick="Inventario.filtrar('Lendário')" style="color:var(--loot-legendary); border-color:var(--loot-legendary)">Lendários</button>
-                    <button class="filtro-status" onclick="Inventario.filtrar('Épico')" style="color:var(--loot-epic); border-color:var(--loot-epic)">Épicos</button>
-                </div>
+    <div class="grupo-filtros" style="margin: 1.5rem 0; flex-wrap: wrap;">
+        <button class="filtro-status active" onclick="Inventario.filtrar('Todos')">Todos</button>
+        <button class="filtro-status" onclick="Inventario.filtrar('Lendário')" style="color:var(--loot-legendary); border-color:var(--loot-legendary)">Lendários</button>
+        <button class="filtro-status" onclick="Inventario.filtrar('Épico')" style="color:var(--loot-epic); border-color:var(--loot-epic)">Épicos</button>
+        <button class="filtro-status" onclick="Inventario.filtrar('Raro')" style="color:var(--loot-rare); border-color:var(--loot-rare)">Raros</button>
+    </div>
 
-                <div id="grid-inventario" class="inventario-grid">
-                    </div>
+    <div class="inventario-background">
+        <div id="grid-inventario" class="inventario-grid">
             </div>
+    </div>
+</div>
 
             <div id="view-adicionar" class="view">
                 <h1>Adicionar Novo Livro</h1>
@@ -290,7 +298,7 @@
             </div>
 
             <div id="view-dashboard" class="view">
-                <h1><i class="fa-solid fa-chart-line"></i> Dashboard de Leitura</h1>
+                <h1><i class="fa-solid fa-chart-line"></i> War Room (Status)</h1>
                 
                 <div class="controles-dashboard" style="margin-bottom: 1.5rem;">
                     <div class="grupo-filtros" id="filtro-ano-container">
@@ -300,81 +308,79 @@
                     </div>
                 </div>
             
-                <div class="dashboard-grid-novo">
-                        <div class="kpi-row">
-                            <div class="dashboard-kpi-principais">
-                                <div id="kpi-hero-novo" class="kpi-hero"></div>
-                                <div id="kpi-paginas-novo" class="kpi-secundario"></div>
-                                <div id="kpi-nota-novo" class="kpi-secundario"></div>
-                                <div id="kpi-autores-novo" class="kpi-secundario"></div>
-                            </div>
-                        </div>
+                <div id="hud-mission-banner" class="hud-banner hidden" style="margin-bottom: 1.5rem;"></div>
 
-                        <div class="current-row-tripla">
-                            
-                            <div id="container-lendo-agora" class="current-card"></div>
+                <div class="dashboard-kpi-principais">
+                    <div id="kpi-hero-novo" class="kpi-hero"></div>
+                    <div id="kpi-paginas-novo" class="kpi-secundario"></div>
+                    <div id="kpi-bosses-killed" class="kpi-secundario"></div>
+                    <div id="kpi-gold-accumulated" class="kpi-secundario"></div>
+                </div>
 
-                            <div id="quadro-destaques" class="dash-card destaque-card-compacto">
-                                <h3><i class="fa-solid fa-medal"></i> Hall da Fama</h3>
-                                <div id="destaques-lista-nova" class="destaques-lista-vertical"></div>
-                            </div>
+                <div class="hall-of-fame-container">
+                    <h3><i class="fa-solid fa-trophy"></i> Hall da Fama da Temporada</h3>
+                    <div id="destaques-lista-nova" class="hall-grid"></div>
+                </div>
 
-                            <div id="widget-curiosidades" class="dash-card curio-card">
-                                <h3><i class="fa-solid fa-flask"></i> Stats & Loot</h3>
-                                <div id="curiosidades-stats" class="curiosidades-lista"></div>
-                            </div>
-                        </div>
+                <div class="charts-row" style="margin-top: 1.5rem;">
+                    <div id="widget-bestiary" class="tabela-card dash-card">
+                        <h3>Bestiário (Inimigos)</h3>
+                        <div class="grafico-container small"><canvas id="grafico-bestiario"></canvas></div>
+                    </div>
+                    <div id="widget-dna" class="tabela-card dash-card">
+                        <h3>Radar de Atributos (DNA)</h3>
+                        <div class="grafico-container small"><canvas id="grafico-dna"></canvas></div>
+                    </div>
+                    <div id="widget-generos" class="tabela-card dash-card">
+                        <h3>Classes de Inimigos</h3>
+                        <div class="grafico-container small"><canvas id="grafico-generos"></canvas></div>
+                    </div>
+                </div>
 
-                    <div class="charts-row">
-                        <div id="widget-dna" class="tabela-card dash-card">
-                            <h3>Meu DNA</h3>
-                            <div class="grafico-container small"><canvas id="grafico-dna"></canvas></div>
+                <div class="charts-row" style="margin-top: 1.5rem;">
+                    <div id="widget-ritmo" class="tabela-card dash-card">
+                        <h3>Ritmo (Pág x Dias)</h3>
+                        <div class="grafico-container small"><canvas id="grafico-ritmo"></canvas></div>
+                    </div>
+                     <div id="widget-distribuicao-notas" class="tabela-card dash-card">
+                        <h3>Distribuição de Notas</h3>
+                        <div class="grafico-container"><canvas id="grafico-distribuicao-notas"></canvas></div>
+                    </div>
+                 </div>
+
+                <div class="timeline-row" style="margin-top: 1.5rem;">
+                    <div id="resumo-por-ano" class="tabela-card dash-card">
+                        <h3>Histórico Anual</h3>
+                        <div class="grafico-container"><canvas id="grafico-resumo-anual"></canvas></div>
+                    </div>
+                    <div id="widget-lidos-por-mes" class="tabela-card dash-card">
+                        <h3 id="titulo-grafico-mes">Leituras Mensais</h3>
+                        <div class="grafico-container"><canvas id="grafico-lidos-por-mes"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="rankings-row" style="margin-top: 1.5rem;">
+                    <div class="melhores-ranking-container">
+                        <div id="melhores-autores" class="tabela-card dash-card">
+                            <h3>Top Autores</h3>
+                            <div class="tabela-container"><table id="tabela-melhores-autores"></table></div>
                         </div>
-                        <div id="widget-generos" class="tabela-card dash-card">
-                            <h3>Gêneros</h3>
-                            <div class="grafico-container small"><canvas id="grafico-generos"></canvas></div>
+                        <div id="melhores-colecoes" class="tabela-card dash-card">
+                            <h3>Top Coleções</h3>
+                            <div class="tabela-container"><table id="tabela-melhores-colecoes"></table></div>
                         </div>
-                        <div id="widget-ritmo" class="tabela-card dash-card">
-                            <h3>Ritmo (Pág x Dias)</h3>
-                            <div class="grafico-container small"><canvas id="grafico-ritmo"></canvas></div>
+                        <div id="melhores-editoras" class="tabela-card dash-card">
+                            <h3>Top Editoras</h3>
+                            <div class="tabela-container"><table id="tabela-melhores-editoras"></table></div>
                         </div>
                     </div>
-                    <div class="timeline-row">
-                        <div id="resumo-por-ano" class="tabela-card dash-card">
-                            <h3>Histórico Anual</h3>
-                            <div class="grafico-container"><canvas id="grafico-resumo-anual"></canvas></div>
-                        </div>
-                        <div id="widget-lidos-por-mes" class="tabela-card dash-card">
-                            <h3 id="titulo-grafico-mes">Leituras Mensais</h3>
-                            <div class="grafico-container"><canvas id="grafico-lidos-por-mes"></canvas></div>
-                        </div>
-                         <div id="widget-distribuicao-notas" class="tabela-card dash-card">
-                            <h3>Distribuição de Notas</h3>
-                            <div class="grafico-container"><canvas id="grafico-distribuicao-notas"></canvas></div>
-                        </div>
-                    </div>
-                    <div class="rankings-row">
-                        <div class="melhores-ranking-container">
-                            <div id="melhores-autores" class="tabela-card dash-card">
-                                <h3>Top Autores</h3>
-                                <div class="tabela-container"><table id="tabela-melhores-autores"></table></div>
-                            </div>
-                            <div id="melhores-colecoes" class="tabela-card dash-card">
-                                <h3>Top Coleções</h3>
-                                <div class="tabela-container"><table id="tabela-melhores-colecoes"></table></div>
-                            </div>
-                            <div id="melhores-editoras" class="tabela-card dash-card">
-                                <h3>Top Editoras</h3>
-                                <div class="tabela-container"><table id="tabela-melhores-editoras"></table></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table-row">
-                        <div id="lista-livros-ano" class="tabela-card dash-card main-table-card">
-                            <h3 id="titulo-tabela-livros-ano">Lista de Leituras</h3>
-                            <div class="tabela-container full-height">
-                                <table id="tabela-livros-ano"></table>
-                            </div>
+                </div>
+
+                <div class="table-row" style="margin-top: 1.5rem;">
+                    <div id="lista-livros-ano" class="tabela-card dash-card main-table-card">
+                        <h3 id="titulo-tabela-livros-ano">Log de Combate (Livros Lidos)</h3>
+                        <div class="tabela-container full-height">
+                            <table id="tabela-livros-ano"></table>
                         </div>
                     </div>
                 </div>

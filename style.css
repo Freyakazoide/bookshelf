@@ -2328,3 +2328,301 @@ tbody tr:last-child td {
 .tooltip-title { font-weight: 800; display: block; margin-bottom: 4px; color: #fff; }
 .tooltip-desc { font-size: 0.75rem; color: var(--cor-texto-secundario); font-style: italic; }
 .tooltip-source { font-size: 0.65rem; color: var(--cor-texto-destaque); margin-top: 6px; display: block; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; }
+
+/* --- VISUAL DE MOCHILA RPG --- */
+
+.inventario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.inventario-background {
+    background-color: rgba(2, 6, 23, 0.5);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-height: 400px;
+    /* Desenha slots vazios no fundo usando gradiente */
+    background-image: 
+        linear-gradient(var(--ui-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--ui-border) 1px, transparent 1px);
+    background-size: 110px 110px; /* Tamanho do slot + gap */
+    background-position: -1px -1px;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+.inventario-grid {
+    display: grid;
+    /* Slots fixos de 100px */
+    grid-template-columns: repeat(auto-fill, 100px);
+    grid-auto-rows: 100px;
+    gap: 10px; 
+}
+
+.item-slot {
+    width: 100px;
+    height: 100px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid var(--ui-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.item-slot:hover {
+    transform: scale(1.1);
+    z-index: 100;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+}
+
+.item-slot i {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+}
+
+/* Raridades (Cores de Borda e Glow) */
+.item-slot.rarity-comum { border-color: var(--loot-common); }
+.item-slot.rarity-comum i { color: var(--loot-common); }
+
+.item-slot.rarity-incomum { border-color: var(--loot-uncommon); box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.1); }
+.item-slot.rarity-incomum i { color: var(--loot-uncommon); }
+
+.item-slot.rarity-raro { border-color: var(--loot-rare); box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.2); }
+.item-slot.rarity-raro i { color: var(--loot-rare); }
+
+.item-slot.rarity-epico { border-color: var(--loot-epic); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); animation: pulsePurple 3s infinite; }
+.item-slot.rarity-epico i { color: var(--loot-epic); }
+
+.item-slot.rarity-lendario { 
+    border-color: var(--loot-legendary); 
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(245, 158, 11, 0.2);
+    animation: shimmerGold 2s infinite; 
+}
+.item-slot.rarity-lendario i { color: var(--loot-legendary); }
+
+/* Tooltip Flutuante Estiloso */
+.item-tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid var(--ui-border);
+    padding: 12px;
+    border-radius: 8px;
+    width: 220px;
+    text-align: center;
+    z-index: 200;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.item-slot:hover .item-tooltip {
+    visibility: visible;
+    opacity: 1;
+    bottom: 120%;
+}
+
+.tooltip-title { display: block; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.tooltip-desc { display: block; font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+.tooltip-source { display: block; font-size: 0.7rem; color: var(--cor-texto-destaque); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
+
+/* --- CORREÇÃO DO INVENTÁRIO --- */
+
+.item-slot {
+    width: 100px;
+    height: 100px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid var(--ui-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    /* AQUI ESTAVA O ERRO: Mudei de hidden para visible */
+    overflow: visible !important; 
+}
+
+.item-slot:hover {
+    transform: scale(1.1);
+    z-index: 1000; /* Garante que fique na frente de tudo */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+/* Ajuste fino no Tooltip para garantir leitura */
+.item-tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 115%; /* Sobe um pouco mais */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(2, 6, 23, 0.98); /* Fundo bem escuro para leitura */
+    border: 1px solid var(--cor-acao-primaria); /* Borda neon */
+    padding: 12px;
+    border-radius: 8px;
+    width: 200px; /* Largura fixa */
+    text-align: center;
+    z-index: 2000; /* Altíssimo Z-Index */
+    box-shadow: 0 10px 30px rgba(0,0,0,1);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+/* Setinha do Tooltip */
+.item-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--cor-acao-primaria) transparent transparent transparent;
+}
+
+.item-slot:hover .item-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px); /* Pequena animação de subida */
+}
+
+/* --- DASHBOARD REWORK: WAR ROOM --- */
+
+/* 1. HUD Banner (Lendo Agora - Fino e no Topo) */
+.hud-banner {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95));
+    border: 1px solid var(--ui-border);
+    border-left: 4px solid var(--cor-acao-primaria);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+}
+
+.hud-banner.boss-active {
+    border-left-color: var(--cor-perigo);
+    background: linear-gradient(90deg, rgba(69, 10, 10, 0.8), rgba(2, 6, 23, 0.95));
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.hud-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 2;
+}
+
+.hud-info img {
+    width: 50px; height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--ui-border);
+}
+
+.hud-text h3 {
+    font-size: 1.1rem; margin: 0; color: #fff;
+    display: flex; align-items: center; gap: 10px;
+}
+
+.hud-text p { font-size: 0.8rem; margin: 0; color: var(--cor-texto-secundario); }
+
+.hud-progress {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 2;
+}
+
+.hud-hp-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.hud-hp-fill {
+    height: 100%;
+    background: var(--cor-acao-primaria);
+    box-shadow: 0 0 10px var(--cor-acao-primaria);
+}
+
+.boss-active .hud-hp-fill {
+    background: var(--cor-perigo);
+    box-shadow: 0 0 10px var(--cor-perigo);
+}
+
+/* 2. Hall da Fama Compacto */
+.hall-of-fame-container {
+    margin-top: 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.hall-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Colunas iguais */
+    gap: 1rem;
+}
+
+.trophy-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.trophy-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--ui-border);
+    transform: translateY(-2px);
+}
+
+.trophy-icon {
+    font-size: 1.5rem;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.trophy-info h5 { margin: 0; font-size: 0.7rem; color: var(--cor-texto-secundario); text-transform: uppercase; }
+.trophy-info p { margin: 0; font-size: 0.9rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
+/* Ajuste Responsivo */
+@media (max-width: 768px) {
+    .hall-grid { grid-template-columns: 1fr; }
+    .hud-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .hud-progress { width: 100%; align-items: flex-start; }
+}
