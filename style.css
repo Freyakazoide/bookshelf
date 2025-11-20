@@ -2626,3 +2626,546 @@ tbody tr:last-child td {
     .hud-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
     .hud-progress { width: 100%; align-items: flex-start; }
 }
+
+/* --- MISSÕES & QUESTS --- */
+
+.meta-lista-container {
+    display: grid;
+    gap: 1rem;
+}
+
+.meta-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
+    border: 1px solid var(--ui-border);
+    border-left: 4px solid var(--loot-common); /* Cor padrão */
+    padding: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.meta-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-color: var(--cor-texto-secundario);
+}
+
+.meta-card.active {
+    background: rgba(45, 212, 191, 0.05);
+    border-color: var(--cor-acao-primaria);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.1);
+}
+
+/* Ranks de Missão */
+.meta-rank-D { border-left-color: var(--loot-common); }
+.meta-rank-C { border-left-color: var(--loot-uncommon); }
+.meta-rank-B { border-left-color: var(--loot-rare); }
+.meta-rank-A { border-left-color: var(--loot-epic); }
+.meta-rank-S { border-left-color: var(--loot-legendary); border: 1px solid var(--loot-legendary); box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2); }
+
+.meta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.meta-tag-rank {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.meta-card h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.meta-card-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+    margin-bottom: 8px;
+}
+
+/* Barra de Progresso da Quest */
+.quest-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.quest-bar-fill {
+    height: 100%;
+    background: var(--cor-acao-primaria);
+    transition: width 0.5s;
+}
+
+.meta-rank-S .quest-bar-fill { background: var(--loot-legendary); box-shadow: 0 0 10px var(--loot-legendary); }
+
+/* Botão de Recompensa (Piscando) */
+.btn-claim-reward {
+    margin-top: 10px;
+    width: 100%;
+    background: linear-gradient(90deg, #f59e0b, #b45309);
+    color: #fff;
+    border: 1px solid #fcd34d;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: pulseGold 1.5s infinite;
+}
+
+/* --- ONDA 4: REFATORAÇÃO VISUAL DAS MISSÕES (QUEST BOARD) --- */
+
+/* Layout Principal */
+.metas-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr; /* Sidebar mais larga para caber detalhes */
+    gap: 2rem;
+    height: calc(100vh - 180px); /* Ocupa a altura disponível */
+    overflow: hidden;
+}
+
+/* --- SIDEBAR (Lista de Contratos) --- */
+.metas-sidebar {
+    background: rgba(15, 23, 42, 0.6);
+    border-right: 1px solid var(--ui-border);
+    padding-right: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Botão de Criar Nova Meta (Chamativo) */
+#btn-abrir-modal-meta {
+    padding: 1.2rem;
+    font-size: 1rem;
+    background: linear-gradient(90deg, var(--cor-acao-primaria), #0f766e);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+#btn-abrir-modal-meta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(45, 212, 191, 0.5);
+}
+
+/* Card da Missão (Estilo Cartão de Dados/Pergaminho) */
+.meta-card {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-left-width: 6px; /* Borda lateral grossa para indicar Rank */
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.meta-card:hover {
+    transform: translateX(8px);
+    background: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
+
+.meta-card.active {
+    background: linear-gradient(90deg, rgba(45, 212, 191, 0.05), transparent);
+    border-color: var(--cor-texto-destaque);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.1);
+}
+
+/* Tipografia do Card */
+.meta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.meta-card h4 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meta-tag-rank {
+    font-size: 0.75rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.meta-card-info {
+    display: flex;
+    justify-content: space-between;
+    color: var(--cor-texto-secundario);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    font-family: monospace;
+}
+
+/* Barra de Progresso no Card */
+.quest-bar-bg {
+    height: 10px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 5px;
+    border: 1px solid var(--ui-border);
+}
+
+.quest-bar-fill {
+    border-radius: 5px;
+    box-shadow: 0 0 10px currentColor; /* Brilha na cor do rank */
+}
+
+/* --- ÁREA PRINCIPAL (Detalhes da Missão) --- */
+.metas-main-content {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+/* Header da Missão Ativa */
+.meta-detalhe-header {
+    padding: 2rem;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.8));
+    border-bottom: 1px solid var(--ui-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meta-detalhe-header h2 {
+    font-size: 2rem;
+    text-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
+    margin: 0;
+}
+
+/* Barra de Progresso Gigante */
+.desafio-progresso {
+    padding: 2rem;
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.3), transparent);
+    text-align: center;
+    border-bottom: 1px solid var(--ui-border);
+}
+
+.desafio-progresso p {
+    font-size: 1.2rem;
+    color: var(--cor-texto-destaque);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+#progresso-barra {
+    height: 24px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* --- LISTA DE LIVROS DA META (O problema dos detalhes pequenos) --- */
+#desafio-livros-da-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Cards Largos */
+    gap: 1rem;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* Card de Livro DENTRO da Meta (Estilo Horizontal) */
+#desafio-livros-da-meta .card-livro {
+    flex-direction: row; /* Imagem na esquerda, texto na direita */
+    height: 100px; /* Altura fixa maior */
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--ui-border);
+    align-items: center;
+    padding: 0;
+    transition: 0.2s;
+}
+
+#desafio-livros-da-meta .card-livro:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-2px);
+}
+
+#desafio-livros-da-meta img {
+    width: 70px; /* Capa maior */
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px 0 0 6px;
+    margin: 0;
+    border-right: 1px solid var(--ui-border);
+}
+
+#desafio-livros-da-meta .card-info {
+    position: relative;
+    background: none;
+    width: auto;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+#desafio-livros-da-meta h3 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+#desafio-livros-da-meta p {
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+}
+
+/* Status Concluído (Check Verde Brilhante) */
+#desafio-livros-da-meta .card-nota {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid;
+    margin-left: auto; /* Empurra pra direita */
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.card-livro.concluido {
+    border-color: var(--loot-uncommon) !important;
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent) !important;
+}
+
+.card-livro.pendente {
+    border-color: var(--ui-border);
+    opacity: 0.8;
+}
+
+/* --- ABA DE GERENCIAR (Seletor de Livros) --- */
+#seletor-livros-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 1rem 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#seletor-livros-meta .card-livro {
+    height: 150px;
+    border: 2px solid transparent;
+    opacity: 0.6;
+    transition: 0.2s;
+}
+
+#seletor-livros-meta .card-livro:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+#seletor-livros-meta .card-livro.selecionado {
+    border-color: var(--cor-acao-primaria);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
+    opacity: 1;
+    z-index: 10;
+}
+
+#seletor-livros-meta img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+#seletor-livros-meta .card-info {
+    display: none; /* Esconde info no seletor pra ficar limpo, só capa */
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .metas-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+    }
+    .metas-sidebar {
+        max-height: 300px;
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+        margin-bottom: 1rem;
+    }
+}
+
+/* --- GRID DE PROGRESSO (Dentro da Meta) --- */
+#desafio-livros-da-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Grid Vertical Padrão */
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+}
+
+.card-livro-meta {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.card-livro-meta:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* Estilo "Lido" */
+.card-livro-meta.status-lido {
+    border-color: var(--loot-uncommon);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+.card-livro-meta.status-lido .meta-livro-status {
+    color: var(--loot-uncommon);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* Estilo "Pendente" */
+.card-livro-meta.status-pendente {
+    border-color: var(--ui-border);
+    opacity: 0.8;
+}
+
+.card-livro-meta.status-pendente .meta-livro-status {
+    color: var(--cor-texto-secundario);
+    background: rgba(0,0,0,0.2);
+}
+
+.meta-livro-capa img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+}
+
+.meta-livro-info {
+    padding: 12px;
+    text-align: center;
+}
+
+.meta-livro-info h5 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.meta-livro-info p {
+    margin: 4px 0 8px 0;
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+}
+
+.meta-livro-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* --- SELETOR DE LIVROS (Grid Compacto) --- */
+#seletor-livros-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 1rem 0;
+}
+
+.card-livro-seletor {
+    cursor: pointer;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: 0.2s;
+    border: 2px solid transparent;
+}
+
+.card-livro-seletor:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.card-livro-seletor.selected {
+    border-color: var(--cor-acao-primaria);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
+}
+
+.seletor-capa-wrapper {
+    position: relative;
+    aspect-ratio: 2/3;
+}
+
+.seletor-capa-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.seletor-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(45, 212, 191, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+    backdrop-filter: blur(2px);
+}
+
+.seletor-titulo {
+    font-size: 0.7rem;
+    padding: 4px;
+    text-align: center;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
