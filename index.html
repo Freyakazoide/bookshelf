@@ -9,18 +9,38 @@
 </head>
 <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <header class="sidebar-header">
-                <h2><i class="fa-solid fa-book-journal-whills"></i> Estante</h2>
-            </header>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-link active" data-view="view-estante"><i class="fa-solid fa-books"></i> Estante</a>
-                <a href="#" class="nav-link" data-view="view-adicionar"><i class="fa-solid fa-plus-circle"></i> Adicionar Livro</a>
-                <a href="#" class="nav-link" data-view="view-desafio"><i class="fa-solid fa-trophy"></i> Metas de Leitura</a>
-                <a href="#" class="nav-link" data-view="view-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            </nav>
-            <div id="auth-container" class="sidebar-footer"></div>
-        </aside>
+<aside class="sidebar">
+    <div class="player-profile">
+        <div class="player-avatar-container">
+            <img id="player-avatar" src="https://ui-avatars.com/api/?name=User&background=0f172a&color=2dd4bf" alt="Avatar">
+            <div id="player-level-badge" class="level-badge">1</div>
+        </div>
+        <div class="player-info">
+            <h3 id="player-name">Leitor Viajante</h3>
+            <span id="player-class" class="player-class">Novato</span>
+        </div>
+        <div class="xp-container">
+            <div class="xp-info">
+                <span id="xp-current">0 XP</span>
+                <span id="xp-next">Próx: 500</span>
+            </div>
+            <div class="xp-bar-bg">
+                <div id="xp-bar-fill" class="xp-bar-fill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+    <header class="sidebar-header">
+        <h2><i class="fa-solid fa-dungeon"></i> Quest Log</h2>
+    </header>
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-link active" data-view="view-estante"><i class="fa-solid fa-book-journal-whills"></i> Inventário (Estante)</a>
+        <a href="#" class="nav-link" data-view="view-adicionar"><i class="fa-solid fa-plus-circle"></i> Quests (Adicionar)</a>
+        <a href="#" class="nav-link" data-view="view-desafio"><i class="fa-solid fa-scroll"></i> Missões (Metas)</a>
+        <a href="#" class="nav-link" data-view="view-dashboard"><i class="fa-solid fa-chart-line"></i> Status (Dash)</a>
+        <a href="#" class="nav-link" data-view="view-inventario"><i class="fa-solid fa-sack-dollar"></i> Mochila (Loot)</a>
+    </nav>
+    <div id="auth-container" class="sidebar-footer"></div>
+</aside>
 
         <main class="main-content">
 
@@ -34,7 +54,7 @@
                     </div>
                     
                     <div class="grupo-filtros">
-                        <span><i class="fa-solid fa-filter"></i> Filtrar por:</span>
+                        <span><i class="fa-solid fa-filter"></i> Filtrar:</span>
                         <button class="filtro-status active" data-status="Todos">Todos</button>
                         <button class="filtro-status" data-status="Lido">Lidos</button>
                         <button class="filtro-status" data-status="Lendo">Lendo</button>
@@ -43,6 +63,17 @@
                     <button id="btn-filtros-avancados" class="btn btn-secundario" style="margin-left: 1rem;">
                         <i class="fa-solid fa-sliders"></i> Filtros
                     </button>
+
+                    <button id="btn-gestor-leitura" class="btn btn-primario" style="margin-left: 0.5rem; background-color: var(--cor-texto-principal); color: var(--cor-fundo-principal);">
+                        <i class="fa-solid fa-glasses"></i> Gerenciar Leituras
+                    </button>
+                </div>
+
+                <div class="controles-secundarios" style="justify-content: flex-start; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cor-borda);">
+                    <span><i class="fa-solid fa-lightbulb"></i> Sugestões Rápidas:</span>
+                    <button id="btn-aleatorio" class="btn btn-secundario" title="Escolher um livro 'Quero Ler' aleatório"><i class="fa-solid fa-dice"></i> Surpreenda-me</button>
+                    <button id="btn-tsundoku" class="btn btn-secundario" title="Livros comprados há mais tempo e não lidos"><i class="fa-solid fa-hourglass-end"></i> Encalhados</button>
+                    <button id="btn-curtos" class="btn btn-secundario" title="Livros com menos de 250 páginas"><i class="fa-solid fa-bolt"></i> Rapidinhas</button>
                 </div>
                 
                 <div class="controles-secundarios">
@@ -58,12 +89,8 @@
                             </select>
                         </div>
                         <div class="grupo-visualizacao">
-                            <button class="btn-visualizacao active" data-view="grid" aria-label="Ver em grade">
-                                <i class="fa-solid fa-grip"></i>
-                            </button>
-                            <button class="btn-visualizacao" data-view="list" aria-label="Ver em lista">
-                                <i class="fa-solid fa-list"></i>
-                            </button>
+                            <button class="btn-visualizacao active" data-view="grid" aria-label="Ver em grade"><i class="fa-solid fa-grip"></i></button>
+                            <button class="btn-visualizacao" data-view="list" aria-label="Ver em lista"><i class="fa-solid fa-list"></i></button>
                         </div>
                     </div>
                 </div>
@@ -90,9 +117,36 @@
                 </div>
             </div>
 
+            <div id="view-inventario" class="view">
+                <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila de Itens</h1>
+                
+                <div class="inventario-stats-container dash-card">
+                    <div class="inv-stat">
+                        <span class="inv-label">Itens Coletados</span>
+                        <span id="inv-total-items" class="inv-value">0</span>
+                    </div>
+                    <div class="inv-stat">
+                        <span class="inv-label">Raridade Média</span>
+                        <span id="inv-rarity-avg" class="inv-value">-</span>
+                    </div>
+                    <div class="inv-stat">
+                        <span class="inv-label">Valor Estimado</span>
+                        <span id="inv-gold-value" class="inv-value" style="color: #fcd34d;">0 <i class="fa-solid fa-coins"></i></span>
+                    </div>
+                </div>
+
+                <div class="grupo-filtros" style="margin: 1.5rem 0;">
+                    <button class="filtro-status active" onclick="Inventario.filtrar('Todos')">Todos</button>
+                    <button class="filtro-status" onclick="Inventario.filtrar('Lendário')" style="color:var(--loot-legendary); border-color:var(--loot-legendary)">Lendários</button>
+                    <button class="filtro-status" onclick="Inventario.filtrar('Épico')" style="color:var(--loot-epic); border-color:var(--loot-epic)">Épicos</button>
+                </div>
+
+                <div id="grid-inventario" class="inventario-grid">
+                    </div>
+            </div>
+
             <div id="view-adicionar" class="view">
                 <h1>Adicionar Novo Livro</h1>
-                
                 <div id="busca-api-container" class="dash-card" style="margin-bottom: 2rem; padding: 1.5rem;">
                     <div class="form-grid" style="grid-template-columns: 1fr 1fr; align-items: flex-end; gap: 1rem;">
                         <div class="form-campo">
@@ -117,27 +171,22 @@
                         <button id="btn-busca-api" class="btn btn-primario"><i class="fa-solid fa-globe"></i> Buscar na Internet</button>
                     </div>
                 </div>
-
                 <div id="adicionar-manual-container" class="hidden" style="text-align: center; margin: 2rem 0;">
                     <p style="color: var(--cor-texto-secundario); margin-bottom: 0.5rem;">Não encontrou o que procurava?</p>
                     <button id="btn-adicionar-manual" class="btn btn-secundario"><i class="fa-solid fa-keyboard"></i> Cadastrar Manualmente</button>
                 </div>
-                
                 <div id="busca-api-paginacao" class="hidden">
                     <button id="btn-busca-anterior" class="btn btn-secundario"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
                     <span id="busca-api-info-pagina"></span>
                     <button id="btn-busca-proxima" class="btn btn-primario">Próxima <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
-                
                 <div id="resultados-busca-api"></div>
-                
                 <div id="painel-sincronizacao" class="hidden">
                     <h3><i class="fa-solid fa-sync-alt"></i> Atualizar Dados do Livro</h3>
                     <p>Clique nos campos que deseja atualizar com as informações encontradas na internet.</p>
                     <div id="sinc-container"></div>
                     <button id="btn-fechar-sinc" class="btn btn-secundario"><i class="fa-solid fa-times"></i> Fechar Sincronização</button>
                 </div>
-
                 <div id="form-container" class="hidden">
                     <hr class="separador-form">
                     <h2 id="form-livro-titulo">Complete os dados e salve</h2>
@@ -158,7 +207,6 @@
                                     <button type="button" class="tab-button" data-tab="form-tab-organizacao"><i class="fa-solid fa-folder-tree"></i> Organização</button>
                                 </nav>
                                 <div class="form-conteudo-tabs">
-                                    
                                     <div id="form-tab-principal" class="form-tab-content active">
                                         <div class="form-grid" style="grid-template-columns: 1fr;">
                                             <div class="form-campo"><label for="nomeDoLivro">Título:</label><input type="text" id="nomeDoLivro" required></div>
@@ -166,7 +214,6 @@
                                             <div class="form-campo"><label for="descricao">Descrição/Sinopse:</label><textarea id="descricao" rows="10"></textarea></div>
                                         </div>
                                     </div>
-                                    
                                     <div id="form-tab-publicacao" class="form-tab-content">
                                         <div class="form-grid">
                                             <div class="form-campo"><label for="editora">Editora:</label><input type="text" id="editora"></div>
@@ -175,7 +222,6 @@
                                             <div class="form-campo"><label for="lingua">Língua:</label><input type="text" id="lingua" placeholder="Ex: PT-BR"></div>
                                         </div>
                                     </div>
-
                                     <div id="form-tab-organizacao" class="form-tab-content">
                                         <div class="form-grid">
                                             <div class="form-campo"><label for="colecao">Coleção:</label><input type="text" id="colecao"></div>
@@ -184,7 +230,6 @@
                                             <div class="form-campo"><label for="dataAquisicao">Data de Aquisição:</label><input type="date" id="dataAquisicao"></div>
                                         </div>
                                     </div>
-                                    
                                 </div>
                             </div>
                         </div>
@@ -196,63 +241,35 @@
             </div>
 
             <div id="view-desafio" class="view">
-                <h1><i class="fa-solid fa-trophy"></i> Minhas Metas de Leitura</h1>
-                
+                <h1><i class="fa-solid fa-trophy"></i> Metas de Leitura</h1>
                 <div class="metas-layout">
                     <aside class="metas-sidebar">
-                        <button id="btn-abrir-modal-meta" class="btn btn-primario" style="width: 100%; margin-bottom: 1.5rem;">
-                            <i class="fa-solid fa-plus"></i> Criar Nova Meta
-                        </button>
-                        
+                        <button id="btn-abrir-modal-meta" class="btn btn-primario" style="width: 100%; margin-bottom: 1.5rem;"><i class="fa-solid fa-plus"></i> Criar Nova Meta</button>
                         <div class="meta-lista-container">
                             <h3>Metas Ativas</h3>
                             <div id="lista-metas-ativas"></div>
-                            
                             <h3 style="margin-top: 1.5rem;">Metas Concluídas</h3>
                             <div id="lista-metas-concluidas"></div>
                         </div>
                     </aside>
-                    
                     <main class="metas-main-content">
                         <div id="meta-detalhe-container">
-                            
                             <div id="nenhuma-meta-selecionada" class="active">
-                                <div class="placeholder-container">
-                                    <i class="fa-solid fa-bullseye-arrow"></i>
-                                    <h2>Nenhuma meta selecionada</h2>
-                                    <p>Selecione uma meta à esquerda ou crie uma nova para começar.</p>
-                                </div>
+                                <div class="placeholder-container"><i class="fa-solid fa-bullseye-arrow"></i><h2>Nenhuma meta selecionada</h2><p>Selecione uma meta à esquerda ou crie uma nova para começar.</p></div>
                             </div>
-
                             <div id="desafio-ativo-container" class="hidden">
-                                <div class="meta-detalhe-header">
-                                    <h2 id="meta-ativa-titulo"></h2>
-                                    <button id="btn-deletar-meta-ativa" class="btn btn-perigo"><i class="fa-solid fa-trash-alt"></i> Deletar Meta</button>
-                                </div>
-                                
-                                <div class="desafio-progresso">
-                                    <p id="progresso-texto">0 de 0 concluídos</p>
-                                    <progress id="progresso-barra" value="0" max="100"></progress>
-                                </div>
-                                
+                                <div class="meta-detalhe-header"><h2 id="meta-ativa-titulo"></h2><button id="btn-deletar-meta-ativa" class="btn btn-perigo"><i class="fa-solid fa-trash-alt"></i> Deletar Meta</button></div>
+                                <div class="desafio-progresso"><p id="progresso-texto">0 de 0 concluídos</p><progress id="progresso-barra" value="0" max="100"></progress></div>
                                 <nav class="meta-detalhe-tabs" id="meta-tabs-container">
                                     <button class="tab-button active" data-tab="tab-meta-progresso"><i class="fa-solid fa-list-check"></i> Progresso</button>
                                     <button class="tab-button" data-tab="tab-meta-gerenciar"><i class="fa-solid fa-book-medical"></i> Gerenciar Livros</button>
                                 </nav>
-                                
-                                <div id="tab-meta-progresso" class="meta-tab-content active">
-                                    <h3 style="margin-top: 1.5rem;">Livros da Meta:</h3>
-                                    <div id="desafio-livros-da-meta" class="estante-de-livros"></div>
-                                </div>
-                                
+                                <div id="tab-meta-progresso" class="meta-tab-content active"><h3 style="margin-top: 1.5rem;">Livros da Meta:</h3><div id="desafio-livros-da-meta" class="estante-de-livros"></div></div>
                                 <div id="tab-meta-gerenciar" class="meta-tab-content">
                                     <div id="gerenciar-lista-container" style="margin-top: 1.5rem;">
                                         <div class="desafio-meta">
                                             <label for="input-busca-livros-meta">Adicionar/Remover livros da sua estante:</label>
-                                            <div class="campo-com-icone">
-                                                <i class="fa-solid fa-search"></i>
-                                                <input type="search" id="input-busca-livros-meta" placeholder="Buscar por título ou autor...">
-                                            </div>
+                                            <div class="campo-com-icone"><i class="fa-solid fa-search"></i><input type="search" id="input-busca-livros-meta" placeholder="Buscar por título ou autor..."></div>
                                             <div class="grupo-filtros" style="justify-content: flex-start; margin-bottom: 10px; margin-top: 10px;">
                                                 <button class="filtro-status-meta active" data-status="Todos">Todos</button>
                                                 <button class="filtro-status-meta" data-status="NaoLidos">Não Lidos</button>
@@ -266,7 +283,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
                             </div>
                         </div>
                     </main>
@@ -280,73 +296,84 @@
                     <div class="grupo-filtros" id="filtro-ano-container">
                         <label><i class="fa-solid fa-calendar-alt"></i> Analisar Período:</label>
                         <button id="filtro-ano-btn" class="btn btn-secundario">Selecionar Anos</button>
-                        <div id="filtro-ano-dropdown" class="hidden">
-                        </div>
+                        <div id="filtro-ano-dropdown" class="hidden"></div>
                     </div>
                 </div>
-
-                <div class="dashboard-grid-geral">
-                    
-                    <div class="dashboard-kpi-principais widget-span-3">
-                        <div id="kpi-hero-novo" class="kpi-hero"></div>
-                        <div id="kpi-paginas-novo" class="kpi-secundario"></div>
-                        <div id="kpi-nota-novo" class="kpi-secundario"></div>
-                        <div id="kpi-autores-novo" class="kpi-secundario"></div>
-                    </div>
-
-                    <div id="quadro-destaques" class="widget-span-3">
-                        <h3>Destaques do Período</h3>
-                        <div id="destaques-lista-nova" class="destaques-lista-nova">
-                        </div>
-                    </div>
-                    
-                    <div id="resumo-por-ano" class="tabela-card dash-card widget-span-3">
-                        <h3>Resumo por Ano</h3>
-                        <div class="grafico-container">
-                            <canvas id="grafico-resumo-anual"></canvas>
-                        </div>
-                    </div>
-
-                    <div id="widget-lidos-por-mes" class="tabela-card dash-card widget-span-3">
-                        <h3 id="titulo-grafico-mes">Leituras por Mês</h3>
-                        <div class="grafico-container">
-                            <canvas id="grafico-lidos-por-mes"></canvas>
-                        </div>
-                    </div>
-
-                    <div id="lista-livros-ano" class="tabela-card dash-card widget-span-3">
-                        <h3 id="titulo-tabela-livros-ano">Livros Lidos</h3>
-                        <div class="tabela-container full-height">
-                            <table id="tabela-livros-ano"></table>
-                        </div>
-                    </div>
-                    
-                    <div id="widget-distribuicao-notas" class="tabela-card dash-card widget-span-3">
-                        <h3>Distribuição de Notas</h3>
-                        <div class="grafico-container">
-                            <canvas id="grafico-distribuicao-notas"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="melhores-ranking-container widget-span-3">
-                        <div id="melhores-autores" class="tabela-card dash-card">
-                            <h3>Melhores Autores (>= 3 livros)</h3>
-                            <div class="tabela-container">
-                                <table id="tabela-melhores-autores"></table>
+            
+                <div class="dashboard-grid-novo">
+                        <div class="kpi-row">
+                            <div class="dashboard-kpi-principais">
+                                <div id="kpi-hero-novo" class="kpi-hero"></div>
+                                <div id="kpi-paginas-novo" class="kpi-secundario"></div>
+                                <div id="kpi-nota-novo" class="kpi-secundario"></div>
+                                <div id="kpi-autores-novo" class="kpi-secundario"></div>
                             </div>
                         </div>
 
-                        <div id="melhores-colecoes" class="tabela-card dash-card">
-                            <h3>Melhores Coleções (>= 3 livros)</h3>
-                            <div class="tabela-container">
-                                <table id="tabela-melhores-colecoes"></table>
+                        <div class="current-row-tripla">
+                            
+                            <div id="container-lendo-agora" class="current-card"></div>
+
+                            <div id="quadro-destaques" class="dash-card destaque-card-compacto">
+                                <h3><i class="fa-solid fa-medal"></i> Hall da Fama</h3>
+                                <div id="destaques-lista-nova" class="destaques-lista-vertical"></div>
+                            </div>
+
+                            <div id="widget-curiosidades" class="dash-card curio-card">
+                                <h3><i class="fa-solid fa-flask"></i> Stats & Loot</h3>
+                                <div id="curiosidades-stats" class="curiosidades-lista"></div>
                             </div>
                         </div>
 
-                        <div id="melhores-editoras" class="tabela-card dash-card">
-                            <h3>Melhores Editoras (>= 3 livros)</h3>
-                            <div class="tabela-container">
-                                <table id="tabela-melhores-editoras"></table>
+                    <div class="charts-row">
+                        <div id="widget-dna" class="tabela-card dash-card">
+                            <h3>Meu DNA</h3>
+                            <div class="grafico-container small"><canvas id="grafico-dna"></canvas></div>
+                        </div>
+                        <div id="widget-generos" class="tabela-card dash-card">
+                            <h3>Gêneros</h3>
+                            <div class="grafico-container small"><canvas id="grafico-generos"></canvas></div>
+                        </div>
+                        <div id="widget-ritmo" class="tabela-card dash-card">
+                            <h3>Ritmo (Pág x Dias)</h3>
+                            <div class="grafico-container small"><canvas id="grafico-ritmo"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="timeline-row">
+                        <div id="resumo-por-ano" class="tabela-card dash-card">
+                            <h3>Histórico Anual</h3>
+                            <div class="grafico-container"><canvas id="grafico-resumo-anual"></canvas></div>
+                        </div>
+                        <div id="widget-lidos-por-mes" class="tabela-card dash-card">
+                            <h3 id="titulo-grafico-mes">Leituras Mensais</h3>
+                            <div class="grafico-container"><canvas id="grafico-lidos-por-mes"></canvas></div>
+                        </div>
+                         <div id="widget-distribuicao-notas" class="tabela-card dash-card">
+                            <h3>Distribuição de Notas</h3>
+                            <div class="grafico-container"><canvas id="grafico-distribuicao-notas"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="rankings-row">
+                        <div class="melhores-ranking-container">
+                            <div id="melhores-autores" class="tabela-card dash-card">
+                                <h3>Top Autores</h3>
+                                <div class="tabela-container"><table id="tabela-melhores-autores"></table></div>
+                            </div>
+                            <div id="melhores-colecoes" class="tabela-card dash-card">
+                                <h3>Top Coleções</h3>
+                                <div class="tabela-container"><table id="tabela-melhores-colecoes"></table></div>
+                            </div>
+                            <div id="melhores-editoras" class="tabela-card dash-card">
+                                <h3>Top Editoras</h3>
+                                <div class="tabela-container"><table id="tabela-melhores-editoras"></table></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div id="lista-livros-ano" class="tabela-card dash-card main-table-card">
+                            <h3 id="titulo-tabela-livros-ano">Lista de Leituras</h3>
+                            <div class="tabela-container full-height">
+                                <table id="tabela-livros-ano"></table>
                             </div>
                         </div>
                     </div>
@@ -360,7 +387,6 @@
                     <button id="btn-fechar-gaveta" class="btn-acao" aria-label="Fechar filtros"><i class="fa-solid fa-times"></i></button>
                 </header>
                 <div class="gaveta-body">
-                    
                     <div class="filtro-grupo">
                         <h4><i class="fa-solid fa-star"></i> Filtrar por Nota</h4>
                         <div class="filtro-opcoes-nota" id="filtro-grupo-nota">
@@ -372,25 +398,16 @@
                             <button class="btn" data-nota="sem">Sem Nota</button>
                         </div>
                     </div>
-
                     <div class="filtro-grupo">
                         <h4><i class="fa-solid fa-folder-tree"></i> Filtrar por Categoria</h4>
-                        <div class="form-campo">
-                            <input type="search" id="filtro-busca-categoria" placeholder="Buscar categoria...">
-                        </div>
-                        <div id="filtro-lista-categorias" style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
-                        </div>
+                        <div class="form-campo"><input type="search" id="filtro-busca-categoria" placeholder="Buscar categoria..."></div>
+                        <div id="filtro-lista-categorias" style="max-height: 200px; overflow-y: auto; margin-top: 10px;"></div>
                     </div>
-
                     <div class="filtro-grupo">
                         <h4><i class="fa-solid fa-users"></i> Filtrar por Autor</h4>
-                        <div class="form-campo">
-                            <input type="search" id="filtro-busca-autor" placeholder="Buscar autor...">
-                        </div>
-                        <div id="filtro-lista-autores" style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
-                        </div>
+                        <div class="form-campo"><input type="search" id="filtro-busca-autor" placeholder="Buscar autor..."></div>
+                        <div id="filtro-lista-autores" style="max-height: 200px; overflow-y: auto; margin-top: 10px;"></div>
                     </div>
-
                 </div>
                 <footer class="gaveta-footer">
                     <button id="btn-limpar-filtros" class="btn btn-secundario" style="margin-right: auto;"><i class="fa-solid fa-eraser"></i> Limpar Tudo</button>
@@ -401,78 +418,109 @@
         </main>
     </div>
 
-    <dialog id="painel-livro">
-        <div class="painel-container">
-            <header class="painel-header">
-                <h2 id="painel-titulo">Título do Livro</h2>
-                <button id="btn-fechar-painel" class="btn-acao" aria-label="Fechar painel"><i class="fa-solid fa-times"></i></button>
-            </header>
-            <footer class="painel-footer">
-                <button id="painel-btn-salvar" class="btn btn-primario"><i class="fa-solid fa-save"></i> Salvar Alterações</button>
-            </footer>
-            <div class="painel-body">
-                <div class="painel-coluna-capa">
-                    <img id="painel-capa" src="placeholder.jpg" alt="Capa do livro">
-                    <div class="painel-botoes-principais">
-                        <button id="painel-btn-editar" class="btn btn-secundario"><i class="fa-solid fa-edit"></i> Editar Cadastro</button>
-                        <button id="painel-btn-excluir" class="btn btn-perigo"><i class="fa-solid fa-trash-alt"></i> Excluir Livro</button>
-                    </div>
+<dialog id="painel-livro">
+    <div class="painel-container">
+        <header class="painel-header">
+            <h2 id="painel-titulo">Título do Livro</h2>
+            <button id="btn-fechar-painel" class="btn-acao" aria-label="Fechar painel"><i class="fa-solid fa-times"></i></button>
+        </header>
+        <footer class="painel-footer">
+            <button id="painel-btn-salvar" class="btn btn-primario"><i class="fa-solid fa-save"></i> Salvar Alterações</button>
+        </footer>
+        <div class="painel-body">
+            <div class="painel-coluna-capa">
+                <img id="painel-capa" src="placeholder.jpg" alt="Capa do livro">
+                <div class="painel-botoes-principais">
+                    <button id="painel-btn-editar" class="btn btn-secundario"><i class="fa-solid fa-edit"></i> Editar Cadastro</button>
+                    <button id="painel-btn-excluir" class="btn btn-perigo"><i class="fa-solid fa-trash-alt"></i> Excluir Livro</button>
                 </div>
-                <div class="painel-coluna-info">
-                    <nav class="painel-tabs">
-                        <button class="tab-button active" data-tab="tab-leitura"><i class="fa-solid fa-book-open-reader"></i> Minha Leitura</button>
-                        <button class="tab-button" data-tab="tab-notas"><i class="fa-solid fa-star-half-alt"></i> Minhas Notas</button>
-                        <button class="tab-button" data-tab="tab-detalhes"><i class="fa-solid fa-list-ul"></i> Detalhes</button>
-                    </nav>
-                    <div class="painel-conteudo-tabs">
-                        <div id="tab-leitura" class="tab-content active">
-                            <div class="leitura-header">
-                                <h3>Meu Histórico de Leitura</h3>
-                                <button id="painel-btn-nova-leitura" class="btn btn-secundario"><i class="fa-solid fa-play"></i> Iniciar Nova Leitura</button>
-                            </div>
-                            <div id="leituras-container"></div>
-                            <div id="form-leitura-container" class="hidden"></div>
+            </div>
+            <div class="painel-coluna-info">
+                <nav class="painel-tabs">
+                    <button class="tab-button active" data-tab="tab-leitura"><i class="fa-solid fa-book-open-reader"></i> Minha Leitura</button>
+                    <button class="tab-button" data-tab="tab-notas"><i class="fa-solid fa-star-half-alt"></i> Minhas Notas</button>
+                    <button class="tab-button" data-tab="tab-citacoes"><i class="fa-solid fa-quote-right"></i> Citações</button>
+                    <button class="tab-button" data-tab="tab-detalhes"><i class="fa-solid fa-list-ul"></i> Detalhes</button>
+                </nav>
+                <div class="painel-conteudo-tabs">
+                    
+                    <div id="tab-leitura" class="tab-content active">
+                        <div class="leitura-header">
+                            <h3>Meu Histórico de Leitura</h3>
+                            <button id="painel-btn-nova-leitura" class="btn btn-secundario"><i class="fa-solid fa-play"></i> Iniciar Nova Leitura</button>
                         </div>
-                        <div id="tab-notas" class="tab-content">
-                            <h3>Minhas Avaliações da Leitura Atual</h3>
-                            <div id="aviso-nota-bloqueada" class="aviso">
-                                <p><i class="fa-solid fa-lock"></i> As notas só podem ser adicionadas ou editadas após a data de fim da leitura ser preenchida na aba "Minha Leitura".</p>
+                        <div id="leituras-container"></div>
+                        <div id="form-leitura-container" class="hidden"></div>
+                    </div>
+
+                    <div id="tab-notas" class="tab-content">
+                        <h3>Minhas Avaliações da Leitura Atual</h3>
+                        <div id="aviso-nota-bloqueada" class="aviso">
+                            <p><i class="fa-solid fa-lock"></i> As notas só podem ser adicionadas ou editadas após a data de fim da leitura ser preenchida na aba "Minha Leitura".</p>
+                        </div>
+                        <form id="form-notas" class="painel-form hidden">
+                            <div class="notas-grid">
+                                <div class="slider-campo"><label>Personagens: <span id="valor-nota-personagens">5.0</span></label><small>Quão críveis e complexos?</small><input type="range" id="nota-personagens" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Trama (Plot): <span id="valor-nota-plot">5.0</span></label><small>Enredo original e envolvente?</small><input type="range" id="nota-plot" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Mundo: <span id="valor-nota-desenvolvimento">5.0</span></label><small>Universo imersivo?</small><input type="range" id="nota-desenvolvimento" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Ritmo (Pacing): <span id="valor-nota-pacing">5.0</span></label><small>Flui bem?</small><input type="range" id="nota-pacing" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Prosa: <span id="valor-nota-prosa">5.0</span></label><small>Qualidade da escrita?</small><input type="range" id="nota-prosa" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Originalidade: <span id="valor-nota-originalidade">5.0</span></label><small>Conceitos novos?</small><input type="range" id="nota-originalidade" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Temas: <span id="valor-nota-temas">5.0</span></label><small>Profundidade?</small><input type="range" id="nota-temas" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Impacto: <span id="valor-nota-impacto">5.0</span></label><small>Emoções fortes?</small><input type="range" id="nota-impacto" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Conclusão: <span id="valor-nota-closing">5.0</span></label><small>Final satisfatório?</small><input type="range" id="nota-closing" min="0" max="10" step="0.1" value="5"></div>
+                                <div class="slider-campo"><label>Releitura: <span id="valor-nota-releitura">5.0</span></label><small>Leria de novo?</small><input type="range" id="nota-releitura" min="0" max="10" step="0.1" value="5"></div>
                             </div>
-                            <form id="form-notas" class="painel-form hidden">
-                                <div class="notas-grid">
-                                    <div class="slider-campo"><label>Personagens: <span id="valor-nota-personagens">5.0</span></label><small>Quão críveis, complexos e bem desenvolvidos são os personagens? Você se conectou com eles?</small><input type="range" id="nota-personagens" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Trama (Plot): <span id="valor-nota-plot">5.0</span></label><small>A estrutura da história é coesa? O enredo é original, envolvente e com conflitos bem definidos?</small><input type="range" id="nota-plot" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Construção de Mundo: <span id="valor-nota-desenvolvimento">5.0</span></label><small>O universo da história é imersivo e bem detalhado? Suas regras e cultura são consistentes?</small><input type="range" id="nota-desenvolvimento" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Ritmo (Pacing): <span id="valor-nota-pacing">5.0</span></label><small>A história flui bem? O ritmo acelera e desacelera nos momentos certos para criar tensão ou respiro?</small><input type="range" id="nota-pacing" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Estilo de Escrita (Prosa): <span id="valor-nota-prosa">5.0</span></label><small>A qualidade da escrita é alta? O texto é claro, evocativo e agradável de ler?</small><input type="range" id="nota-prosa" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Originalidade: <span id="valor-nota-originalidade">5.0</span></label><small>A premissa ou a execução da história trouxeram conceitos novos ou abordagens criativas?</small><input type="range" id="nota-originalidade" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Temas e Profundidade: <span id="valor-nota-temas">5.0</span></label><small>Os temas abordados são relevantes e explorados com a profundidade que merecem?</small><input type="range" id="nota-temas" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Impacto Emocional: <span id="valor-nota-impacto">5.0</span></label><small>O livro provocou emoções fortes em você (alegria, surpresa, tristeza, reflexão)?</small><input type="range" id="nota-impacto" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Conclusão (Closing): <span id="valor-nota-closing">5.0</span></label><small>O final resolve os conflitos de forma satisfatória e é coerente com o resto da história?</small><input type="range" id="nota-closing" min="0" max="10" step="0.1" value="5"></div>
-                                    <div class="slider-campo"><label>Fator Releitura/Recomendação: <span id="valor-nota-releitura">5.0</span></label><small>Você sentiria vontade de reler este livro no futuro ou o recomendaria com entusiasmo para alguém?</small><input type="range" id="nota-releitura" min="0" max="10" step="0.1" value="5"></div>
+                            <div class="nota-final-display">Nota Final Calculada: <strong id="nota-final-calculada">5.0</strong></div>
+                        </form>
+                    </div>
+
+                    <div id="tab-citacoes" class="tab-content">
+                        <div class="citacoes-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3>Citações Salvas</h3>
+                            <button id="btn-nova-citacao" class="btn btn-secundario"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                        </div>
+                        
+                        <div id="form-citacao" class="painel-form hidden" style="background-color: var(--cor-fundo-container); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                            <div class="form-campo full-width">
+                                <label>A Frase:</label>
+                                <textarea id="input-citacao-texto" rows="3" placeholder="Digite a citação aqui..."></textarea>
+                            </div>
+                            <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 10px;">
+                                <div class="form-campo">
+                                    <label>Página/Capítulo:</label>
+                                    <input type="text" id="input-citacao-pag" placeholder="Ex: Pág. 42">
                                 </div>
-                                <div class="nota-final-display">Nota Final Calculada: <strong id="nota-final-calculada">5.0</strong></div>
-                            </form>
-                        </div>
-                        <div id="tab-detalhes" class="tab-content">
-                            <h3>Detalhes do Livro</h3>
-                            <div id="info-detalhes" class="detalhes-grid">
-                                <p><strong>Autor:</strong> <span id="detalhe-autor"></span></p>
-                                <p><strong>Editora:</strong> <span id="detalhe-editora"></span></p>
-                                <p><strong>Ano:</strong> <span id="detalhe-ano"></span></p>
-                                <p><strong>Páginas:</strong> <span id="detalhe-paginas"></span></p>
-                                <p><strong>Idioma:</strong> <span id="detalhe-lingua"></span></p>
-                                <p><strong>Coleção:</strong> <span id="detalhe-colecao"></span></p>
-                                <p><strong>Volume:</strong> <span id="detalhe-volume"></span></p>
-                                <p><strong>Categorias:</strong> <span id="detalhe-categorias"></span></p>
-                                <p class="detalhe-sinopse"><strong>Sinopse:</strong> <span id="detalhe-descricao"></span></p>
+                                <div class="form-botoes" style="justify-content: flex-end; margin-top: 24px;">
+                                    <button id="btn-cancelar-citacao" class="btn btn-secundario">Cancelar</button>
+                                    <button id="btn-salvar-citacao" class="btn btn-primario">Salvar</button>
+                                </div>
                             </div>
+                        </div>
+
+                        <div id="lista-citacoes" class="lista-citacoes-container">
+                            </div>
+                    </div>
+
+                    <div id="tab-detalhes" class="tab-content">
+                        <h3>Detalhes do Livro</h3>
+                        <div id="info-detalhes" class="detalhes-grid">
+                            <p><strong>Autor:</strong> <span id="detalhe-autor"></span></p>
+                            <p><strong>Editora:</strong> <span id="detalhe-editora"></span></p>
+                            <p><strong>Ano:</strong> <span id="detalhe-ano"></span></p>
+                            <p><strong>Páginas:</strong> <span id="detalhe-paginas"></span></p>
+                            <p><strong>Idioma:</strong> <span id="detalhe-lingua"></span></p>
+                            <p><strong>Coleção:</strong> <span id="detalhe-colecao"></span></p>
+                            <p><strong>Volume:</strong> <span id="detalhe-volume"></span></p>
+                            <p><strong>Categorias:</strong> <span id="detalhe-categorias"></span></p>
+                            <p class="detalhe-sinopse"><strong>Sinopse:</strong> <span id="detalhe-descricao"></span></p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </dialog>
+    </div>
+</dialog>
 
     <dialog id="modal-criar-meta">
         <div class="painel-container" style="height: auto; width: 700px;">
@@ -480,36 +528,52 @@
                 <h2><i class="fa-solid fa-plus"></i> Criar Nova Meta</h2>
                 <button id="btn-fechar-modal-meta" class="btn-acao" aria-label="Fechar painel"><i class="fa-solid fa-times"></i></button>
             </header>
-            
             <form id="form-criar-meta">
                 <div class="painel-conteudo-tabs">
                     <div class="form-grid" style="grid-template-columns: 2fr 1fr;">
-                        <div class="form-campo">
-                            <label for="input-meta-nome">Nome da Meta:</label>
-                            <input type="text" id="input-meta-nome" placeholder="Ex: Fim de Ano 2025" required>
-                        </div>
-                        <div class="form-campo">
-                            <label for="select-meta-ano">Ano:</label>
-                            <select id="select-meta-ano"></select>
-                        </div>
-                        <div class="form-campo full-width">
-                            <label for="select-meta-tipo">Tipo de Meta:</label>
-                            <select id="select-meta-tipo">
-                                <option value="livros">Nº de Livros (Automático)</option>
-                                <option value="paginas">Nº de Páginas (Automático)</option>
-                                <option value="lista">Lista de Livros (Manual)</option>
-                            </select>
-                        </div>
-                        <div class="form-campo full-width" id="campo-objetivo-container">
-                            <label for="input-meta-objetivo">Objetivo:</label>
-                            <input type="number" id="input-meta-objetivo" placeholder="Ex: 8" required>
-                        </div>
+                        <div class="form-campo"><label>Nome da Meta:</label><input type="text" id="input-meta-nome" placeholder="Ex: Fim de Ano 2025" required></div>
+                        <div class="form-campo"><label>Ano:</label><select id="select-meta-ano"></select></div>
+                        <div class="form-campo full-width"><label>Tipo de Meta:</label><select id="select-meta-tipo"><option value="livros">Nº de Livros (Automático)</option><option value="paginas">Nº de Páginas (Automático)</option><option value="lista">Lista de Livros (Manual)</option></select></div>
+                        <div class="form-campo full-width" id="campo-objetivo-container"><label>Objetivo:</label><input type="number" id="input-meta-objetivo" placeholder="Ex: 8" required></div>
                     </div>
                 </div>
-                <footer class="painel-footer">
-                    <button type="submit" id="btn-criar-nova-meta" class="btn btn-primario"><i class="fa-solid fa-check"></i> Criar Nova Meta</button>
-                </footer>
+                <footer class="painel-footer"><button type="submit" id="btn-criar-nova-meta" class="btn btn-primario"><i class="fa-solid fa-check"></i> Criar Nova Meta</button></footer>
             </form>
+        </div>
+    </dialog>
+    
+    <dialog id="modal-gestor-leituras">
+        <div class="painel-container" style="height: auto; max-height: 85vh; width: 800px;">
+            <header class="painel-header">
+                <h2><i class="fa-solid fa-glasses"></i> Leituras Ativas</h2>
+                <button id="btn-fechar-gestor" class="btn-acao"><i class="fa-solid fa-times"></i></button>
+            </header>
+            <div class="painel-body" style="display: block; padding: 1.5rem; overflow-y: auto;">
+                <div class="aviso" style="margin-top: 0;"><p><i class="fa-solid fa-info-circle"></i> Use este painel para corrigir o status dos livros marcados como "Lendo".</p></div>
+                <div id="lista-gestor-leituras"></div>
+                <div id="gestor-placeholder" class="placeholder-container hidden" style="min-height: 200px;">
+                    <i class="fa-solid fa-check-circle" style="font-size: 3rem; color: var(--cor-acao-primaria);"></i>
+                    <h3>Tudo em dia!</h3><p>Você não tem leituras ativas no momento.</p>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-loot">
+        <div class="loot-container">
+            <div class="loot-rays"></div>
+            <h2 class="loot-title">Quest Complete!</h2>
+            <p class="loot-rarity" id="loot-rarity-text">Item Obtido</p>
+            
+            <div id="loot-card-content" class="loot-item-card">
+                <i class="fa-solid fa-question loot-icon"></i>
+            </div>
+
+            <p id="loot-desc-text" class="loot-desc" style="margin-bottom: 2rem; position: relative; z-index: 2;">...</p>
+            
+            <button id="btn-coletar-loot" class="btn btn-primario" style="width: 100%; position: relative; z-index: 2; font-size: 1.2rem;">
+                <i class="fa-solid fa-hand-holding-medical"></i> COLETAR RECOMPENSA
+            </button>
         </div>
     </dialog>
     
