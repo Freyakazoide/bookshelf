@@ -43,7 +43,6 @@ body {
     height: 100vh;
 }
 
-
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -536,6 +535,13 @@ input:focus, select:focus, textarea:focus {
 .card-livro.rarity-epic { border-color: var(--loot-epic); }
 .card-livro.rarity-legendary { border-color: var(--loot-legendary); box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); }
 
+.card-livro.mob-minion { border-color: var(--loot-common); opacity: 0.9; }
+.card-livro.mob-common { border-color: var(--loot-uncommon); box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
+.card-livro.mob-elite { border-color: var(--loot-rare); box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+.card-livro.mob-miniboss { border-color: var(--loot-epic); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+.card-livro.mob-boss { border-color: var(--cor-perigo); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); animation: bossPulse 3s infinite; }
+.card-livro.mob-worldboss { border: 2px solid var(--loot-legendary); box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), inset 0 0 10px rgba(245, 158, 11, 0.2); animation: worldBossShimmer 2s infinite alternate; }
+
 .status-pill-container {
     display: flex;
     gap: 6px;
@@ -654,74 +660,205 @@ input:focus, select:focus, textarea:focus {
 
 .dashboard-kpi-principais {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-hero, .kpi-secundario {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+.kpi-hero:hover, .kpi-secundario:hover {
+    transform: translateY(-5px);
+    border-color: var(--cor-texto-destaque);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 .kpi-hero {
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(15, 23, 42, 0.9));
+    border-color: var(--cor-acao-primaria);
     grid-column: span 1;
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(15, 23, 42, 0.8));
-    border: 1px solid var(--cor-acao-primaria);
-    box-shadow: 0 0 20px rgba(45, 212, 191, 0.1);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
 }
 
-.kpi-secundario {
-    background: var(--ui-bg-card);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+.kpi-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--cor-acao-primaria);
+    box-shadow: 0 0 10px var(--cor-acao-primaria);
 }
 
-.dash-card {
-    background: var(--ui-bg-card);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.dash-card .valor-kpi {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #fff;
-    margin: 10px 0;
-}
-
-.dash-card .label-kpi {
+.kpi-hero h4, .kpi-secundario h4 {
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--cor-texto-secundario);
+    margin-bottom: 10px;
+    z-index: 2;
 }
 
-.current-row {
+.valor-kpi, .valor-kpi-hero {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    z-index: 2;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.valor-kpi-hero {
+    color: var(--cor-acao-primaria);
+    text-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
+    font-size: 3rem;
+}
+
+.subtitulo-kpi-hero {
+    font-size: 0.75rem;
+    color: var(--loot-common);
+    text-transform: uppercase;
+}
+
+.current-row-tripla {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1.5fr 1fr 1fr;
     gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.current-card {
-    background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.8));
+.hud-banner {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95));
+    border: 1px solid var(--ui-border);
+    border-left: 4px solid var(--cor-acao-primaria);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+}
+
+.hud-banner.boss-active {
+    border-left-color: var(--cor-perigo);
+    background: linear-gradient(90deg, rgba(69, 10, 10, 0.8), rgba(2, 6, 23, 0.95));
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.hud-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 2;
+}
+
+.hud-info img {
+    width: 50px; height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--ui-border);
+}
+
+.hud-text h3 {
+    font-size: 1.1rem; margin: 0; color: #fff;
+    display: flex; align-items: center; gap: 10px;
+}
+
+.hud-text p { font-size: 0.8rem; margin: 0; color: var(--cor-texto-secundario); }
+
+.hud-progress {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 2;
+}
+
+.hud-hp-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.hud-hp-fill {
+    height: 100%;
+    background: var(--cor-acao-primaria);
+    box-shadow: 0 0 10px var(--cor-acao-primaria);
+}
+
+.boss-active .hud-hp-fill {
+    background: var(--cor-perigo);
+    box-shadow: 0 0 10px var(--cor-perigo);
+}
+
+.card-lendo-agora {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.8));
     border: 1px solid var(--ui-border);
     border-left: 4px solid var(--loot-uncommon);
+    padding: 1.5rem;
     border-radius: 8px;
-    padding: 0;
-    overflow: hidden;
+    height: 100%;
+}
+
+.lendo-agora-capa img {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    border: 1px solid var(--loot-uncommon);
+}
+
+.lendo-agora-info h3 {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag-lendo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--loot-uncommon);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    margin-bottom: 8px;
+}
+
+.lendo-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--cor-texto-secundario);
 }
 
 .charts-row {
@@ -732,16 +869,130 @@ input:focus, select:focus, textarea:focus {
     grid-template-columns: 1fr 1fr 1fr;
 }
 
-.melhores-ranking-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+.destaque-card-compacto {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--ui-bg-card);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
 }
 
-.destaques-lista-nova {
+.destaques-lista-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    justify-content: center;
+    height: 100%;
+}
+
+.destaque-item-novo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--ui-border);
+    padding: 10px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.destaque-item-novo:hover {
+    background: rgba(45, 212, 191, 0.1);
+    border-color: var(--cor-acao-primaria);
+    transform: translateX(5px);
+}
+
+.destaque-icone {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 50%;
+    border: 1px solid var(--ui-border);
+    color: var(--loot-legendary);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.destaque-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.destaque-info h5 {
+    margin: 0;
+    font-size: 0.65rem;
+    color: var(--cor-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.destaque-info .destaque-valor {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.destaque-info .destaque-sub {
+    font-size: 0.7rem;
+    color: var(--cor-texto-destaque);
+    margin: 0;
+}
+
+.hall-of-fame-container {
+    margin-top: 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.hall-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+}
+
+.trophy-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.trophy-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--ui-border);
+    transform: translateY(-2px);
+}
+
+.trophy-icon {
+    font-size: 1.5rem;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.trophy-info h5 { margin: 0; font-size: 0.7rem; color: var(--cor-texto-secundario); text-transform: uppercase; }
+.trophy-info p { margin: 0; font-size: 0.9rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
+.tabela-card {
+    overflow: hidden;
 }
 
 .tabela-container {
@@ -752,35 +1003,91 @@ input:focus, select:focus, textarea:focus {
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.9rem;
 }
 
-th {
-    text-align: left;
-    padding: 12px;
+thead th {
+    background: rgba(2, 6, 23, 0.5);
     color: var(--cor-texto-secundario);
-    border-bottom: 1px solid var(--ui-border);
-    font-weight: 600;
-    text-transform: uppercase;
     font-size: 0.75rem;
+    text-transform: uppercase;
     letter-spacing: 1px;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--ui-border);
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
-td {
-    padding: 12px;
+thead th:hover {
+    color: #fff;
+}
+
+thead th.sortable i {
+    margin-left: 5px;
+    font-size: 0.7rem;
+}
+
+tbody tr {
+    transition: background 0.2s;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+tbody td {
+    padding: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--cor-texto-principal);
+    vertical-align: middle;
 }
 
 tr:last-child td {
     border-bottom: none;
 }
 
-tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
-    color: #fff;
+.tabela-capa-img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    border: 1px solid var(--ui-border);
 }
+
+.tabela-titulo {
+    font-weight: 600;
+    color: #fff;
+    display: block;
+}
+
+.tabela-autor {
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+}
+
+.badge-nota {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-family: monospace;
+    border: 1px solid transparent;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.badge-nota.rarity-legendary { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(120, 53, 15, 0.2)); color: var(--loot-legendary); border-color: var(--loot-legendary); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+.badge-nota.rarity-epic { background: rgba(168, 85, 247, 0.1); color: var(--loot-epic); border-color: var(--loot-epic); }
+.badge-nota.rarity-rare { background: rgba(59, 130, 246, 0.1); color: var(--loot-rare); border-color: var(--loot-rare); }
+.badge-nota.rarity-uncommon { background: rgba(16, 185, 129, 0.1); color: var(--loot-uncommon); border-color: var(--loot-uncommon); }
+.badge-nota.rarity-common { background: rgba(148, 163, 184, 0.1); color: var(--loot-common); border-color: var(--loot-common); }
 
 .grafico-container {
     position: relative;
@@ -973,87 +1280,6 @@ dialog::backdrop {
 
 .form-campo.full-width {
     grid-column: span 2;
-}
-
-.metas-layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 2rem;
-    height: calc(100vh - 150px);
-}
-
-.metas-sidebar {
-    background: var(--ui-bg-card);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.metas-main-content {
-    background: var(--ui-bg-card);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.meta-item-lista {
-    padding: 12px;
-    border: 1px solid var(--ui-border);
-    border-radius: 6px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.2);
-    transition: 0.2s;
-}
-
-.meta-item-lista:hover {
-    border-color: var(--cor-texto-secundario);
-    transform: translateX(5px);
-}
-
-.meta-item-lista.active {
-    background: rgba(45, 212, 191, 0.1);
-    border-color: var(--cor-acao-primaria);
-    box-shadow: 0 0 10px rgba(45, 212, 191, 0.1);
-}
-
-.meta-detalhe-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--ui-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.desafio-progresso {
-    padding: 2rem;
-    text-align: center;
-    border-bottom: 1px solid var(--ui-border);
-}
-
-progress {
-    width: 100%;
-    height: 12px;
-    border-radius: 6px;
-    appearance: none;
-}
-
-progress::-webkit-progress-bar {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-}
-
-progress::-webkit-progress-value {
-    background: linear-gradient(90deg, var(--loot-uncommon), var(--cor-acao-primaria));
-    border-radius: 6px;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
 .gaveta-filtros {
@@ -1266,638 +1492,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     opacity: 1;
 }
 
-.hidden {
-    display: none !important;
-}
-
-.aviso {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    color: #fcd34d;
-    padding: 1rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.notificacao {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    background: #0f172a;
-    border: 1px solid var(--ui-border);
-    border-left: 4px solid var(--cor-acao-primaria);
-    color: #fff;
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    animation: slideIn 0.3s ease;
-}
-
-.placeholder-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem;
-    color: var(--cor-texto-secundario);
-    text-align: center;
-    width: 100%;
-}
-
-.placeholder-container i {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.5;
-}
-
-@keyframes pulseGlow { 0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } 50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); border-color: #fff; } 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-@media (max-width: 1024px) {
-    .dashboard-grid-novo {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .dashboard-kpi-principais, .charts-row, .timeline-row, .melhores-ranking-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .current-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-layout {
-        flex-direction: column;
-        height: auto;
-        overflow: visible;
-    }
-    
-    .form-coluna-capa {
-        width: 100%;
-        flex-direction: row;
-        border-right: none;
-        border-bottom: 1px solid var(--ui-border);
-        gap: 2rem;
-    }
-
-    .form-coluna-capa img {
-        width: 120px;
-    }
-    
-    .metas-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    
-    .metas-sidebar {
-        max-height: 300px;
-    }
-}
-
-@media (max-width: 768px) {
-    .app-layout {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
-        height: auto;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 10px;
-        align-items: center;
-        border-right: none;
-        border-bottom: 1px solid var(--ui-border);
-    }
-
-    .sidebar-header {
-        display: none;
-    }
-
-    .sidebar-nav {
-        display: flex;
-        gap: 10px;
-        min-width: max-content;
-    }
-
-    .main-content {
-        padding: 1rem;
-    }
-
-    .dashboard-kpi-principais, .charts-row, .timeline-row, .melhores-ranking-container {
-        grid-template-columns: 1fr;
-    }
-
-    .painel-body {
-        flex-direction: column;
-        overflow-y: auto;
-    }
-
-    .painel-coluna-capa {
-        width: 100%;
-        flex-direction: row;
-        border-right: none;
-        border-bottom: 1px solid var(--ui-border);
-        padding: 1rem;
-        gap: 1rem;
-    }
-
-    .painel-coluna-capa img {
-        width: 100px;
-        margin: 0;
-    }
-
-    .notas-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .detalhes-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .detalhe-sinopse {
-        grid-column: span 1;
-    }
-}
-
-/* --- DASHBOARD HUD & LAYOUT --- */
-
-/* KPIs - Status do Personagem */
-.dashboard-kpi-principais {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.kpi-hero, .kpi-secundario {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s;
-}
-
-.kpi-hero:hover, .kpi-secundario:hover {
-    transform: translateY(-5px);
-    border-color: var(--cor-texto-destaque);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Hero KPI (Destaque) */
-.kpi-hero {
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(15, 23, 42, 0.9));
-    border-color: var(--cor-acao-primaria);
-    grid-column: span 1;
-}
-
-.kpi-hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 4px;
-    background: var(--cor-acao-primaria);
-    box-shadow: 0 0 10px var(--cor-acao-primaria);
-}
-
-.kpi-hero h4, .kpi-secundario h4 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 10px;
-    z-index: 2;
-}
-
-.valor-kpi, .valor-kpi-hero {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-    z-index: 2;
-    line-height: 1;
-    margin-bottom: 5px;
-}
-
-.valor-kpi-hero {
-    color: var(--cor-acao-primaria);
-    text-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
-    font-size: 3rem;
-}
-
-.subtitulo-kpi-hero {
-    font-size: 0.75rem;
-    color: var(--loot-common);
-    text-transform: uppercase;
-}
-
-/* Card Lendo Agora (Active Quest) */
-.card-lendo-agora {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.8));
-    border: 1px solid var(--ui-border);
-    border-left: 4px solid var(--loot-uncommon);
-    padding: 1.5rem;
-    border-radius: 8px;
-    height: 100%;
-}
-
-.card-lendo-agora.vazio {
-    justify-content: center;
-    border-left-color: var(--loot-common);
-}
-
-.lendo-agora-capa img {
-    width: 80px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 4px;
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-    border: 1px solid var(--loot-uncommon);
-}
-
-.lendo-agora-info h3 {
-    color: #fff;
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.tag-lendo {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--loot-uncommon);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    margin-bottom: 8px;
-}
-
-.lendo-stats {
-    display: flex;
-    gap: 1rem;
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: var(--cor-texto-secundario);
-}
-
-/* Curiosidades (Achievements) */
-.curiosidades-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.curiosidade-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    border: 1px solid transparent;
-    transition: 0.2s;
-}
-
-.curiosidade-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--ui-border);
-}
-
-.curiosidade-item i {
-    font-size: 1.5rem;
-    color: var(--cor-texto-destaque);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(56, 189, 248, 0.1);
-    border-radius: 50%;
-    border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-.curiosidade-item div strong {
-    display: block;
-    color: #fff;
-    font-size: 0.9rem;
-    margin-bottom: 2px;
-}
-
-.curiosidade-item div p {
-    font-size: 0.8rem;
-    color: var(--cor-texto-secundario);
-    margin: 0;
-}
-
-.curiosidade-item div span {
-    color: var(--cor-acao-primaria);
-    font-weight: 700;
-}
-
-/* Destaques (Trophy Case) */
-.destaques-lista-nova {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.destaque-item-novo {
-    background: var(--ui-bg-card);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 1/1;
-}
-
-.destaque-item-novo h5 {
-    color: var(--cor-texto-secundario);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.destaque-item-novo i {
-    font-size: 1.5rem;
-    color: var(--loot-legendary);
-    margin-bottom: 5px;
-    text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
-}
-
-.destaque-valor {
-    font-weight: 700;
-    color: #fff;
-    font-size: 0.95rem;
-    line-height: 1.2;
-    margin-bottom: 4px;
-}
-
-.destaque-sub {
-    font-size: 0.75rem;
-    color: var(--cor-texto-destaque);
-}
-
-/* --- TABELAS (Leaderboards) --- */
-.tabela-card {
-    overflow: hidden; /* Garante bordas arredondadas */
-}
-
-.tabela-container {
-    width: 100%;
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-thead th {
-    background: rgba(2, 6, 23, 0.5);
-    color: var(--cor-texto-secundario);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--ui-border);
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-thead th:hover {
-    color: #fff;
-}
-
-thead th.sortable i {
-    margin-left: 5px;
-    font-size: 0.7rem;
-}
-
-tbody tr {
-    transition: background 0.2s;
-}
-
-tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-tbody td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--ui-border);
-    color: var(--cor-texto-principal);
-    font-size: 0.9rem;
-    vertical-align: middle;
-}
-
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Imagem da Capa na Tabela - Tamanho Fixo */
-.tabela-capa-img {
-    width: 40px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    border: 1px solid var(--ui-border);
-}
-
-/* Título do Livro na Tabela */
-.tabela-titulo {
-    font-weight: 600;
-    color: #fff;
-    display: block;
-}
-
-.tabela-autor {
-    font-size: 0.8rem;
-    color: var(--cor-texto-secundario);
-}
-
-/* Badges de Nota (Raridade) */
-.badge-nota {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    font-weight: 800;
-    font-family: monospace;
-    border: 1px solid transparent;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* Cores de Loot para as Notas */
-.badge-nota.rarity-legendary { /* Nota 9-10 */
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(120, 53, 15, 0.2));
-    color: var(--loot-legendary);
-    border-color: var(--loot-legendary);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-}
-
-.badge-nota.rarity-epic { /* Nota 7-8.9 */
-    background: rgba(168, 85, 247, 0.1);
-    color: var(--loot-epic);
-    border-color: var(--loot-epic);
-}
-
-.badge-nota.rarity-rare { /* Nota 5-6.9 */
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--loot-rare);
-    border-color: var(--loot-rare);
-}
-
-.badge-nota.rarity-uncommon { /* Nota 3-4.9 */
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--loot-uncommon);
-    border-color: var(--loot-uncommon);
-}
-
-.badge-nota.rarity-common { /* Nota < 3 */
-    background: rgba(148, 163, 184, 0.1);
-    color: var(--loot-common);
-    border-color: var(--loot-common);
-}
-
-/* --- NOVO LAYOUT TRIPLO --- */
-
-.current-row-tripla {
-    display: grid;
-    /* 1.5 partes para Lendo Agora, 1 parte Destaques, 1 parte Stats */
-    grid-template-columns: 1.5fr 1fr 1fr; 
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Ajuste do Card de Destaques Compacto */
-.destaque-card-compacto {
-    padding: 1.2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.destaques-lista-vertical {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    justify-content: center;
-    height: 100%;
-}
-
-/* Novo Estilo do Item de Destaque (Barra Horizontal) */
-.destaque-item-novo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--ui-border);
-    padding: 10px 12px;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-.destaque-item-novo:hover {
-    background: rgba(45, 212, 191, 0.1);
-    border-color: var(--cor-acao-primaria);
-    transform: translateX(5px);
-}
-
-/* Ícone do destaque (Coroa, Raio, etc) */
-.destaque-icone {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(15, 23, 42, 0.8);
-    border-radius: 50%;
-    border: 1px solid var(--ui-border);
-    color: var(--loot-legendary);
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.destaque-info {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.destaque-info h5 {
-    margin: 0;
-    font-size: 0.65rem;
-    color: var(--cor-texto-secundario);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.destaque-info .destaque-valor {
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.destaque-info .destaque-sub {
-    font-size: 0.7rem;
-    color: var(--cor-texto-destaque);
-    margin: 0;
-}
-
-/* Responsividade */
-@media (max-width: 1100px) {
-    .current-row-tripla {
-        grid-template-columns: 1fr 1fr; /* 2 colunas */
-    }
-    #container-lendo-agora {
-        grid-column: span 2; /* Lendo agora ocupa a largura toda em cima */
-    }
-}
-
-@media (max-width: 768px) {
-    .current-row-tripla {
-        grid-template-columns: 1fr; /* Tudo empilhado no mobile */
-    }
-    #container-lendo-agora {
-        grid-column: span 1;
-    }
-}
-
-/* --- SYSTEM: PLAYER PROFILE (RPG) --- */
 .player-profile {
     display: flex;
     flex-direction: column;
@@ -1991,25 +1585,10 @@ tbody tr:last-child td {
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Efeito Classe Mago */
 .player-class.mago { color: var(--loot-epic); text-shadow: 0 0 5px rgba(168, 85, 247, 0.4); }
-/* Efeito Classe Ladino */
 .player-class.ladino { color: var(--loot-uncommon); text-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
-/* Efeito Classe Guerreiro/Tank (Não Ficção) */
 .player-class.tank { color: var(--loot-common); text-shadow: 0 0 5px rgba(148, 163, 184, 0.4); }
 
-/* --- ONDA 2: BESTIÁRIO E BOSSES --- */
-
-/* Bordas de Dificuldade na Estante */
-.card-livro.mob-common { border-color: var(--loot-uncommon); box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
-.card-livro.mob-elite { border-color: var(--loot-rare); box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
-.card-livro.mob-boss { 
-    border-color: var(--cor-perigo); 
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); 
-    animation: bossPulse 3s infinite;
-}
-
-/* HUD de Batalha (Active Quest Modificado) */
 .boss-hud {
     border: 1px solid var(--cor-perigo);
     background: linear-gradient(90deg, rgba(69, 10, 10, 0.9), rgba(15, 23, 42, 0.95));
@@ -2034,7 +1613,6 @@ tbody tr:last-child td {
     background: linear-gradient(90deg, rgba(30, 58, 138, 0.4), rgba(15, 23, 42, 0.8));
 }
 
-/* Barra de Vida do Boss (HP) */
 .boss-hp-container {
     width: 100%;
     height: 16px;
@@ -2077,53 +1655,6 @@ tbody tr:last-child td {
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
 
-@keyframes bossPulse {
-    0% { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-    50% { border-color: #b91c1c; box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
-    100% { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-}
-
-@keyframes bossBarMove {
-    0% { background-position: 0 0; }
-    100% { background-position: 20px 20px; }
-}
-
-/* --- ONDA 2: BESTIÁRIO EXPANDIDO (6 Níveis) --- */
-
-/* Nível 1: Minion (0-150 pág) - Cinza/Básico */
-.card-livro.mob-minion { border-color: var(--loot-common); opacity: 0.9; }
-
-/* Nível 2: Mob (151-300 pág) - Verde */
-.card-livro.mob-common { border-color: var(--loot-uncommon); box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
-
-/* Nível 3: Elite (301-500 pág) - Azul */
-.card-livro.mob-elite { border-color: var(--loot-rare); box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
-
-/* Nível 4: Mini-Boss (501-700 pág) - Roxo */
-.card-livro.mob-miniboss { border-color: var(--loot-epic); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
-
-/* Nível 5: Raid Boss (701-999 pág) - Vermelho Pulsante */
-.card-livro.mob-boss { 
-    border-color: var(--cor-perigo); 
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); 
-    animation: bossPulse 3s infinite;
-}
-
-/* Nível 6: World Boss (1000+ pág) - Dourado/Lendário */
-.card-livro.mob-worldboss { 
-    border: 2px solid var(--loot-legendary);
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), inset 0 0 10px rgba(245, 158, 11, 0.2); 
-    animation: worldBossShimmer 2s infinite alternate;
-}
-
-@keyframes worldBossShimmer {
-    from { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); transform: scale(1); }
-    to { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); transform: scale(1.02); border-color: #fff; }
-}
-
-/* --- ONDA 3: SISTEMA DE LOOT & RECOMPENSAS --- */
-
-/* Modal de Loot (Fundo transparente escuro) */
 #modal-loot::backdrop {
     background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(8px);
@@ -2141,7 +1672,6 @@ tbody tr:last-child td {
     margin: auto;
 }
 
-/* Raios de Luz (Fundo do Item) */
 .loot-rays {
     position: absolute;
     top: 50%; left: 50%;
@@ -2153,7 +1683,6 @@ tbody tr:last-child td {
     pointer-events: none;
 }
 
-/* O Item em si */
 .loot-item-card {
     position: relative;
     z-index: 2;
@@ -2201,7 +1730,6 @@ tbody tr:last-child td {
     font-style: italic;
 }
 
-/* Cores de Raridade para o Modal */
 .loot-common .loot-item-card { border-color: var(--loot-common); box-shadow: 0 0 20px var(--loot-common); }
 .loot-common .loot-icon { color: var(--loot-common); }
 .loot-common .loot-rarity { color: var(--loot-common); }
@@ -2218,118 +1746,9 @@ tbody tr:last-child td {
 .loot-epic .loot-icon { color: var(--loot-epic); }
 .loot-epic .loot-rarity { color: var(--loot-epic); }
 
-.loot-legendary .loot-item-card { 
-    border-color: var(--loot-legendary); 
-    box-shadow: 0 0 60px var(--loot-legendary), inset 0 0 20px var(--loot-legendary);
-    animation: pulseGold 2s infinite;
-}
+.loot-legendary .loot-item-card { border-color: var(--loot-legendary); box-shadow: 0 0 60px var(--loot-legendary), inset 0 0 20px var(--loot-legendary); animation: pulseGold 2s infinite; }
 .loot-legendary .loot-icon { color: var(--loot-legendary); }
 .loot-legendary .loot-rarity { color: var(--loot-legendary); text-shadow: 0 0 10px var(--loot-legendary); }
-
-/* Animações */
-@keyframes rotateRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes floatItem { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-@keyframes pulseGold { 0% { box-shadow: 0 0 30px var(--loot-legendary); } 50% { box-shadow: 0 0 60px var(--loot-legendary), 0 0 10px #fff; } 100% { box-shadow: 0 0 30px var(--loot-legendary); } }
-
-/* --- ONDA 3.5: INVENTÁRIO --- */
-
-.inventario-stats-container {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 2rem;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.8));
-}
-
-.inv-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.inv-label { font-size: 0.7rem; text-transform: uppercase; color: var(--cor-texto-secundario); letter-spacing: 1px; }
-.inv-value { font-size: 1.5rem; font-weight: 800; color: #fff; margin-top: 5px; }
-
-.inventario-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 10px;
-    padding-bottom: 2rem;
-}
-
-.item-slot {
-    aspect-ratio: 1/1;
-    background: rgba(15, 23, 42, 0.6);
-    border: 2px solid var(--ui-border);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s;
-    overflow: hidden;
-}
-
-.item-slot:hover { transform: scale(1.05); z-index: 10; background: rgba(255,255,255,0.05); }
-
-.item-slot i { font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-
-.item-qtd {
-    position: absolute;
-    bottom: 4px; right: 4px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #fff;
-    background: rgba(0,0,0,0.6);
-    padding: 1px 4px;
-    border-radius: 4px;
-}
-
-/* Cores dos Slots baseado na Raridade */
-.item-slot.rarity-comum { border-color: var(--loot-common); box-shadow: inset 0 0 10px rgba(148, 163, 184, 0.1); }
-.item-slot.rarity-comum i { color: var(--loot-common); }
-
-.item-slot.rarity-incomum { border-color: var(--loot-uncommon); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.1); }
-.item-slot.rarity-incomum i { color: var(--loot-uncommon); }
-
-.item-slot.rarity-raro { border-color: var(--loot-rare); box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.2); }
-.item-slot.rarity-raro i { color: var(--loot-rare); }
-
-.item-slot.rarity-épico { border-color: var(--loot-epic); box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.2); animation: pulsePurple 4s infinite; }
-.item-slot.rarity-épico i { color: var(--loot-epic); }
-
-.item-slot.rarity-lendário { 
-    border-color: var(--loot-legendary); 
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.1), transparent);
-    box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.3), 0 0 10px rgba(245, 158, 11, 0.2);
-    animation: shimmerGold 3s infinite; 
-}
-.item-slot.rarity-lendário i { color: var(--loot-legendary); text-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
-
-/* Tooltip Customizado */
-.item-tooltip {
-    position: absolute;
-    bottom: 100%; left: 50%; transform: translateX(-50%);
-    background: rgba(2, 6, 23, 0.95);
-    border: 1px solid var(--ui-border);
-    padding: 10px;
-    border-radius: 6px;
-    width: 200px;
-    pointer-events: none;
-    opacity: 0;
-    transition: 0.2s;
-    z-index: 100;
-    text-align: center;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
-
-.item-slot:hover .item-tooltip { opacity: 1; bottom: 110%; }
-.tooltip-title { font-weight: 800; display: block; margin-bottom: 4px; color: #fff; }
-.tooltip-desc { font-size: 0.75rem; color: var(--cor-texto-secundario); font-style: italic; }
-.tooltip-source { font-size: 0.65rem; color: var(--cor-texto-destaque); margin-top: 6px; display: block; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; }
-
-/* --- VISUAL DE MOCHILA RPG --- */
 
 .inventario-header {
     display: flex;
@@ -2346,18 +1765,14 @@ tbody tr:last-child td {
     border-radius: 12px;
     padding: 1.5rem;
     min-height: 400px;
-    /* Desenha slots vazios no fundo usando gradiente */
-    background-image: 
-        linear-gradient(var(--ui-border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--ui-border) 1px, transparent 1px);
-    background-size: 110px 110px; /* Tamanho do slot + gap */
+    background-image: linear-gradient(var(--ui-border) 1px, transparent 1px), linear-gradient(90deg, var(--ui-border) 1px, transparent 1px);
+    background-size: 110px 110px;
     background-position: -1px -1px;
     box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
 }
 
 .inventario-grid {
     display: grid;
-    /* Slots fixos de 100px */
     grid-template-columns: repeat(auto-fill, 100px);
     grid-auto-rows: 100px;
     gap: 10px; 
@@ -2375,12 +1790,14 @@ tbody tr:last-child td {
     position: relative;
     cursor: pointer;
     transition: all 0.2s;
+    overflow: visible !important; 
 }
 
 .item-slot:hover {
     transform: scale(1.1);
-    z-index: 100;
+    z-index: 1000;
     box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    background: rgba(30, 41, 59, 0.9);
 }
 
 .item-slot i {
@@ -2388,7 +1805,17 @@ tbody tr:last-child td {
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
 }
 
-/* Raridades (Cores de Borda e Glow) */
+.item-qtd {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
 .item-slot.rarity-comum { border-color: var(--loot-common); }
 .item-slot.rarity-comum i { color: var(--loot-common); }
 
@@ -2401,90 +1828,28 @@ tbody tr:last-child td {
 .item-slot.rarity-epico { border-color: var(--loot-epic); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); animation: pulsePurple 3s infinite; }
 .item-slot.rarity-epico i { color: var(--loot-epic); }
 
-.item-slot.rarity-lendario { 
-    border-color: var(--loot-legendary); 
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(245, 158, 11, 0.2);
-    animation: shimmerGold 2s infinite; 
-}
+.item-slot.rarity-lendario { border-color: var(--loot-legendary); box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(245, 158, 11, 0.2); animation: shimmerGold 2s infinite; }
 .item-slot.rarity-lendario i { color: var(--loot-legendary); }
 
-/* Tooltip Flutuante Estiloso */
 .item-tooltip {
     visibility: hidden;
     position: absolute;
-    bottom: 110%;
+    bottom: 115%;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.98);
-    border: 1px solid var(--ui-border);
+    background: rgba(2, 6, 23, 0.98);
+    border: 1px solid var(--cor-acao-primaria);
     padding: 12px;
     border-radius: 8px;
-    width: 220px;
+    width: 200px;
     text-align: center;
-    z-index: 200;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    pointer-events: none;
-    opacity: 0;
-    transition: 0.2s;
-}
-
-.item-slot:hover .item-tooltip {
-    visibility: visible;
-    opacity: 1;
-    bottom: 120%;
-}
-
-.tooltip-title { display: block; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-.tooltip-desc { display: block; font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-bottom: 8px; line-height: 1.4; }
-.tooltip-source { display: block; font-size: 0.7rem; color: var(--cor-texto-destaque); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
-
-/* --- CORREÇÃO DO INVENTÁRIO --- */
-
-.item-slot {
-    width: 100px;
-    height: 100px;
-    background: rgba(15, 23, 42, 0.9);
-    border: 2px solid var(--ui-border);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    /* AQUI ESTAVA O ERRO: Mudei de hidden para visible */
-    overflow: visible !important; 
-}
-
-.item-slot:hover {
-    transform: scale(1.1);
-    z-index: 1000; /* Garante que fique na frente de tudo */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-    background: rgba(30, 41, 59, 0.9);
-}
-
-/* Ajuste fino no Tooltip para garantir leitura */
-.item-tooltip {
-    visibility: hidden;
-    position: absolute;
-    bottom: 115%; /* Sobe um pouco mais */
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(2, 6, 23, 0.98); /* Fundo bem escuro para leitura */
-    border: 1px solid var(--cor-acao-primaria); /* Borda neon */
-    padding: 12px;
-    border-radius: 8px;
-    width: 200px; /* Largura fixa */
-    text-align: center;
-    z-index: 2000; /* Altíssimo Z-Index */
+    z-index: 2000;
     box-shadow: 0 10px 30px rgba(0,0,0,1);
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s, transform 0.2s;
 }
 
-/* Setinha do Tooltip */
 .item-tooltip::after {
     content: "";
     position: absolute;
@@ -2499,248 +1864,21 @@ tbody tr:last-child td {
 .item-slot:hover .item-tooltip {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(-5px); /* Pequena animação de subida */
+    transform: translateX(-50%) translateY(-5px);
 }
 
-/* --- DASHBOARD REWORK: WAR ROOM --- */
+.tooltip-title { display: block; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.tooltip-desc { display: block; font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+.tooltip-source { display: block; font-size: 0.7rem; color: var(--cor-texto-destaque); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
 
-/* 1. HUD Banner (Lendo Agora - Fino e no Topo) */
-.hud-banner {
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.95));
-    border: 1px solid var(--ui-border);
-    border-left: 4px solid var(--cor-acao-primaria);
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    position: relative;
-    overflow: hidden;
-    min-height: 80px;
-}
-
-.hud-banner.boss-active {
-    border-left-color: var(--cor-perigo);
-    background: linear-gradient(90deg, rgba(69, 10, 10, 0.8), rgba(2, 6, 23, 0.95));
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
-}
-
-.hud-info {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    z-index: 2;
-}
-
-.hud-info img {
-    width: 50px; height: 75px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid var(--ui-border);
-}
-
-.hud-text h3 {
-    font-size: 1.1rem; margin: 0; color: #fff;
-    display: flex; align-items: center; gap: 10px;
-}
-
-.hud-text p { font-size: 0.8rem; margin: 0; color: var(--cor-texto-secundario); }
-
-.hud-progress {
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    z-index: 2;
-}
-
-.hud-hp-bar {
-    width: 100%;
-    height: 12px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 5px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.hud-hp-fill {
-    height: 100%;
-    background: var(--cor-acao-primaria);
-    box-shadow: 0 0 10px var(--cor-acao-primaria);
-}
-
-.boss-active .hud-hp-fill {
-    background: var(--cor-perigo);
-    box-shadow: 0 0 10px var(--cor-perigo);
-}
-
-/* 2. Hall da Fama Compacto */
-.hall-of-fame-container {
-    margin-top: 1.5rem;
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.hall-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 Colunas iguais */
-    gap: 1rem;
-}
-
-.trophy-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    transition: 0.2s;
-}
-
-.trophy-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--ui-border);
-    transform: translateY(-2px);
-}
-
-.trophy-icon {
-    font-size: 1.5rem;
-    width: 40px; height: 40px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.3);
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.trophy-info h5 { margin: 0; font-size: 0.7rem; color: var(--cor-texto-secundario); text-transform: uppercase; }
-.trophy-info p { margin: 0; font-size: 0.9rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-
-/* Ajuste Responsivo */
-@media (max-width: 768px) {
-    .hall-grid { grid-template-columns: 1fr; }
-    .hud-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .hud-progress { width: 100%; align-items: flex-start; }
-}
-
-/* --- MISSÕES & QUESTS --- */
-
-.meta-lista-container {
-    display: grid;
-    gap: 1rem;
-}
-
-.meta-card {
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
-    border: 1px solid var(--ui-border);
-    border-left: 4px solid var(--loot-common); /* Cor padrão */
-    padding: 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-}
-
-.meta-card:hover {
-    transform: translateX(5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    border-color: var(--cor-texto-secundario);
-}
-
-.meta-card.active {
-    background: rgba(45, 212, 191, 0.05);
-    border-color: var(--cor-acao-primaria);
-    box-shadow: 0 0 15px rgba(45, 212, 191, 0.1);
-}
-
-/* Ranks de Missão */
-.meta-rank-D { border-left-color: var(--loot-common); }
-.meta-rank-C { border-left-color: var(--loot-uncommon); }
-.meta-rank-B { border-left-color: var(--loot-rare); }
-.meta-rank-A { border-left-color: var(--loot-epic); }
-.meta-rank-S { border-left-color: var(--loot-legendary); border: 1px solid var(--loot-legendary); box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2); }
-
-.meta-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.5rem;
-}
-
-.meta-tag-rank {
-    font-size: 0.6rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-}
-
-.meta-card h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.meta-card-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 8px;
-}
-
-/* Barra de Progresso da Quest */
-.quest-bar-bg {
-    width: 100%;
-    height: 8px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.quest-bar-fill {
-    height: 100%;
-    background: var(--cor-acao-primaria);
-    transition: width 0.5s;
-}
-
-.meta-rank-S .quest-bar-fill { background: var(--loot-legendary); box-shadow: 0 0 10px var(--loot-legendary); }
-
-/* Botão de Recompensa (Piscando) */
-.btn-claim-reward {
-    margin-top: 10px;
-    width: 100%;
-    background: linear-gradient(90deg, #f59e0b, #b45309);
-    color: #fff;
-    border: 1px solid #fcd34d;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    animation: pulseGold 1.5s infinite;
-}
-
-/* --- ONDA 4: REFATORAÇÃO VISUAL DAS MISSÕES (QUEST BOARD) --- */
-
-/* Layout Principal */
 .metas-layout {
     display: grid;
-    grid-template-columns: 350px 1fr; /* Sidebar mais larga para caber detalhes */
+    grid-template-columns: 350px 1fr;
     gap: 2rem;
-    height: calc(100vh - 180px); /* Ocupa a altura disponível */
+    height: calc(100vh - 180px);
     overflow: hidden;
 }
 
-/* --- SIDEBAR (Lista de Contratos) --- */
 .metas-sidebar {
     background: rgba(15, 23, 42, 0.6);
     border-right: 1px solid var(--ui-border);
@@ -2751,7 +1889,6 @@ tbody tr:last-child td {
     gap: 1rem;
 }
 
-/* Botão de Criar Nova Meta (Chamativo) */
 #btn-abrir-modal-meta {
     padding: 1.2rem;
     font-size: 1rem;
@@ -2767,11 +1904,10 @@ tbody tr:last-child td {
     box-shadow: 0 0 25px rgba(45, 212, 191, 0.5);
 }
 
-/* Card da Missão (Estilo Cartão de Dados/Pergaminho) */
 .meta-card {
     background: var(--ui-bg-panel);
     border: 1px solid var(--ui-border);
-    border-left-width: 6px; /* Borda lateral grossa para indicar Rank */
+    border-left-width: 6px;
     border-radius: 8px;
     padding: 1.5rem;
     cursor: pointer;
@@ -2793,7 +1929,6 @@ tbody tr:last-child td {
     box-shadow: 0 0 15px rgba(45, 212, 191, 0.1);
 }
 
-/* Tipografia do Card */
 .meta-header {
     display: flex;
     justify-content: space-between;
@@ -2828,7 +1963,6 @@ tbody tr:last-child td {
     font-family: monospace;
 }
 
-/* Barra de Progresso no Card */
 .quest-bar-bg {
     height: 10px;
     background: rgba(0,0,0,0.6);
@@ -2837,11 +1971,20 @@ tbody tr:last-child td {
 }
 
 .quest-bar-fill {
+    height: 100%;
+    background: var(--cor-acao-primaria);
     border-radius: 5px;
-    box-shadow: 0 0 10px currentColor; /* Brilha na cor do rank */
+    box-shadow: 0 0 10px currentColor;
+    transition: width 0.5s;
 }
 
-/* --- ÁREA PRINCIPAL (Detalhes da Missão) --- */
+.meta-rank-D { border-left-color: var(--loot-common); }
+.meta-rank-C { border-left-color: var(--loot-uncommon); }
+.meta-rank-B { border-left-color: var(--loot-rare); }
+.meta-rank-A { border-left-color: var(--loot-epic); }
+.meta-rank-S { border-left-color: var(--loot-legendary); border: 1px solid var(--loot-legendary); box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2); }
+.meta-rank-S .quest-bar-fill { background: var(--loot-legendary); box-shadow: 0 0 10px var(--loot-legendary); }
+
 .metas-main-content {
     background: var(--ui-bg-panel);
     border: 1px solid var(--ui-border);
@@ -2853,7 +1996,6 @@ tbody tr:last-child td {
     position: relative;
 }
 
-/* Header da Missão Ativa */
 .meta-detalhe-header {
     padding: 2rem;
     background: linear-gradient(180deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.8));
@@ -2869,7 +2011,6 @@ tbody tr:last-child td {
     margin: 0;
 }
 
-/* Barra de Progresso Gigante */
 .desafio-progresso {
     padding: 2rem;
     background: radial-gradient(circle at center, rgba(30, 41, 59, 0.3), transparent);
@@ -2890,19 +2031,17 @@ tbody tr:last-child td {
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
-/* --- LISTA DE LIVROS DA META (O problema dos detalhes pequenos) --- */
 #desafio-livros-da-meta {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Cards Largos */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
     padding: 2rem;
     overflow-y: auto;
 }
 
-/* Card de Livro DENTRO da Meta (Estilo Horizontal) */
 #desafio-livros-da-meta .card-livro {
-    flex-direction: row; /* Imagem na esquerda, texto na direita */
-    height: 100px; /* Altura fixa maior */
+    flex-direction: row;
+    height: 100px;
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--ui-border);
     align-items: center;
@@ -2916,7 +2055,7 @@ tbody tr:last-child td {
 }
 
 #desafio-livros-da-meta img {
-    width: 70px; /* Capa maior */
+    width: 70px;
     height: 100%;
     object-fit: cover;
     border-radius: 6px 0 0 6px;
@@ -2949,7 +2088,6 @@ tbody tr:last-child td {
     color: var(--cor-texto-secundario);
 }
 
-/* Status Concluído (Check Verde Brilhante) */
 #desafio-livros-da-meta .card-nota {
     font-size: 0.75rem;
     font-weight: 800;
@@ -2957,7 +2095,7 @@ tbody tr:last-child td {
     border-radius: 4px;
     background: rgba(0,0,0,0.4);
     border: 1px solid;
-    margin-left: auto; /* Empurra pra direita */
+    margin-left: auto;
     margin-right: 1rem;
     display: flex;
     align-items: center;
@@ -2974,7 +2112,6 @@ tbody tr:last-child td {
     opacity: 0.8;
 }
 
-/* --- ABA DE GERENCIAR (Seletor de Livros) --- */
 #seletor-livros-meta {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -2982,141 +2119,6 @@ tbody tr:last-child td {
     padding: 1rem 0;
     max-height: 400px;
     overflow-y: auto;
-}
-
-#seletor-livros-meta .card-livro {
-    height: 150px;
-    border: 2px solid transparent;
-    opacity: 0.6;
-    transition: 0.2s;
-}
-
-#seletor-livros-meta .card-livro:hover {
-    opacity: 1;
-    transform: scale(1.05);
-}
-
-#seletor-livros-meta .card-livro.selecionado {
-    border-color: var(--cor-acao-primaria);
-    box-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
-    opacity: 1;
-    z-index: 10;
-}
-
-#seletor-livros-meta img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
-}
-
-#seletor-livros-meta .card-info {
-    display: none; /* Esconde info no seletor pra ficar limpo, só capa */
-}
-
-/* Responsividade */
-@media (max-width: 900px) {
-    .metas-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-        overflow: visible;
-    }
-    .metas-sidebar {
-        max-height: 300px;
-        border-right: none;
-        border-bottom: 1px solid var(--ui-border);
-        margin-bottom: 1rem;
-    }
-}
-
-/* --- GRID DE PROGRESSO (Dentro da Meta) --- */
-#desafio-livros-da-meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Grid Vertical Padrão */
-    gap: 1.5rem;
-    padding: 1.5rem 0;
-}
-
-.card-livro-meta {
-    background: var(--ui-bg-panel);
-    border: 1px solid var(--ui-border);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.card-livro-meta:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-}
-
-/* Estilo "Lido" */
-.card-livro-meta.status-lido {
-    border-color: var(--loot-uncommon);
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
-}
-
-.card-livro-meta.status-lido .meta-livro-status {
-    color: var(--loot-uncommon);
-    background: rgba(16, 185, 129, 0.1);
-}
-
-/* Estilo "Pendente" */
-.card-livro-meta.status-pendente {
-    border-color: var(--ui-border);
-    opacity: 0.8;
-}
-
-.card-livro-meta.status-pendente .meta-livro-status {
-    color: var(--cor-texto-secundario);
-    background: rgba(0,0,0,0.2);
-}
-
-.meta-livro-capa img {
-    width: 100%;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-    display: block;
-}
-
-.meta-livro-info {
-    padding: 12px;
-    text-align: center;
-}
-
-.meta-livro-info h5 {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #fff;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.meta-livro-info p {
-    margin: 4px 0 8px 0;
-    font-size: 0.75rem;
-    color: var(--cor-texto-secundario);
-}
-
-.meta-livro-status {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* --- SELETOR DE LIVROS (Grid Compacto) --- */
-#seletor-livros-meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    padding: 1rem 0;
 }
 
 .card-livro-seletor {
@@ -3168,4 +2170,862 @@ tbody tr:last-child td {
     background: rgba(0,0,0,0.8);
     color: #fff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.aviso {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+    padding: 1rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.notificacao {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: #0f172a;
+    border: 1px solid var(--ui-border);
+    border-left: 4px solid var(--cor-acao-primaria);
+    color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+}
+
+.placeholder-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    color: var(--cor-texto-secundario);
+    text-align: center;
+    width: 100%;
+}
+
+.placeholder-container i {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+@keyframes pulseGlow { 0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } 50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); border-color: #fff; } 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes bossPulse { 0% { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); } 50% { border-color: #b91c1c; box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); } 100% { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); } }
+@keyframes bossBarMove { 0% { background-position: 0 0; } 100% { background-position: 20px 20px; } }
+@keyframes worldBossShimmer { from { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); transform: scale(1); } to { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); transform: scale(1.02); border-color: #fff; } }
+@keyframes rotateRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes floatItem { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pulseGold { 0% { box-shadow: 0 0 30px var(--loot-legendary); } 50% { box-shadow: 0 0 60px var(--loot-legendary), 0 0 10px #fff; } 100% { box-shadow: 0 0 30px var(--loot-legendary); } }
+@keyframes pulsePurple { 0% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); } 50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.7); } 100% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); } }
+@keyframes shimmerGold { 0% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); } 50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); border-color: #fff; } 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); } }
+
+@media (max-width: 1100px) {
+    .current-row-tripla {
+        grid-template-columns: 1fr 1fr;
+    }
+    #container-lendo-agora {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid-novo {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .dashboard-kpi-principais, .charts-row, .timeline-row, .melhores-ranking-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .form-layout {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+    
+    .form-coluna-capa {
+        width: 100%;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+        gap: 2rem;
+    }
+
+    .form-coluna-capa img {
+        width: 120px;
+    }
+}
+
+@media (max-width: 900px) {
+    .metas-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+    }
+    .metas-sidebar {
+        max-height: 300px;
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 10px;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+    }
+
+    .sidebar-header {
+        display: none;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        gap: 10px;
+        min-width: max-content;
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    .dashboard-kpi-principais, .charts-row, .timeline-row, .melhores-ranking-container {
+        grid-template-columns: 1fr;
+    }
+
+    .painel-body {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .painel-coluna-capa {
+        width: 100%;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .painel-coluna-capa img {
+        width: 100px;
+        margin: 0;
+    }
+
+    .notas-grid, .detalhes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detalhe-sinopse {
+        grid-column: span 1;
+    }
+
+    .current-row-tripla {
+        grid-template-columns: 1fr;
+    }
+    #container-lendo-agora {
+        grid-column: span 1;
+    }
+
+    .hall-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hud-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .hud-progress {
+        width: 100%;
+        align-items: flex-start;
+    }
+}
+
+/* --- QUEST LOG & METAS (Visual RPG Renovado) --- */
+
+/* Container do Topo (Briefing) */
+.quest-briefing-container {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.6));
+    border-bottom: 1px solid var(--ui-border);
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    align-items: center;
+}
+
+.quest-info h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+    border: none;
+    padding: 0;
+}
+
+.quest-rank-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 15px currentColor;
+}
+
+.quest-desc {
+    color: var(--cor-texto-secundario);
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid var(--ui-border);
+    padding-left: 1rem;
+}
+
+/* Card de Recompensas (Loot Preview) */
+.quest-rewards-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+}
+
+.quest-rewards-card h4 {
+    color: var(--loot-legendary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+}
+
+.rewards-grid {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.reward-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: #fff;
+    font-weight: 700;
+}
+
+.reward-item i {
+    font-size: 1.5rem;
+    color: var(--cor-acao-primaria);
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* Nova Barra de Progresso (RPG Style) */
+.rpg-progress-wrapper {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.rpg-progress-track {
+    height: 24px;
+    background: #0f172a;
+    border: 2px solid var(--ui-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+    position: relative;
+}
+
+.rpg-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--loot-uncommon), var(--cor-acao-primaria));
+    box-shadow: 0 0 20px var(--cor-acao-primaria);
+    width: 0%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.rpg-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+    background-size: 20px 20px;
+    animation: bossBarMove 2s linear infinite;
+}
+
+.rpg-progress-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-weight: 800;
+    text-shadow: 0 2px 4px #000;
+    font-size: 0.9rem;
+    z-index: 5;
+    letter-spacing: 1px;
+}
+
+/* Estilo dos Livros na Lista da Meta (Alvos) */
+.target-card {
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 1rem;
+    transition: 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.target-card:hover {
+    transform: translateX(5px);
+    border-color: var(--cor-acao-primaria);
+    background: rgba(30, 41, 59, 0.8);
+}
+
+.target-card.eliminated {
+    border-color: var(--loot-uncommon);
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent);
+    opacity: 0.7;
+}
+
+.target-card.eliminated::after {
+    content: 'CONCLUÍDO';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-10deg);
+    border: 2px solid var(--loot-uncommon);
+    color: var(--loot-uncommon);
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.target-thumb {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--ui-border);
+    flex-shrink: 0;
+}
+
+.target-info {
+    flex-grow: 1;
+}
+
+.target-info h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.target-info p {
+    margin: 0;
+    color: var(--cor-texto-secundario);
+    font-size: 0.8rem;
+}
+
+/* Tabs da Meta */
+.quest-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--ui-border);
+    padding: 0 2rem;
+}
+
+.quest-tabs .tab-button {
+    padding: 1.2rem 2rem;
+    font-size: 0.9rem;
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .quest-briefing-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .quest-desc {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+/* --- INVENTÁRIO 3.0 (GRID RPG) --- */
+
+.inventario-container-wrapper {
+    display: flex;
+    gap: 2rem;
+    height: calc(100vh - 150px);
+}
+
+.inventario-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.inventario-sidebar {
+    width: 300px;
+    background: var(--ui-bg-card);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: fit-content;
+}
+
+.item-preview-icon {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    border: 2px solid var(--ui-border);
+    margin-bottom: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.item-preview-info h3 {
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.item-preview-type {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+}
+
+.item-preview-desc {
+    color: var(--cor-texto-secundario);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.btn-usar-item {
+    width: 100%;
+    padding: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: none; 
+}
+
+.btn-usar-item.active {
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: pulseGlow 2s infinite;
+}
+
+/* Grid de Slots */
+.mochila-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.inv-slot {
+    aspect-ratio: 1/1;
+    background-color: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--ui-border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.inv-slot:hover {
+    border-color: var(--cor-texto-destaque);
+    background-color: rgba(30, 41, 59, 0.9);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.inv-slot.active {
+    border-color: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    background-color: rgba(255,255,255,0.1);
+}
+
+.inv-slot i {
+    font-size: 1.8rem;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+}
+
+.item-count {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 1px 2px #000;
+    pointer-events: none;
+}
+
+/* Cores de Raridade nos Slots */
+.inv-slot.rarity-comum { border-color: var(--loot-common); }
+.inv-slot.rarity-comum i { color: var(--loot-common); }
+
+.inv-slot.rarity-incomum { border-color: var(--loot-uncommon); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.1); }
+.inv-slot.rarity-incomum i { color: var(--loot-uncommon); }
+
+.inv-slot.rarity-raro { border-color: var(--loot-rare); box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.15); }
+.inv-slot.rarity-raro i { color: var(--loot-rare); }
+
+.inv-slot.rarity-epico { border-color: var(--loot-epic); box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.2); }
+.inv-slot.rarity-epico i { color: var(--loot-epico); }
+
+.inv-slot.rarity-lendario { border-color: var(--loot-legendary); box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.2); animation: shimmerGold 3s infinite; }
+.inv-slot.rarity-lendario i { color: var(--loot-legendary); }
+
+/* Empty Slot */
+.inv-slot.empty {
+    opacity: 0.3;
+    cursor: default;
+    border-style: dashed;
+}
+.inv-slot.empty:hover {
+    transform: none;
+    border-color: var(--ui-border);
+    background-color: rgba(15, 23, 42, 0.8);
+}
+
+@media (max-width: 768px) {
+    .inventario-container-wrapper {
+        flex-direction: column-reverse;
+        height: auto;
+    }
+    .inventario-sidebar {
+        width: 100%;
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        gap: 1rem;
+    }
+    .item-preview-icon {
+        margin-bottom: 0;
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    .mochila-grid {
+        max-height: 400px;
+    }
+}
+
+/* --- INVENTÁRIO 4.0 (VISUAL PREMIUM) --- */
+
+/* Botões de Filtro (Que estavam sem CSS) */
+.filtro-status-inv {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--ui-border);
+    color: var(--cor-texto-secundario);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+}
+
+.filtro-status-inv:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-color: var(--cor-texto-principal);
+}
+
+.filtro-status-inv.active {
+    background: var(--cor-acao-primaria);
+    color: #020617;
+    border-color: var(--cor-acao-primaria);
+    box-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+}
+
+/* Cores específicas para filtros ativos */
+.filtro-status-inv[data-tipo="consumivel"].active { background: #10b981; border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+.filtro-status-inv[data-tipo="equipamento"].active { background: #3b82f6; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+.filtro-status-inv[data-tipo="colecionavel"].active { background: #f59e0b; border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+
+
+/* Layout Principal */
+.inventario-container-wrapper {
+    display: flex;
+    gap: 2rem;
+    height: calc(100vh - 220px); /* Ajuste para caber na tela */
+    align-items: flex-start;
+}
+
+.inventario-main {
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(2, 6, 23, 0.5);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+/* O Grid Bonito e Grande */
+.mochila-grid {
+    display: grid;
+    /* Slots maiores: 110px */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-auto-rows: 110px; 
+    gap: 12px;
+    padding: 1rem;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* Scrollbar customizada para o grid */
+.mochila-grid::-webkit-scrollbar { width: 6px; }
+.mochila-grid::-webkit-scrollbar-thumb { background: var(--ui-border); border-radius: 3px; }
+
+/* Slot do Item */
+.inv-slot {
+    position: relative;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid var(--ui-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    overflow: visible; /* Para o tooltip/efeitos saírem da caixa */
+}
+
+.inv-slot:hover {
+    transform: translateY(-5px) scale(1.02);
+    z-index: 10;
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+}
+
+.inv-slot.active {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    z-index: 5;
+}
+
+/* Ícone dentro do Slot */
+.inv-slot i {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+    transition: transform 0.2s;
+}
+
+.inv-slot:hover i {
+    transform: scale(1.1);
+}
+
+/* Contador de Stack (Quantidade) */
+.item-count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #0f172a;
+    border: 1px solid var(--ui-border);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 2;
+}
+
+/* Cores de Raridade (Borda e Glow) */
+.inv-slot.rarity-comum { border-color: var(--loot-common); }
+.inv-slot.rarity-comum i { color: var(--loot-common); opacity: 0.8; }
+
+.inv-slot.rarity-incomum { border-color: var(--loot-uncommon); box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1); }
+.inv-slot.rarity-incomum i { color: var(--loot-uncommon); }
+
+.inv-slot.rarity-raro { border-color: var(--loot-rare); box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.2); }
+.inv-slot.rarity-raro i { color: var(--loot-rare); }
+
+.inv-slot.rarity-epico { border-color: var(--loot-epic); animation: pulseBorderPurple 4s infinite; }
+.inv-slot.rarity-epico i { color: var(--loot-epic); filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5)); }
+
+.inv-slot.rarity-lendario { border-color: var(--loot-legendary); background: radial-gradient(circle at center, rgba(245, 158, 11, 0.1), #0f172a); animation: pulseBorderGold 3s infinite; }
+.inv-slot.rarity-lendario i { color: var(--loot-legendary); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6)); }
+
+@keyframes pulseBorderPurple { 0% { box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2); } 50% { box-shadow: inset 0 0 30px rgba(168, 85, 247, 0.5), 0 0 10px rgba(168, 85, 247, 0.3); } 100% { box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2); } }
+@keyframes pulseBorderGold { 0% { box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2); } 50% { box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.6), 0 0 15px rgba(245, 158, 11, 0.4); } 100% { box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2); } }
+
+/* Sidebar de Detalhes */
+.inventario-sidebar {
+    width: 320px;
+    background: var(--ui-bg-panel);
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+}
+
+/* Efeito de Uso de Item */
+.effect-popup {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--cor-acao-primaria);
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUpFade 2s forwards;
+    z-index: 1000;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@keyframes floatUpFade {
+    0% { opacity: 0; transform: translate(-50%, -40%); }
+    20% { opacity: 1; transform: translate(-50%, -80%); }
+    100% { opacity: 0; transform: translate(-50%, -150%); }
+}
+
+/* Empty Slot Design */
+.inv-slot.empty {
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.1);
+    cursor: default;
+}
+.inv-slot.empty:hover {
+    transform: none;
+    background: transparent;
+    border-color: rgba(255,255,255,0.1);
+}
+
+/* Mobile Responsividade */
+@media (max-width: 900px) {
+    .inventario-container-wrapper {
+        flex-direction: column-reverse;
+        height: auto;
+    }
+    .inventario-sidebar {
+        width: 100%;
+        height: auto;
+        min-height: 300px;
+    }
+    .mochila-grid {
+        min-height: 400px;
+    }
+}
+
+/* --- DASHBOARD WAR ROOM 2.0 --- */
+
+.dashboard-mixed-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 2 partes para histórico, 1 para notas */
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.loot-stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--ui-border);
+}
+
+.loot-stat-card:last-child { border-bottom: none; }
+
+.loot-color-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 5px currentColor;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-mixed-row {
+        grid-template-columns: 1fr;
+    }
 }

@@ -117,41 +117,55 @@
                 </div>
             </div>
 
-<div id="view-inventario" class="view">
-    <div class="inventario-header">
-        <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila</h1>
-        <button onclick="Inventario.sincronizarLootAntigo()" class="btn btn-secundario" style="border-color: var(--loot-rare); color: var(--loot-rare);">
-            <i class="fa-solid fa-gem"></i> Resgatar Loot Passado
-        </button>
-    </div>
-    
-    <div class="inventario-stats-container dash-card">
-        <div class="inv-stat">
-            <span class="inv-label">Itens</span>
-            <span id="inv-total-items" class="inv-value">0</span>
-        </div>
-        <div class="inv-stat">
-            <span class="inv-label">Raridade Média</span>
-            <span id="inv-rarity-avg" class="inv-value">-</span>
-        </div>
-        <div class="inv-stat">
-            <span class="inv-label">Ouro Estimado</span>
-            <span id="inv-gold-value" class="inv-value" style="color: #fcd34d;">0 <i class="fa-solid fa-coins"></i></span>
-        </div>
-    </div>
+            <div id="view-inventario" class="view">
+                <div class="inventario-header">
+                    <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila</h1>
+                    <button onclick="Inventario.sincronizarLootAntigo()" class="btn btn-secundario" style="border-color: var(--loot-rare); color: var(--loot-rare);">
+                        <i class="fa-solid fa-gem"></i> Resgatar Loot Passado
+                    </button>
+                </div>
+                
+                <div class="inventario-stats-container dash-card" style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); border: 1px solid var(--ui-border);">
+                    <div class="inv-stat">
+                        <span class="inv-label">Total de Itens</span>
+                        <span id="inv-total-items" class="inv-value">0</span>
+                    </div>
+                    <div class="inv-stat">
+                        <span class="inv-label">Valor Estimado</span>
+                        <span id="inv-gold-value" class="inv-value" style="color: #fcd34d; text-shadow: 0 0 10px rgba(253, 211, 77, 0.4);">0 <i class="fa-solid fa-coins"></i></span>
+                    </div>
+                </div>
 
-    <div class="grupo-filtros" style="margin: 1.5rem 0; flex-wrap: wrap;">
-        <button class="filtro-status active" onclick="Inventario.filtrar('Todos')">Todos</button>
-        <button class="filtro-status" onclick="Inventario.filtrar('Lendário')" style="color:var(--loot-legendary); border-color:var(--loot-legendary)">Lendários</button>
-        <button class="filtro-status" onclick="Inventario.filtrar('Épico')" style="color:var(--loot-epic); border-color:var(--loot-epic)">Épicos</button>
-        <button class="filtro-status" onclick="Inventario.filtrar('Raro')" style="color:var(--loot-rare); border-color:var(--loot-rare)">Raros</button>
-    </div>
+                <div class="grupo-filtros" style="margin: 1.5rem 0; gap: 10px; justify-content: center;">
+                    <button class="filtro-status-inv active" data-tipo="Todos" onclick="Inventario.filtrar('Todos')">Todos</button>
+                    <button class="filtro-status-inv" data-tipo="consumivel" onclick="Inventario.filtrar('consumivel')"><i class="fa-solid fa-flask"></i> Consumíveis</button>
+                    <button class="filtro-status-inv" data-tipo="equipamento" onclick="Inventario.filtrar('equipamento')"><i class="fa-solid fa-shield-halved"></i> Equipamentos</button>
+                    <button class="filtro-status-inv" data-tipo="colecionavel" onclick="Inventario.filtrar('colecionavel')"><i class="fa-solid fa-trophy"></i> Colecionáveis</button>
+                </div>
 
-    <div class="inventario-background">
-        <div id="grid-inventario" class="inventario-grid">
+                <div class="inventario-container-wrapper">
+                    <div class="inventario-main">
+                        <div id="grid-inventario" class="mochila-grid">
+                            </div>
+                    </div>
+
+                    <aside class="inventario-sidebar">
+                        <div id="inv-preview-icon" class="item-preview-icon">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div class="item-preview-info">
+                            <h3 id="inv-preview-title">Selecione um Item</h3>
+                            <span id="inv-preview-type" class="item-preview-type">---</span>
+                            <p id="inv-preview-desc" class="item-preview-desc">Clique em um item na mochila para ver detalhes e opções de uso.</p>
+                        </div>
+                        <div style="margin-top: auto; width: 100%;">
+                            <button id="btn-inv-usar" class="btn btn-primario btn-usar-item">
+                                USAR ITEM
+                            </button>
+                        </div>
+                    </aside>
+                </div>
             </div>
-    </div>
-</div>
 
             <div id="view-adicionar" class="view">
                 <h1>Adicionar Novo Livro</h1>
