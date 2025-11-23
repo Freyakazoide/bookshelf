@@ -77,6 +77,7 @@ const App = {
             Adicionar.init(this.state.livros);
             Dashboard.init(this.state.livros);
             Desafio.init(this.state.livros, this.state.challenges);
+            if (typeof Loja !== 'undefined') Loja.init();
             
             if(this.state.activeView === 'view-inventario') Inventario.render();
 
@@ -196,6 +197,8 @@ const App = {
         if (viewId === 'view-dashboard') Dashboard.atualizar(this.state.livros);
         if (viewId === 'view-desafio') Desafio.atualizar(this.state.livros);
         if (viewId === 'view-inventario') Inventario.render();
+        if (viewId === 'view-loja' && typeof Loja !== 'undefined') Loja.render();
+        if (viewId === 'view-oraculo') Oraculo.render();
     },
 
     mostrarNotificacao: function(mensagem, tipo = 'sucesso') {
@@ -287,11 +290,23 @@ const Gamification = {
         return { tipo: 'minion', label: 'Minion', classe: 'mob-minion', icone: 'fa-ghost', cor: '#94a3b8' };
     },
 
-    gerarLoot: function(livro) {
+gerarLoot: function(livro) {
         if (livro.loot) return livro.loot; 
 
+        let isOracleBoosted = false;
+        if (livro.oracle && livro.oracle.active) {
+            isOracleBoosted = true;
+            livro.oracle.active = false; // Consome o buff
+        }
+
         let pool = [];
-        this.lootTable.forEach(item => { for(let i=0; i < item.dropRate; i++) pool.push(item); });
+        if (isOracleBoosted) {
+            this.lootTable.filter(i => i.tipo === 'Lendário' || i.tipo === 'Épico').forEach(item => pool.push(item));
+             if(window.App) window.App.mostrarNotificacao('✨ A Profecia se Cumpriu! Loot Lendário!', 'sucesso');
+        } else {
+            this.lootTable.forEach(item => { for(let i=0; i < item.dropRate; i++) pool.push(item); });
+        }
+        
         const itemSorteado = pool[Math.floor(Math.random() * pool.length)];
 
         const lootData = {

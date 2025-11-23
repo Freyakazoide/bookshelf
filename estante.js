@@ -431,17 +431,20 @@ const Estante = {
             this.estantePlaceholderEl.classList.add('hidden');
             this.controlesPaginacaoEl.classList.remove('hidden');
 
-            this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
+                this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
                 const id = this.getId(livro);
                 const capa = livro.urlCapa || 'placeholder.jpg';
                 const status = livro.situacao || 'Quero Ler';
                 const notaNum = this.getNotaRecente(livro);
                 
-                // 1. RPG: Mob Info
+                // RPG: Mob Info
                 const paginas = parseInt(livro.paginas, 10) || 0;
                 const mobInfo = Gamification.getClassificacaoMob(paginas);
 
-                // 2. Classes Visuais
+                const now = Date.now();
+                const hasOracleBuff = livro.oracle && livro.oracle.active && livro.oracle.expires > now;
+                const buffClass = hasOracleBuff ? 'buff-oracle' : '';
+
                 const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
                 const isTop10 = this.state.top10Ids.has(id);
                 let rarityClass = '';
@@ -490,7 +493,7 @@ const Estante = {
                 }
 
                 return `
-                    <div class="card-livro ${rarityClass} ${mobInfo.classe}" data-id="${id}" data-status="${status}">
+                    <div class="card-livro ${rarityClass} ${mobInfo.classe} ${buffClass}" data-id="${id}" data-status="${status}">
                         <div class="rpg-badges-container">${badgesHTML}</div>
                         ${notaHTML}
                         <div class="card-capa-container">

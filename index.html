@@ -38,6 +38,8 @@
         <a href="#" class="nav-link" data-view="view-desafio"><i class="fa-solid fa-scroll"></i> Missões (Metas)</a>
         <a href="#" class="nav-link" data-view="view-dashboard"><i class="fa-solid fa-chart-line"></i> Status (Dash)</a>
         <a href="#" class="nav-link" data-view="view-inventario"><i class="fa-solid fa-sack-dollar"></i> Mochila (Loot)</a>
+        <a href="#" class="nav-link" data-view="view-loja"><i class="fa-solid fa-shop"></i> Mercado Negro</a>
+        <a href="#" class="nav-link" data-view="view-oraculo"><i class="fa-solid fa-eye"></i> O Oráculo</a>
     </nav>
     <div id="auth-container" class="sidebar-footer"></div>
 </aside>
@@ -168,99 +170,111 @@
             </div>
 
             <div id="view-adicionar" class="view">
-                <h1>Adicionar Novo Livro</h1>
-                <div id="busca-api-container" class="dash-card" style="margin-bottom: 2rem; padding: 1.5rem;">
-                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; align-items: flex-end; gap: 1rem;">
-                        <div class="form-campo">
-                            <label for="input-busca-api-titulo">Título do Livro:</label>
-                            <input type="search" id="input-busca-api-titulo" placeholder="Ex: O Nome do Vento">
-                        </div>
-                        <div class="form-campo">
-                            <label for="input-busca-api-autor">Autor:</label>
-                            <input type="search" id="input-busca-api-autor" placeholder="Ex: Patrick Rothfuss">
+    <h1><i class="fa-solid fa-dungeon"></i> Guilda dos Escribas (Adicionar)</h1>
+    
+    <div class="painel-busca-container">
+        <div class="grid-busca-inputs">
+            <div class="form-campo">
+                <label><i class="fa-solid fa-barcode"></i> ISBN (Prioritário):</label>
+                <input type="search" id="input-busca-api-isbn" placeholder="978...">
+            </div>
+            <div class="form-campo">
+                <label><i class="fa-solid fa-book"></i> Título:</label>
+                <input type="search" id="input-busca-api-titulo" placeholder="O Nome do Vento...">
+            </div>
+            <div class="form-campo">
+                <label><i class="fa-solid fa-user-pen"></i> Autor:</label>
+                <input type="search" id="input-busca-api-autor" placeholder="Patrick Rothfuss...">
+            </div>
+        </div>
+        
+        <div class="opcoes-fonte-api">
+            <strong><i class="fa-solid fa-database"></i> Fontes:</strong>
+            <div>
+                <input type="radio" id="api-google" name="api-source" value="google" checked> <label for="api-google">Google</label>
+                <input type="radio" id="api-open" name="api-source" value="open"> <label for="api-open">OpenLibrary</label>
+                <input type="radio" id="api-ambos" name="api-source" value="ambos"> <label for="api-ambos">Ambos</label>
+            </div>
+            <button id="btn-busca-api" class="btn btn-primario" style="margin-left: auto;"><i class="fa-solid fa-search"></i> RASTREAR LIVRO</button>
+        </div>
+    </div>
+
+    <div id="controles-resultados-api" class="controles-secundarios hidden">
+        <div id="busca-api-paginacao" class="hidden">
+            <button id="btn-busca-anterior" class="btn btn-secundario"><i class="fa-solid fa-arrow-left"></i></button>
+            <span id="busca-api-info-pagina" style="margin: 0 10px;"></span>
+            <button id="btn-busca-proxima" class="btn btn-secundario"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+        <button id="btn-adicionar-manual" class="btn btn-secundario" style="margin-left: auto;">
+            <i class="fa-solid fa-pen-nib"></i> Nada encontrado? Cadastrar Manualmente
+        </button>
+    </div>
+
+    <div id="resultados-busca-api"></div>
+
+    <div id="form-container" class="formulario-final-container hidden">
+        <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+            <h2 id="form-livro-titulo" style="border:none; padding:0; margin:0;">Confirmar Dados</h2>
+            <button id="btn-cancelar-form" class="btn btn-secundario"><i class="fa-solid fa-times"></i> Cancelar</button>
+        </div>
+
+        <form id="form-livro">
+            <input type="hidden" id="livro-id">
+            <div class="form-layout">
+                <div class="form-coluna-capa">
+                    <img id="form-capa-preview" src="placeholder.jpg" alt="Preview">
+                    <div class="form-campo" style="margin-top: 1rem; width:100%;">
+                        <label>URL da Capa:</label>
+                        <input type="url" id="urlCapa">
+                    </div>
+                    <button type="button" id="btn-cacar-capa" class="btn btn-secundario" style="width:100%; margin-top:5px; font-size:0.8rem;">
+                        <i class="fa-brands fa-google"></i> Buscar Capa HD
+                    </button>
+                </div>
+                <div class="form-coluna-info">
+                    <nav class="form-tabs">
+                        <button type="button" class="tab-button active" data-tab="form-tab-principal">Principal</button>
+                        <button type="button" class="tab-button" data-tab="form-tab-detalhes">Detalhes</button>
+                    </nav>
+                    
+                    <div id="form-tab-principal" class="form-tab-content active" style="padding-top:1rem;">
+                        <div class="form-grid" style="grid-template-columns: 1fr;">
+                            <div class="form-campo"><label>Título:</label><input type="text" id="nomeDoLivro" required></div>
+                            <div class="form-campo"><label>Autor:</label><input type="text" id="autor" required></div>
+                            <div class="form-grid">
+                                <div class="form-campo"><label>Páginas:</label><input type="number" id="paginas"></div>
+                                <div class="form-campo"><label>Ano:</label><input type="number" id="anoLancamento"></div>
+                            </div>
+                            <div class="form-campo"><label>Gêneros/Tags:</label><input type="text" id="categorias" placeholder="Fantasia, RPG, Terror..."></div>
                         </div>
                     </div>
-                    <div class="busca-api-botoes">
-                        <div class="opcoes-busca-api">
-                            <span>Fonte:</span>
-                            <input type="radio" id="api-google" name="api-source" value="google" checked>
-                            <label for="api-google">Google Books</label>
-                            <input type="radio" id="api-open" name="api-source" value="open">
-                            <label for="api-open">Open Library</label>
-                            <input type="radio" id="api-ambos" name="api-source" value="ambos">
-                            <label for="api-ambos">Ambos</label>
+
+                    <div id="form-tab-detalhes" class="form-tab-content" style="padding-top:1rem;">
+                        <div class="form-grid">
+                            <div class="form-campo"><label>Editora:</label><input type="text" id="editora"></div>
+                            <div class="form-campo"><label>Idioma:</label><input type="text" id="lingua"></div>
+                            <div class="form-campo"><label>Coleção:</label><input type="text" id="colecao"></div>
+                            <div class="form-campo"><label>Volume:</label><input type="number" id="volume"></div>
+                            <div class="form-campo"><label>Data Aquisição:</label><input type="date" id="dataAquisicao"></div>
                         </div>
-                        <button id="btn-busca-api" class="btn btn-primario"><i class="fa-solid fa-globe"></i> Buscar na Internet</button>
+                        <div class="form-campo full-width" style="margin-top:10px;"><label>Sinopse:</label><textarea id="descricao" rows="4"></textarea></div>
                     </div>
-                </div>
-                <div id="adicionar-manual-container" class="hidden" style="text-align: center; margin: 2rem 0;">
-                    <p style="color: var(--cor-texto-secundario); margin-bottom: 0.5rem;">Não encontrou o que procurava?</p>
-                    <button id="btn-adicionar-manual" class="btn btn-secundario"><i class="fa-solid fa-keyboard"></i> Cadastrar Manualmente</button>
-                </div>
-                <div id="busca-api-paginacao" class="hidden">
-                    <button id="btn-busca-anterior" class="btn btn-secundario"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
-                    <span id="busca-api-info-pagina"></span>
-                    <button id="btn-busca-proxima" class="btn btn-primario">Próxima <i class="fa-solid fa-arrow-right"></i></button>
-                </div>
-                <div id="resultados-busca-api"></div>
-                <div id="painel-sincronizacao" class="hidden">
-                    <h3><i class="fa-solid fa-sync-alt"></i> Atualizar Dados do Livro</h3>
-                    <p>Clique nos campos que deseja atualizar com as informações encontradas na internet.</p>
-                    <div id="sinc-container"></div>
-                    <button id="btn-fechar-sinc" class="btn btn-secundario"><i class="fa-solid fa-times"></i> Fechar Sincronização</button>
-                </div>
-                <div id="form-container" class="hidden">
-                    <hr class="separador-form">
-                    <h2 id="form-livro-titulo">Complete os dados e salve</h2>
-                    <form id="form-livro">
-                        <input type="hidden" id="livro-id">
-                        <div class="form-layout">
-                            <div class="form-coluna-capa">
-                                <img id="form-capa-preview" src="placeholder.jpg" alt="Preview da capa">
-                                <div class="form-campo" style="margin-top: 1rem;">
-                                    <label for="urlCapa">URL da Capa:</label>
-                                    <input type="url" id="urlCapa" placeholder="https://exemplo.com/capa.jpg">
-                                </div>
-                            </div>
-                            <div class="form-coluna-info">
-                                <nav class="form-tabs">
-                                    <button type="button" class="tab-button active" data-tab="form-tab-principal"><i class="fa-solid fa-book"></i> Principal</button>
-                                    <button type="button" class="tab-button" data-tab="form-tab-publicacao"><i class="fa-solid fa-building"></i> Publicação</button>
-                                    <button type="button" class="tab-button" data-tab="form-tab-organizacao"><i class="fa-solid fa-folder-tree"></i> Organização</button>
-                                </nav>
-                                <div class="form-conteudo-tabs">
-                                    <div id="form-tab-principal" class="form-tab-content active">
-                                        <div class="form-grid" style="grid-template-columns: 1fr;">
-                                            <div class="form-campo"><label for="nomeDoLivro">Título:</label><input type="text" id="nomeDoLivro" required></div>
-                                            <div class="form-campo"><label for="autor">Autor:</label><input type="text" id="autor" required></div>
-                                            <div class="form-campo"><label for="descricao">Descrição/Sinopse:</label><textarea id="descricao" rows="10"></textarea></div>
-                                        </div>
-                                    </div>
-                                    <div id="form-tab-publicacao" class="form-tab-content">
-                                        <div class="form-grid">
-                                            <div class="form-campo"><label for="editora">Editora:</label><input type="text" id="editora"></div>
-                                            <div class="form-campo"><label for="anoLancamento">Ano de Lançamento:</label><input type="number" id="anoLancamento" placeholder="Ex: 2007"></div>
-                                            <div class="form-campo"><label for="paginas">Páginas:</label><input type="number" id="paginas"></div>
-                                            <div class="form-campo"><label for="lingua">Língua:</label><input type="text" id="lingua" placeholder="Ex: PT-BR"></div>
-                                        </div>
-                                    </div>
-                                    <div id="form-tab-organizacao" class="form-tab-content">
-                                        <div class="form-grid">
-                                            <div class="form-campo"><label for="colecao">Coleção:</label><input type="text" id="colecao"></div>
-                                            <div class="form-campo"><label for="volume">Volume:</label><input type="number" id="volume"></div>
-                                            <div class="form-campo"><label for="categorias">Categorias/Gêneros:</label><input type="text" id="categorias" placeholder="Ex: Fantasia, Aventura"></div>
-                                            <div class="form-campo"><label for="dataAquisicao">Data de Aquisição:</label><input type="date" id="dataAquisicao"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-botoes" style="margin-top: 1.5rem;">
-                            <button type="submit" class="btn btn-primario"><i class="fa-solid fa-save"></i> Salvar Livro na Estante</button>
-                        </div>
-                    </form>
                 </div>
             </div>
+            <div class="form-botoes" style="margin-top: 1.5rem; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primario" style="font-size:1.1rem; padding: 12px 30px;"><i class="fa-solid fa-floppy-disk"></i> SALVAR NA ESTANTE</button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="painel-sincronizacao" class="hidden" style="position:fixed; bottom:20px; right:20px; width:300px; background:#1e293b; border:1px solid #2dd4bf; padding:1rem; z-index:1000; border-radius:8px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="margin:0; color:#2dd4bf;">Dados da Web</h4>
+            <button id="btn-fechar-sinc" style="background:none; border:none; color:#fff; cursor:pointer;">X</button>
+        </div>
+        <div id="sinc-container" style="max-height:300px; overflow-y:auto;"></div>
+    </div>
+</div>
 
             <div id="view-desafio" class="view">
                 <h1><i class="fa-solid fa-trophy"></i> Metas de Leitura</h1>
@@ -434,6 +448,80 @@
                     <button id="btn-aplicar-filtros" class="btn btn-primario"><i class="fa-solid fa-check"></i> Aplicar Filtros</button>
                 </footer>
             </aside>
+
+                        <div id="view-loja" class="view">
+                <div class="loja-header">
+                    <h1><i class="fa-solid fa-shop"></i> Mercado Negro</h1>
+                    <div class="carteira-display">
+                        <span>Saldo:</span>
+                        <strong id="loja-saldo-gold" class="gold-text">0 <i class="fa-solid fa-coins"></i></strong>
+                    </div>
+                </div>
+
+                <div class="loja-layout">
+                    <aside class="loja-filtros">
+                        <button class="btn-tab-loja active" data-cat="todos"><i class="fa-solid fa-border-all"></i> Tudo</button>
+                        <button class="btn-tab-loja" data-cat="tema"><i class="fa-solid fa-palette"></i> Temas Globais</button>
+                        <button class="btn-tab-loja" data-cat="frame"><i class="fa-solid fa-id-badge"></i> Molduras</button>
+                        <button class="btn-tab-loja" data-cat="cardbg"><i class="fa-solid fa-image"></i> Skins de Card</button>
+                    </aside>
+
+                    <main class="loja-grid-container">
+                        <div id="grid-loja" class="loja-items-grid">
+                            </div>
+                    </main>
+                </div>
+            </div>
+
+                        <div id="view-oraculo" class="view">
+                <div class="oraculo-container">
+                    <div class="oraculo-header">
+                        <h1><i class="fa-solid fa-eye"></i> O Oráculo do Destino</h1>
+                        <p>O destino escolhe sua próxima leitura. Ouro é o preço da certeza.</p>
+                        <div class="oracle-balance-display">
+                        Seu Ouro: <span id="oracle-gold-value" class="gold-text">--- <i class="fa-solid fa-coins"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="oraculo-stage">
+                        <div id="oraculo-slot-machine" class="slot-machine-container">
+                            <div class="slot-window">
+                                <div id="slot-track" class="slot-track">
+                                    <div class="slot-placeholder"><i class="fa-solid fa-question"></i></div>
+                                </div>
+                                <div class="slot-overlay"></div>
+                                <div class="slot-line"></div>
+                            </div>
+                            
+                            <div class="slot-controls">
+                                <div class="custo-display">Custo: <span class="gold-text">50 <i class="fa-solid fa-coins"></i></span></div>
+                                <button id="btn-invocar-oraculo" class="btn btn-primario btn-lg">
+                                    <i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="oraculo-resultado" class="resultado-container hidden">
+                            <div class="resultado-glow"></div>
+                            <h2>O Destino Escolheu:</h2>
+                            <div id="card-livro-oraculo"></div>
+                            
+                            <div class="buff-info-card">
+                                <h4><i class="fa-solid fa-bolt"></i> Buff Ativo: Escolhido pelo Destino</h4>
+                                <p>Inicie a leitura em até <strong>48 horas</strong> para garantir <strong>Loot Lendário (100%)</strong> ao terminar.</p>
+                                <div class="timer-display" id="oracle-timer">Expira em: --:--:--</div>
+                            </div>
+
+                            <button id="btn-reroll" class="btn btn-secundario" style="margin-top: 1rem;">
+                                <i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: 1000 <i class="fa-solid fa-coins"></i>)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
             
         </main>
     </div>
@@ -605,6 +693,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="app.js"></script>
+    <script src="loja.js"></script>
+    <script src="oraculo.js"></script>
     <script src="estante.js"></script>
     <script src="adicionar.js"></script>
     <script src="dashboard.js"></script>
