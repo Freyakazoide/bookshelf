@@ -3954,3 +3954,330 @@ body[data-card-skin="cardbg-leather"] .card-livro {
         height: 200px;
     }
 }
+
+/* --- ORÁCULO DO DESTINO (DESIGN UNIFICADO) --- */
+
+.oraculo-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* HEADER */
+.oraculo-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.oraculo-header h1 {
+    color: #a855f7;
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    border: none;
+    justify-content: center;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+}
+
+.oracle-balance-display {
+    background: rgba(15, 23, 42, 0.8);
+    padding: 8px 24px;
+    border-radius: 30px;
+    border: 1px solid var(--ui-border);
+    font-size: 1.1rem;
+    color: #fff;
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* PAINEL PRINCIPAL (WRAPPER) */
+.oraculo-panel-wrapper {
+    background: rgba(15, 23, 42, 0.6); /* Fundo unificado */
+    border: 1px solid var(--ui-border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px); /* Efeito vidro */
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* Divisão Esquerda/Direita */
+    overflow: hidden; /* Garante bordas arredondadas */
+    min-height: 600px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* COLUNA ESQUERDA (PALCO) */
+.oraculo-main {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Alinha ao topo */
+    border-right: 1px solid var(--ui-border);
+    position: relative;
+    background: radial-gradient(circle at top center, rgba(168, 85, 247, 0.05), transparent 60%);
+}
+
+/* COLUNA DIREITA (HISTÓRICO) */
+.oraculo-sidebar {
+    background: rgba(2, 6, 23, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.hist-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--ui-border);
+    background: rgba(0,0,0,0.2);
+}
+
+.hist-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cor-texto-secundario);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hist-list {
+    padding: 1rem;
+    overflow-y: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* CARD DE RESULTADO (O GRANDE) */
+.oracle-rich-card {
+    display: flex;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--ui-border); /* Borda mais sutil */
+    border-left: 4px solid #a855f7; /* Apenas detalhe roxo */
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transition: transform 0.3s;
+    margin-bottom: 2rem;
+}
+
+.oracle-cover-col {
+    width: 130px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.oracle-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.oracle-info-col {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.oracle-info-col h3 {
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 5px;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.oracle-author {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+/* BUFF INFO CARD */
+.buff-info-card {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+}
+
+.buff-info-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer-display {
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-top: 12px;
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.oraculo-sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Importante para o scroll funcionar dentro */
+    height: 100%;
+}
+
+.hist-header {
+    flex-shrink: 0; /* Cabeçalho fixo */
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.hist-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Scrollbar fina para a lista */
+.hist-list::-webkit-scrollbar { width: 5px; }
+.hist-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+.hist-card {
+    display: grid;
+    grid-template-columns: 50px 1fr; /* Capa | Info */
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.hist-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Card Selecionado (Vendo Agora) */
+.hist-card.viewing {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: #a855f7;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Card Ativo (Buff Valendo) */
+.hist-card.active-buff::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: #10b981; /* Verde para ativo */
+}
+
+/* Card Expirado */
+.hist-card.expired-buff::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: #ef4444;
+}
+
+.hist-cover {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.hist-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* Evita que texto estoure */
+}
+
+.hist-info h4 {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    margin: 0 0 6px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.hist-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+}
+
+.hist-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.hist-badge.ativo { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.hist-badge.expirado { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.hist-badge.passado { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+
+.hist-date {
+    color: rgba(255,255,255,0.3);
+}
+
+/* SLOT MACHINE */
+.slot-machine-container {
+    background: #020617;
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.slot-window {
+    width: 180px;
+    height: 270px;
+    background: #000;
+    margin: 0 auto 1.5rem;
+    border: 2px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 900px) {
+    .oraculo-panel-wrapper {
+        grid-template-columns: 1fr; /* Vira coluna única */
+    }
+    .oraculo-main {
+        border-right: none;
+        border-bottom: 1px solid var(--ui-border);
+        padding: 2rem 1rem;
+    }
+    .oraculo-sidebar {
+        max-height: 400px;
+    }
+}

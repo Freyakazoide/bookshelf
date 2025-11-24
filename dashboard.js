@@ -12,14 +12,14 @@ const Dashboard = {
             lidosPorMes: null,
             distribuicaoNotas: null,
             lootRarity: null,
-            generos: null,
+            classes: null,
             ritmo: null,
             bestiario: null
         }
     },
 
     init: function(livros) {
-        this.state.todosOsLivros = livros;
+        this.state.todosOsLivros = livros || [];
         this.state.todasAsMetas = (window.App && window.App.state.challenges) ? window.App.state.challenges : [];
         this.atualizarDados();
         this.cacheDOM();
@@ -29,7 +29,7 @@ const Dashboard = {
     },
     
     atualizar: function(livros) {
-        this.state.todosOsLivros = livros;
+        this.state.todosOsLivros = livros || [];
         this.state.todasAsMetas = (window.App && window.App.state.challenges) ? window.App.state.challenges : [];
         this.atualizarDados();
         if(this.state.anosDisponiveis.length === 0) this.popularFiltroDeAno(); 
@@ -66,12 +66,11 @@ const Dashboard = {
 
         this.widgetResumoPorAno = document.getElementById('resumo-por-ano');
         this.widgetLidosPorMes = document.getElementById('widget-lidos-por-mes');
-        this.widgetDNA = document.getElementById('widget-dna');
-        this.widgetGeneros = document.getElementById('widget-generos');
-        this.widgetRitmo = document.getElementById('widget-ritmo');
-        this.widgetNotas = document.getElementById('widget-distribuicao-notas');
-        this.widgetBestiario = document.getElementById('widget-bestiary');
         
+        // Ajusta título do widget de gêneros
+        const widgetGenerosTitle = document.querySelector('#widget-generos h3');
+        if(widgetGenerosTitle) widgetGenerosTitle.innerHTML = 'Classes da Estante <button onclick="Dashboard.abrirCodex()" style="font-size:0.7rem; float:right; background:none; border:1px solid #fff; color:#fff; border-radius:4px; cursor:pointer;">Ver Códice</button>';
+
         this.tituloTabelaLivrosAnoEl = document.getElementById('titulo-tabela-livros-ano');
         this.tituloGraficoMesEl = document.getElementById('titulo-grafico-mes');
 
@@ -128,7 +127,7 @@ const Dashboard = {
                 }
                 
                 this.state.anoFiltro = selecaoAtual;
-                this.popularFiltroDeAno(); // Atualiza texto do botão
+                this.popularFiltroDeAno();
                 this.render();
             });
         }
@@ -155,6 +154,7 @@ const Dashboard = {
     render: function() {
         if (!this.state.todosOsLivros || this.state.todosOsLivros.length === 0) return;
 
+        // Dados filtrados por ANO (apenas para tabelas e gráficos de tempo)
         const todasAsLeituras = this.state.todosOsLivros.flatMap(livro =>
             (livro.leituras || []).map(leitura => ({ ...leitura, livro }))
         ).filter(leitura => leitura.dataFim);
@@ -166,17 +166,17 @@ const Dashboard = {
             ? todasAsLeituras
             : todasAsLeituras.filter(l => this.state.anoFiltro.includes(new Date(l.dataFim).getFullYear().toString()));
         
-        // Tenta reorganizar, mas não trava se falhar
-        try { this.reorganizarLayoutDOM(); } catch(e) { console.log('Layout não reorganizado:', e); }
+        try { this.reorganizarLayoutDOM(); } catch(e) { console.log(e); }
 
+        // Renderizações Globais (Independente do Ano)
         this.renderActiveQuest();
+        this.renderBestiaryChart(); // Usa TODOS os livros
+        this.renderGraficoClasses(); // Usa TODOS os livros
+        this.renderLootChart();     // Usa TODOS os livros
+
+        // Renderizações Filtradas (Dependem do Ano Selecionado)
         this.renderKPIs(leiturasFiltradas);
         this.renderHallOfFame(leiturasFiltradas);
-        
-        this.renderBestiaryChart(leiturasFiltradas);
-        this.renderLootChart();
-        this.renderGraficoGeneros(leiturasFiltradas);
-        
         this.renderGraficoRitmo(leiturasFiltradas);
         this.renderGraficoDistribuicaoNotas(leiturasFiltradas);
 
@@ -200,6 +200,137 @@ const Dashboard = {
         this.renderMelhoresAutores(leiturasFiltradas);
     },
 
+    // --- GRÁFICO 1: BESTIÁRIO GLOBAL ---
+    renderBestiaryChart: function() {
+        const ctx = this.graficoBestiarioEl;
+        if (!ctx) return;
+        if (this.state.graficos.bestiario) this.state.graficos.bestiario.destroy();
+
+        const contagem = {};
+        // Usa TODOS os livros do estado (não filtra por lido/ano)
+        this.state.todosOsLivros.forEach(l => {
+            const rpg = l.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(l) : {typeLabel: 'Criatura'});
+            const tipo = rpg.typeLabel || 'Criatura';
+            contagem[tipo] = (contagem[tipo] || 0) + 1;
+        });
+
+        this.state.graficos.bestiario = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: Object.keys(contagem),
+                datasets: [{
+                    data: Object.values(contagem),
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.6)', 
+                        'rgba(59, 130, 246, 0.6)',
+                        'rgba(16, 185, 129, 0.6)',
+                        'rgba(245, 158, 11, 0.6)',
+                        'rgba(168, 85, 247, 0.6)',
+                        'rgba(236, 72, 153, 0.6)',
+                        'rgba(14, 165, 233, 0.6)'
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#0f172a'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } },
+                    title: { display: true, text: 'População de Monstros (Total)', color: '#64748b' }
+                },
+                scales: { r: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false, backdropColor: 'transparent' } } }
+            }
+        });
+    },
+
+    // --- GRÁFICO 2: CLASSES GLOBAIS ---
+    renderGraficoClasses: function() {
+        const ctx = this.graficoGenerosEl;
+        if (!ctx) return;
+        if (this.state.graficos.classes) this.state.graficos.classes.destroy();
+        
+        const counts = {};
+        // Usa TODOS os livros (Perfil de Leitura Geral)
+        this.state.todosOsLivros.forEach(l => { 
+            const rpg = l.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(l) : {type: 'Minion'});
+            const classe = (typeof Gamification !== 'undefined') ? Gamification.mapearClasseJogador(rpg.type) : 'Novato';
+            counts[classe] = (counts[classe] || 0) + 1; 
+        });
+        
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const top = sorted.slice(0, 6); 
+        
+        this.state.graficos.classes = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: top.map(i => i[0]), 
+                datasets: [{ 
+                    data: top.map(i => i[1]), 
+                    backgroundColor: ['#2dd4bf', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#94a3b8'], 
+                    borderColor: '#0f172a', 
+                    borderWidth: 2 
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { position: 'right', labels: { color: '#94A3B8', boxWidth: 10 } },
+                    title: { display: true, text: 'Classes da Estante', color: '#64748b' }
+                }, 
+                cutout: '60%' 
+            } 
+        });
+    },
+
+    // --- CÓDICE (LEGENDA) ---
+    abrirCodex: function() {
+        let modal = document.getElementById('modal-codex');
+        if (!modal) {
+            const dialog = document.createElement('dialog');
+            dialog.id = 'modal-codex';
+            dialog.className = 'painel-container';
+            dialog.style.width = '600px';
+            dialog.style.height = 'auto';
+            dialog.style.maxHeight = '80vh';
+            dialog.innerHTML = `
+                <header class="painel-header">
+                    <h2>📖 Códice do Aventureiro</h2>
+                    <button onclick="document.getElementById('modal-codex').close()" class="btn-acao"><i class="fa-solid fa-times"></i></button>
+                </header>
+                <div class="painel-body" style="padding:1.5rem; display:block; overflow-y:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid #334155; text-align:left;">
+                                <th style="padding:10px;">Inimigo</th>
+                                <th style="padding:10px;">Exemplos</th>
+                                <th style="padding:10px;">Classe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codex-body"></tbody>
+                    </table>
+                </div>
+            `;
+            document.body.appendChild(dialog);
+            modal = dialog;
+        }
+        
+        const tbody = modal.querySelector('#codex-body');
+        if (typeof Gamification !== 'undefined') {
+            tbody.innerHTML = Gamification.archetypes.map(arch => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:10px; color:#fff;"><i class="fa-solid ${arch.icon}"></i> ${arch.label}</td>
+                    <td style="padding:10px; font-size:0.8rem; color:#94a3b8;">${arch.keys.slice(0,2).join(', ')}</td>
+                    <td style="padding:10px; color:#a855f7; font-weight:bold;">${Gamification.mapearClasseJogador(arch.type)}</td>
+                </tr>
+            `).join('');
+        }
+        modal.showModal();
+    },
+
+    // ... RESTO DO CÓDIGO MANTIDO IGUAL AO ANTERIOR ...
     reorganizarLayoutDOM: function() {
         const containerTimeline = document.querySelector('.timeline-row');
         const containerNotas = document.getElementById('widget-distribuicao-notas');
@@ -215,19 +346,14 @@ const Dashboard = {
 
         if (!containerTimeline.classList.contains('dashboard-mixed-row')) {
             containerTimeline.className = 'dashboard-mixed-row';
-            
-            // Limpa container para reordenar
             while (containerTimeline.firstChild) {
-                // Salva elementos que não são os que queremos mover, se houver
                 if(containerTimeline.lastChild !== widgetResumo && containerTimeline.lastChild !== widgetLidosMes) {
                     containerTimeline.removeChild(containerTimeline.lastChild);
                 } else {
-                    break; // Break safety
+                    break;
                 }
             }
-            // Esvazia de verdade para garantir ordem
             containerTimeline.innerHTML = '';
-            
             containerTimeline.appendChild(widgetResumo);
             if(widgetLidosMes) containerTimeline.appendChild(widgetLidosMes);
             containerTimeline.appendChild(containerNotas);
@@ -239,10 +365,7 @@ const Dashboard = {
             containerSplit.id = 'dynamic-split-row';
             containerSplit.className = 'charts-split-row';
             if(containerTimeline.parentNode) containerTimeline.parentNode.insertBefore(containerSplit, containerTimeline.nextSibling);
-            
             containerSplit.appendChild(widgetRitmo);
-            // Se notas não foi movido para timeline (layout alternativo), move pra cá. 
-            // Mas no layout pedido notas fica na timeline row (mixed row).
         }
     },
 
@@ -291,13 +414,14 @@ const Dashboard = {
         const totalLivros = leituras.length;
         const totalPags = leituras.reduce((acc, l) => acc + (parseInt(l.livro.paginas)||0), 0);
         const bossesKilled = leituras.filter(l => (parseInt(l.livro.paginas)||0) >= 700).length;
-        const gold = (totalLivros * 10) + (bossesKilled * 100);
+        const gold = typeof Loja !== 'undefined' ? Loja.state.gold : 0;
         const metasConcluidas = this.state.todasAsMetas.filter(m => Desafio.calcularProgressoMeta(m).concluida).length;
         const totalMetas = this.state.todasAsMetas.length;
-        const metaRate = totalMetas > 0 ? Math.round((metasConcluidas / totalMetas) * 100) : 0;
+        
+        const stats = Gamification.calcularStats(this.state.todosOsLivros);
 
-        this.kpiHero.innerHTML = `<h4>Quest Completion</h4><div class="valor-kpi-hero">${metaRate}%</div><span class="subtitulo-kpi-hero">${metasConcluidas}/${totalMetas} Completas</span>`;
-        this.kpiPaginas.innerHTML = `<h4>Dano Total</h4><div class="valor-kpi">${totalPags.toLocaleString('pt-BR')}</div><span class="label-kpi">Páginas Lidas</span>`;
+        this.kpiHero.innerHTML = `<h4>Classe Atual</h4><div class="valor-kpi-hero" style="font-size:1.8rem">${stats.classe}</div><span class="subtitulo-kpi-hero">Nível ${stats.nivel}</span>`;
+        this.kpiPaginas.innerHTML = `<h4>XP Total</h4><div class="valor-kpi">${Math.floor(stats.totalXP).toLocaleString('pt-BR')}</div><span class="label-kpi">Páginas Lidas: ${totalPags}</span>`;
         this.kpiBosses.innerHTML = `<h4>Bosses</h4><div class="valor-kpi" style="color:var(--cor-perigo)">${bossesKilled}</div>`;
         this.kpiGold.innerHTML = `<h4>Tesouro</h4><div class="valor-kpi" style="color:#fcd34d">${gold} <i class="fa-solid fa-coins" style="font-size:1.2rem"></i></div>`;
     },
@@ -330,36 +454,6 @@ const Dashboard = {
         `;
     },
 
-    renderBestiaryChart: function(leituras) {
-        const ctx = this.graficoBestiarioEl;
-        if (!ctx) return;
-        if (this.state.graficos.bestiario) this.state.graficos.bestiario.destroy();
-
-        const tiers = { 'Minion': 0, 'Mob': 0, 'Elite': 0, 'Boss': 0, 'World Boss': 0 };
-        
-        leituras.forEach(l => {
-            const p = parseInt(l.livro.paginas, 10) || 0;
-            const mob = Gamification.getClassificacaoMob(p);
-            let key = mob.label.replace('☠️ ', '').trim();
-            if (key.toUpperCase() === 'WORLD BOSS') key = 'World Boss';
-            else if (key === 'Raid Boss') key = 'Boss';
-            else if (key.includes('Elite')) key = 'Elite';
-            else if (key.includes('Mob')) key = 'Mob';
-            else if (key.includes('Minion')) key = 'Minion';
-
-            if (tiers[key] !== undefined) tiers[key]++;
-        });
-
-        this.state.graficos.bestiario = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(tiers),
-                datasets: [{ data: Object.values(tiers), backgroundColor: ['#94a3b8', '#10b981', '#3b82f6', '#ef4444', '#f59e0b'], borderWidth: 0 }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
-        });
-    },
-
     renderLootChart: function() {
         const ctx = this.graficoDNAEl;
         if (!ctx) return;
@@ -367,18 +461,6 @@ const Dashboard = {
         const counts = { 'Comum': 0, 'Incomum': 0, 'Raro': 0, 'Épico': 0, 'Lendário': 0 };
         this.state.todosOsLivros.forEach(l => { if (l.loot) counts[l.loot.tipo]++; });
         this.state.graficos.lootRarity = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#94a3b8', '#10b981', '#3b82f6', '#a855f7', '#f59e0b'], borderWidth: 1, borderColor: '#0f172a' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10 } } } } });
-    },
-
-    renderGraficoGeneros: function(leituras) {
-        const ctx = this.graficoGenerosEl;
-        if (!ctx) return;
-        if (this.state.graficos.generos) this.state.graficos.generos.destroy();
-        const counts = {};
-        leituras.forEach(l => { if (l.livro.categorias) l.livro.categorias.split(',').forEach(c => { const cat = c.trim(); if (cat) counts[cat] = (counts[cat] || 0) + 1; }); });
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-        const top = sorted.slice(0, 5); const outros = sorted.slice(5).reduce((a, v) => a + v[1], 0);
-        const labels = top.map(i => i[0]); const data = top.map(i => i[1]); if (outros > 0) { labels.push('Outros'); data.push(outros); }
-        this.state.graficos.generos = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: ['#2dd4bf', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#94a3b8'], borderColor: '#0f172a', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94A3B8', boxWidth: 10 } } }, cutout: '60%' } });
     },
 
     renderGraficoResumoAnual: function(leituras) {
@@ -464,7 +546,11 @@ const Dashboard = {
             const tds = colunas.map(col => {
                 let val = item[col.key] || '-';
                 if(col.key === 'capa') val = `<img src="${livro.urlCapa||'placeholder.jpg'}" class="tabela-capa-img">`;
-                else if(col.key === 'boss_icon') { const m = Gamification.getClassificacaoMob(parseInt(livro.paginas)||0); val = `<i class="fa-solid ${m.icone}" style="color:${m.cor}"></i>`; }
+                else if(col.key === 'boss_icon') { 
+                    const rpg = livro.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(livro) : {level:1, typeIcon:'fa-paw', typeLabel:'Criatura'});
+                    const color = (typeof Gamification !== 'undefined') ? Gamification.getDifficultyColor(rpg.level) : '#94a3b8';
+                    val = `<i class="fa-solid ${rpg.typeIcon}" style="color:${color}" title="${rpg.typeLabel}"></i>`; 
+                }
                 else if(col.key === 'titulo') val = `<span class="tabela-titulo">${livro.nomeDoLivro}</span>`;
                 else if(col.key === 'autor') val = `<span class="tabela-autor">${livro.autor}</span>`;
                 else if(col.key === 'notaFinal' && item.notaFinal) val = `<span class="badge-nota ${this.getClasseNota(item.notaFinal)}">${item.notaFinal.toFixed(1)}</span>`;

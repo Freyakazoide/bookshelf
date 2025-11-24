@@ -1,8 +1,32 @@
 const Oraculo = {
     config: { 
-        custoNormal: 50,    // Preço inicial
-        custoReroll: 100,   // Preço para tentar de novo
+        custoNormal: 50,
+        custoReroll: 100,
         tempoBuffHoras: 48 
+    },
+
+    // Variável para saber qual livro estamos olhando no painel principal
+    selectedBookId: null,
+
+    buffTypes: {
+        fortune: {
+            label: "A Roda da Fortuna",
+            desc: "Loot Lendário (100%) garantido ao terminar.",
+            icon: "fa-gem",
+            color: "#a855f7"
+        },
+        hermit: {
+            label: "O Eremita",
+            desc: "Ganhe +50% de XP ao concluir esta leitura.",
+            icon: "fa-graduation-cap",
+            color: "#3b82f6"
+        },
+        emperor: {
+            label: "O Imperador",
+            desc: "Recompensa de Ouro em DOBRO ao terminar.",
+            icon: "fa-crown",
+            color: "#f59e0b"
+        }
     },
 
     init: function() { 
@@ -19,8 +43,10 @@ const Oraculo = {
         this.btnReroll = document.getElementById('btn-reroll');
         this.cardLocal = document.getElementById('card-livro-oraculo');
         this.timerDisplay = document.getElementById('oracle-timer');
-        this.balanceDisplay = document.getElementById('oracle-gold-value'); // Novo display
+        this.balanceDisplay = document.getElementById('oracle-gold-value');
         this.custoInicialDisplay = document.querySelector('.custo-display span');
+        this.buffInfoContainer = document.querySelector('.buff-info-card');
+        this.historyList = document.getElementById('oraculo-history-list');
     },
 
     bindEvents: function() {
@@ -28,12 +54,21 @@ const Oraculo = {
         if(this.btnReroll) this.btnReroll.addEventListener('click', () => this.girarRoleta(true));
     },
 
+    // --- FIX CRÍTICO: Usa todosOsLivros e blinda contra undefined ---
+    getLivros: function() {
+        if (window.App && window.App.state && window.App.state.todosOsLivros) {
+            return window.App.state.todosOsLivros;
+        }
+        return [];
+    },
+
     filtrarCandidatos: function() {
-        // 1. Pega apenas "Quero Ler"
-        let candidatos = App.state.livros.filter(l => l.situacao === 'Quero Ler');
+        const livros = this.getLivros();
+        if (livros.length === 0) return [];
+
+        let candidatos = livros.filter(l => l.situacao === 'Quero Ler');
+        const lidos = livros.filter(l => l.situacao === 'Lido');
         
-        // 2. Filtra Volumes (Não sugerir Vol 2 se não leu Vol 1)
-        const lidos = App.state.livros.filter(l => l.situacao === 'Lido');
         candidatos = candidatos.filter(livro => {
             if (!livro.colecao || !livro.volume) return true;
             const volAtual = parseInt(livro.volume);
@@ -45,19 +80,87 @@ const Oraculo = {
 
     render: function() {
         this.init(); 
-        this.atualizarSaldoVisual(); // Mostra o dinheiro atual ao abrir
+        this.atualizarSaldoVisual();
         
-        // Atualiza display do custo inicial no HTML
         if(this.custoInicialDisplay) {
             this.custoInicialDisplay.innerHTML = `${this.config.custoNormal} <i class="fa-solid fa-coins"></i>`;
         }
 
-        const livroAtivo = App.state.livros.find(l => l.oracle && l.oracle.active);
-        if (livroAtivo) {
-            this.mostrarResultado(livroAtivo, false);
+        const livros = this.getLivros();
+        if (livros.length === 0) return; // Não faz nada se ainda não carregou
+
+        let livroParaMostrar = null;
+
+        if (this.selectedBookId) {
+            livroParaMostrar = livros.find(l => l.firestoreId === this.selectedBookId);
+        } else {
+            const ativos = livros
+                .filter(l => l.oracle && l.oracle.active)
+                .sort((a, b) => b.oracle.timestamp - a.oracle.timestamp);
+            
+            if (ativos.length > 0) livroParaMostrar = ativos[0];
+        }
+
+        this.renderHistory(livroParaMostrar ? livroParaMostrar.firestoreId : null);
+
+        if (livroParaMostrar) {
+            this.mostrarResultado(livroParaMostrar, false);
         } else {
             this.mostrarSlotMachine();
         }
+    },
+
+    verDetalhes: function(id) {
+        this.selectedBookId = id;
+        this.render(); 
+    },
+
+    renderHistory: function(activeId) {
+        if (!this.historyList) return;
+        
+        const livros = this.getLivros();
+        const historico = livros
+            .filter(l => l.oracle) 
+            .sort((a, b) => b.oracle.timestamp - a.oracle.timestamp);
+
+        if (historico.length === 0) {
+            this.historyList.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b; font-style:italic;">Nenhuma visão revelada ainda.</div>';
+            return;
+        }
+
+        this.historyList.innerHTML = historico.map(l => {
+            const isActive = l.oracle.active;
+            const isExpired = (l.oracle.expires < Date.now());
+            const data = new Date(l.oracle.timestamp).toLocaleDateString();
+            
+            let visualClass = ''; 
+            let badgeHtml = '';
+
+            if (isActive && !isExpired) {
+                visualClass = 'active-buff';
+                badgeHtml = '<span class="hist-badge ativo">Ativo</span>';
+            } else if (isActive && isExpired) {
+                 visualClass = 'expired-buff';
+                 badgeHtml = '<span class="hist-badge expirado">Expirado</span>';
+            } else {
+                badgeHtml = '<span class="hist-badge passado">Passado</span>';
+            }
+
+            if (l.firestoreId === activeId) visualClass += ' viewing';
+
+            return `
+                <div class="hist-card ${visualClass}" onclick="Oraculo.verDetalhes('${l.firestoreId}')">
+                    <img src="${l.urlCapa || 'placeholder.jpg'}" class="hist-cover">
+                    <div class="hist-info">
+                        <h4>${l.nomeDoLivro}</h4>
+                        <div class="hist-meta">
+                            ${badgeHtml}
+                            <span class="hist-date">${data}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     },
 
     atualizarSaldoVisual: function() {
@@ -67,8 +170,17 @@ const Oraculo = {
     },
 
     mostrarSlotMachine: function() {
+        if(this.selectedBookId !== null) {
+            // Lógica de reset visual
+        }
+        
         this.slotMachine.classList.remove('hidden');
         this.resultadoContainer.classList.add('hidden');
+        
+        if(this.btnInvocar) {
+            this.btnInvocar.disabled = false;
+            this.btnInvocar.innerHTML = '<i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO';
+        }
     },
 
     mostrarResultado: function(livro, animar) {
@@ -77,11 +189,11 @@ const Oraculo = {
             this.resultadoContainer.classList.remove('hidden'); 
         }
 
-        // --- GERAÇÃO DO CARD RICO (COM DETALHES NA DIREITA) ---
         const capa = livro.urlCapa || 'placeholder.jpg';
         const paginas = parseInt(livro.paginas) || 0;
-        const mob = Gamification.getClassificacaoMob(paginas);
-        const notaMedia = Estante.getNotaRecente(livro) || '-';
+        
+        // Usa Gamification se existir, senão fallback
+        const mob = (typeof Gamification !== 'undefined') ? Gamification.getClassificacaoMob(paginas) : { cor: '#fff', label: 'Livro' };
 
         this.cardLocal.innerHTML = `
             <div class="oracle-rich-card">
@@ -103,10 +215,37 @@ const Oraculo = {
             </div>
         `;
 
-        this.iniciarTimer(livro.oracle.expires);
+        const buffType = livro.oracle.type || 'fortune';
+        const buffData = this.buffTypes[buffType];
         
-        // Atualiza texto do botão de Reroll com preço correto
-        this.btnReroll.innerHTML = `<i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: ${this.config.custoReroll} <i class="fa-solid fa-coins"></i>)`;
+        const expired = livro.oracle.expires < Date.now();
+        const active = livro.oracle.active;
+
+        this.buffInfoContainer.style.borderColor = buffData.color;
+        this.buffInfoContainer.style.background = `linear-gradient(135deg, ${buffData.color}10, rgba(15, 23, 42, 0.4))`;
+        
+        let statusMsg = '';
+        if (!active) statusMsg = '<div style="color:#64748b; margin-top:10px;">Buff Desativado/Substituído</div>';
+        else if (expired) statusMsg = '<div style="color:#ef4444; margin-top:10px; font-weight:bold;">BUFF EXPIRADO</div>';
+        else statusMsg = `<div class="timer-display" id="oracle-timer">Calculando...</div>`;
+
+        this.buffInfoContainer.innerHTML = `
+            <h4 style="color:${buffData.color}; margin-bottom:5px;"><i class="fa-solid ${buffData.icon}"></i> Carta: ${buffData.label}</h4>
+            <p>${buffData.desc}</p>
+            ${statusMsg}
+        `;
+        
+        if (active && !expired) {
+            this.timerDisplay = document.getElementById('oracle-timer');
+            this.iniciarTimer(livro.oracle.expires);
+        }
+
+        if (active && !expired) {
+            this.btnReroll.classList.remove('hidden');
+            this.btnReroll.innerHTML = `<i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: ${this.config.custoReroll} <i class="fa-solid fa-coins"></i>)`;
+        } else {
+            this.btnReroll.classList.add('hidden');
+        }
     },
 
     iniciarTimer: function(expiryDate) {
@@ -114,17 +253,29 @@ const Oraculo = {
         const update = () => {
             const diff = expiryDate - Date.now();
             if (diff <= 0) { 
-                this.timerDisplay.textContent = "Buff Expirado"; 
-                this.timerDisplay.style.color = "#ef4444";
+                if(this.timerDisplay) {
+                    this.timerDisplay.textContent = "EXPIRADO"; 
+                    this.timerDisplay.style.color = "#ef4444";
+                }
                 clearInterval(this.timerInterval); 
                 return; 
             }
             const h = Math.floor(diff / 3600000); 
             const m = Math.floor((diff % 3600000) / 60000);
-            this.timerDisplay.textContent = `Expira em: ${h}h ${m}m`;
+            if(this.timerDisplay) this.timerDisplay.textContent = `Expira em: ${h}h ${m}m`;
         };
         update(); 
         this.timerInterval = setInterval(update, 60000);
+    },
+
+    sortearBuff: function() {
+        const keys = Object.keys(this.buffTypes);
+        return keys[Math.floor(Math.random() * keys.length)];
+    },
+
+    abrirNovoSorteio: function() {
+        this.selectedBookId = null;
+        this.render();
     },
 
     girarRoleta: async function(isReroll) {
@@ -132,60 +283,71 @@ const Oraculo = {
         
         const custo = isReroll ? this.config.custoReroll : this.config.custoNormal;
         
-        // VALIDAÇÃO DE SALDO
         if (Loja.state.gold < custo) {
-            return App.mostrarNotificacao(`Você precisa de ${custo} Ouro! Saldo atual: ${Loja.state.gold}`, 'erro');
+            return App.mostrarNotificacao(`Sem Ouro! Custo: ${custo} | Saldo: ${Loja.state.gold}`, 'erro');
         }
 
-        const candidatos = this.filtrarCandidatos();
-        if (candidatos.length === 0) return App.mostrarNotificacao('Nenhum livro apto na lista "Quero Ler"!', 'info');
+        let candidatos = this.filtrarCandidatos();
+        
+        if (isReroll && this.selectedBookId) {
+            candidatos = candidatos.filter(l => l.firestoreId !== this.selectedBookId);
+        }
 
-        // DESCONTA E SALVA IMEDIATAMENTE
+        if (candidatos.length === 0) return App.mostrarNotificacao('Nenhum outro livro disponível para sorteio!', 'info');
+
         Loja.state.gold -= custo;
-        await Loja.salvarDados(); // Garante persistência
-        this.atualizarSaldoVisual(); // Atualiza a tela AGORA
+        await Loja.salvarDados();
+        this.atualizarSaldoVisual();
 
-        // UI Updates
         this.slotMachine.classList.remove('hidden'); 
         this.resultadoContainer.classList.add('hidden');
         this.btnInvocar.disabled = true; 
         this.btnInvocar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> O DESTINO GIRA...';
+        if(this.btnReroll) this.btnReroll.disabled = true;
 
-        // Animação
-        let htmlTrack = ''; 
-        const lista = [...candidatos, ...candidatos].slice(0, 30); // Mais itens para giro longo
         const vencedor = candidatos[Math.floor(Math.random() * candidatos.length)];
-        lista.push(vencedor); // O último é o vencedor visual
+        let listaVisual = [];
+        for(let i=0; i<20; i++) listaVisual.push(candidatos[Math.floor(Math.random() * candidatos.length)]);
+        listaVisual.push(vencedor);
 
-        this.slotTrack.innerHTML = lista.map(l => `<div class="slot-item"><img src="${l.urlCapa || 'placeholder.jpg'}"></div>`).join('');
+        this.slotTrack.innerHTML = listaVisual.map(l => 
+            `<div class="slot-item"><img src="${l.urlCapa || 'placeholder.jpg'}"></div>`
+        ).join('');
+        
         this.slotTrack.style.transition = 'none'; 
         this.slotTrack.style.transform = 'translateY(0)';
-        
-        // Force Reflow
         this.slotTrack.offsetHeight; 
 
         this.slotTrack.style.transition = 'transform 3s cubic-bezier(0.1, 0.7, 0.1, 1)';
-        const cardHeight = 300; // Altura definida no CSS do slot-item
-        this.slotTrack.style.transform = `translateY(-${(lista.length - 1) * cardHeight}px)`;
+        const cardHeight = 270; 
+        this.slotTrack.style.transform = `translateY(-${(listaVisual.length - 1) * cardHeight}px)`;
 
         setTimeout(async () => {
-            // Limpa buffs anteriores
-            App.state.livros.forEach(l => { if (l.oracle) delete l.oracle; }); 
-            
-            // Aplica novo buff
+            if (isReroll && this.selectedBookId) {
+                const livroAntigo = this.getLivros().find(l => l.firestoreId === this.selectedBookId);
+                if (livroAntigo) {
+                    livroAntigo.oracle.active = false; 
+                    await App.salvarLivro(livroAntigo, livroAntigo.firestoreId);
+                }
+            }
+
+            const novoBuffType = this.sortearBuff();
+
             vencedor.oracle = { 
                 active: true, 
+                type: novoBuffType,
                 timestamp: Date.now(), 
                 expires: Date.now() + (this.config.tempoBuffHoras * 3600000) 
             };
             
             await App.salvarLivro(vencedor, vencedor.firestoreId);
             
-            this.mostrarResultado(vencedor, true);
-            this.btnInvocar.disabled = false; 
-            this.btnInvocar.innerHTML = '<i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO';
+            this.selectedBookId = vencedor.firestoreId; 
+            this.render(); 
             
-            App.mostrarNotificacao('O Destino escolheu!', 'sucesso');
+            App.mostrarNotificacao(`Carta: ${this.buffTypes[novoBuffType].label}!`, 'sucesso');
+            if(typeof Estante !== 'undefined') Estante.render(); 
+
         }, 3000);
     }
 };

@@ -411,108 +411,109 @@ const Estante = {
         return 'rarity-legendary';
     },
 
-    // --- RENDERIZAÇÃO DA ESTANTE (COM RPG) ---
+ // --- RENDERIZAÇÃO DA ESTANTE (VERSÃO BLINDADA) ---
     renderEstante: function() {
+        // 1. Segurança: Se não tem livros, para tudo.
+        if (!this.state.todosOsLivros) return;
+
         this.filtrarEOrdenarLivros();
         
-        if (this.state.filtros.visualizacao === 'list') this.estanteEl.classList.add('modo-lista');
-        else this.estanteEl.classList.remove('modo-lista');
+        // 2. Segurança: Verifica se a estante existe no HTML
+        if (this.estanteEl) {
+            if (this.state.filtros.visualizacao === 'list') this.estanteEl.classList.add('modo-lista');
+            else this.estanteEl.classList.remove('modo-lista');
+        }
 
         const { pagina, porPagina } = this.state.filtros;
         const inicio = pagina * porPagina;
         const fim = inicio + porPagina;
         const livrosDaPagina = this.state.livrosFiltrados.slice(inicio, fim);
 
+        // 3. Segurança: Pega os elementos com cuidado
+        const placeholder = document.getElementById('estante-placeholder');
+        const paginacao = document.getElementById('controles-paginacao');
+        const contador = document.getElementById('contador-resultados');
+
         if (livrosDaPagina.length === 0) {
-            this.estanteEl.innerHTML = '';
-            this.estantePlaceholderEl.classList.remove('hidden');
-            this.controlesPaginacaoEl.classList.add('hidden');
+            if(this.estanteEl) this.estanteEl.innerHTML = '';
+            if(placeholder) placeholder.classList.remove('hidden');
+            if(paginacao) paginacao.classList.add('hidden');
         } else {
-            this.estantePlaceholderEl.classList.add('hidden');
-            this.controlesPaginacaoEl.classList.remove('hidden');
+            if(placeholder) placeholder.classList.add('hidden');
+            if(paginacao) paginacao.classList.remove('hidden');
 
+            if(this.estanteEl) {
                 this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
-                const id = this.getId(livro);
-                const capa = livro.urlCapa || 'placeholder.jpg';
-                const status = livro.situacao || 'Quero Ler';
-                const notaNum = this.getNotaRecente(livro);
-                
-                // RPG: Mob Info
-                const paginas = parseInt(livro.paginas, 10) || 0;
-                const mobInfo = Gamification.getClassificacaoMob(paginas);
+                    const id = this.getId(livro);
+                    const capa = livro.urlCapa || 'placeholder.jpg';
+                    const status = livro.situacao || 'Quero Ler';
+                    
+                    // GERAÇÃO SEGURA DOS DADOS DE RPG
+                    // Tenta pegar do livro, se não tiver, gera na hora usando o Gamification novo
+                    const mobData = livro.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(livro) : { level: 1, modifiers: [], typeIcon: 'fa-paw', typeLabel: 'Criatura' });
+                    const mobColor = (typeof Gamification !== 'undefined') ? Gamification.getDifficultyColor(mobData.level) : '#94a3b8';
+                    
+                    const modifiersHTML = (mobData.modifiers || []).map(mod => 
+                        `<span class="mob-modifier ${mod.id}"><i class="fa-solid ${mod.icon}"></i> ${mod.label}</span>`
+                    ).join('');
 
-                const now = Date.now();
-                const hasOracleBuff = livro.oracle && livro.oracle.active && livro.oracle.expires > now;
-                const buffClass = hasOracleBuff ? 'buff-oracle' : '';
+                    let statusPillHTML = '';
+                    if (status === 'Lendo') statusPillHTML = '<span class="status-pill lendo"><i class="fa-solid fa-glasses"></i> Lendo</span>';
+                    else if (status === 'Lido') statusPillHTML = '<span class="status-pill lido"><i class="fa-solid fa-check"></i> Lido</span>';
+                    else if (status === 'Quero Ler') statusPillHTML = '<span class="status-pill quero-ler"><i class="fa-solid fa-bookmark"></i> Quero Ler</span>';
+                    else if (status === 'Abandonado') statusPillHTML = '<span class="status-pill abandonado"><i class="fa-solid fa-ban"></i> Abandonado</span>';
 
-                const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
-                const isTop10 = this.state.top10Ids.has(id);
-                let rarityClass = '';
-                if (isTop10) rarityClass = 'rarity-legendary';
-                else if (isInMeta) rarityClass = 'rarity-epic';
-                else if (status === 'Lendo') rarityClass = 'rarity-active';
-
-                // 3. Badges
-                let badgesHTML = `
-                    <div class="rpg-badge" style="background:${mobInfo.cor}; border-color:#fff;" title="${mobInfo.label} (${paginas} págs)">
-                        <i class="fa-solid ${mobInfo.icone}"></i>
-                    </div>`;
-                if (isTop10) badgesHTML += `<div class="rpg-badge top10" title="Item Lendário"><i class="fa-solid fa-crown"></i></div>`;
-                if (isInMeta) badgesHTML += `<div class="rpg-badge meta" title="Quest Ativa"><i class="fa-solid fa-scroll"></i></div>`;
-
-                // 4. Nota Badge
-                const rarityClassNota = this.getRarityClass(notaNum);                
-                const notaHTML = notaNum ? `<div class="rpg-badge-nota ${rarityClassNota}">LVL ${notaNum.toFixed(1)}</div>` : '';
-
-                // 5. Status Pill
-                let statusClass = status.toLowerCase().replace(' ', '-');
-                let iconStatus = '';
-                if(status === 'Lido') iconStatus = '<i class="fa-solid fa-check"></i>';
-                if(status === 'Lendo') iconStatus = '<i class="fa-solid fa-gamepad"></i>';
-                if(status === 'Abandonado') iconStatus = '<i class="fa-solid fa-skull"></i>';
-                
-                let bossLabelHTML = '';
-                if (mobInfo.tipo === 'worldboss' || mobInfo.tipo === 'boss') {
-                     bossLabelHTML = `<span class="status-pill" style="background:${mobInfo.cor}; color:#000; margin-left: 4px; border: 1px solid #fff;">${mobInfo.label}</span>`;
-                }
-                
-                const statusPillHTML = `<span class="status-pill ${statusClass}">${iconStatus} ${status}</span>${bossLabelHTML}`;
-
-                // 6. Barra de XP Visual (Capa)
-                let xpBarHTML = '';
-                if (status === 'Lendo') {
-                    const leituraAtual = (livro.leituras || []).find(l => !l.dataFim);
-                    let pct = 5;
-                    if (leituraAtual) {
-                        const dias = Math.floor((new Date() - new Date(leituraAtual.dataInicio)) / (1000 * 60 * 60 * 24));
-                        pct = Math.min(100, Math.max(10, dias * 5));
+                    let xpBarHTML = '';
+                    if (status === 'Lendo') {
+                        const leituraAtual = (livro.leituras || []).find(l => !l.dataFim);
+                        let pct = 5;
+                        if (leituraAtual) {
+                            const dias = Math.floor((new Date() - new Date(leituraAtual.dataInicio)) / (1000 * 60 * 60 * 24));
+                            pct = Math.min(100, Math.max(10, dias * 5));
+                        }
+                        xpBarHTML = `<div class="rpg-xp-bar-container"><div class="rpg-xp-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${mobColor}, #fff);"></div></div>`;
                     }
-                    const isBoss = mobInfo.tipo === 'boss' || mobInfo.tipo === 'worldboss';
-                    const barColor = isBoss ? `background: linear-gradient(90deg, ${mobInfo.cor}, #000);` : '';
-                    xpBarHTML = `<div class="rpg-xp-bar-container"><div class="rpg-xp-bar-fill" style="width: ${pct}%; ${barColor}"></div></div>`;
-                }
 
-                return `
-                    <div class="card-livro ${rarityClass} ${mobInfo.classe} ${buffClass}" data-id="${id}" data-status="${status}">
-                        <div class="rpg-badges-container">${badgesHTML}</div>
-                        ${notaHTML}
-                        <div class="card-capa-container">
-                            <img src="${capa}" alt="${livro.nomeDoLivro}" loading="lazy" onerror="this.src='placeholder.jpg';">
-                            ${xpBarHTML}
+                    const now = Date.now();
+                    const hasOracleBuff = livro.oracle && livro.oracle.active && livro.oracle.expires > now;
+                    const buffClass = hasOracleBuff ? 'buff-oracle' : '';
+
+                    const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
+                    const isTop10 = this.state.top10Ids.has(id);
+                    
+                    let rarityClass = '';
+                    if (isTop10) rarityClass = 'rarity-legendary';
+                    else if (isInMeta) rarityClass = 'rarity-epic';
+                    else if (status === 'Lendo') rarityClass = 'rarity-active';
+
+                    const notaNum = this.getNotaRecente(livro);
+                    const rarityClassNota = this.getRarityClass(notaNum);                
+                    const notaHTML = notaNum ? `<div class="rpg-badge-nota ${rarityClassNota}">LVL ${notaNum.toFixed(1)}</div>` : '';
+
+                    return `
+                        <div class="card-livro ${rarityClass} ${buffClass}" style="border-color: ${mobColor}" data-id="${id}" data-status="${status}">
+                            <div class="mob-header-badge" style="background: ${mobColor}">
+                                Lv.${mobData.level} <i class="fa-solid ${mobData.typeIcon}"></i>
+                            </div>
+                            <div class="card-capa-container">
+                                <img src="${capa}" alt="${livro.nomeDoLivro}" loading="lazy" onerror="this.src='placeholder.jpg';">
+                                <div class="mob-modifiers-container">${modifiersHTML}</div>
+                                ${xpBarHTML}
+                            </div>
+                            ${notaHTML}
+                            <div class="card-info">
+                                <h3>${livro.nomeDoLivro}</h3>
+                                <p class="autor">${livro.autor || 'Desconhecido'}</p>
+                                <div class="status-pill-container">${statusPillHTML}</div>
+                            </div>
+                            <button class="card-acao-btn" aria-label="Opções"><i class="fa-solid fa-ellipsis-vertical"></i></button>
                         </div>
-                        <div class="card-info">
-                            <h3>${livro.nomeDoLivro}</h3>
-                            <p class="autor">${livro.autor || 'Desconhecido'}</p>
-                            <div class="status-pill-container">${statusPillHTML}</div>
-                        </div>
-                        <button class="card-acao-btn" aria-label="Opções"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            }
         }
-        this.contadorResultadosEl.textContent = `${this.state.livrosFiltrados.length} livros no inventário.`;
+        if(contador) contador.textContent = `${this.state.livrosFiltrados.length} monstros.`;
         this.renderPaginacao();
-        window.scrollTo(0, 0);
     },
 
     renderPaginacao: function() {

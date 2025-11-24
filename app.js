@@ -1,258 +1,100 @@
-const App = {
-    state: {
-        livros: [],
-        challenges: [],
-        activeView: 'view-estante',
-        db: null,
-        auth: null,
-        user: null,
-    },
-
-    cacheDOM: function() {
-        this.navLinks = document.querySelectorAll('.nav-link');
-        this.views = document.querySelectorAll('.view');
-        this.notificacaoContainerEl = document.getElementById('notificacao-container');
-        this.authContainerEl = document.getElementById('auth-container');
-    },
-
-    bindEvents: function() {
-        this.navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetLink = e.target.closest('.nav-link');
-                if (targetLink) this.navegarPara(targetLink.dataset.view);
-            });
-        });
-
-        this.authContainerEl.addEventListener('click', (e) => {
-            const loginButton = e.target.closest('#btn-login');
-            const logoutButton = e.target.closest('#btn-logout');
-            if (loginButton) this.login();
-            if (logoutButton) this.logout();
-        });
-    },
-
-    init: async function() {
-        console.log('Aplicativo iniciando com Firebase...');
-        this.cacheDOM();
-        this.bindEvents();
-        
-        try {
-            firebase.initializeApp(firebaseConfig);
-            this.state.db = firebase.firestore();
-            this.state.auth = firebase.auth();
-            console.log('Firebase conectado!');
-            
-            this.state.auth.onAuthStateChanged(user => {
-                this.state.user = user || null;
-                this.renderAuthUI();
-                this.toggleEditFeatures();
-            });
-            
-            await this.carregarDadosDoFirebase();
-
-        } catch (error) {
-            console.error('Erro crítico:', error);
-            this.mostrarNotificacao('Erro ao conectar.', 'erro');
-        }
-    },
-
-    carregarDadosDoFirebase: async function() {
-        this.mostrarNotificacao('Sincronizando dados...', 'info');
-        try {
-            const livrosSnapshot = await this.state.db.collection('livros').get();
-            this.state.livros = livrosSnapshot.docs.map(doc => ({
-                firestoreId: doc.id,
-                ...doc.data()
-            }));
-
-            const challengesSnapshot = await this.state.db.collection('challenges').get();
-            this.state.challenges = challengesSnapshot.docs.map(doc => ({
-                firestoreId: doc.id,
-                ...doc.data()
-            }));
-
-            Gamification.atualizarInterface(this.state.livros);
-            Estante.init(this.state.livros, this.state.challenges);
-            Adicionar.init(this.state.livros);
-            Dashboard.init(this.state.livros);
-            Desafio.init(this.state.livros, this.state.challenges);
-            if (typeof Loja !== 'undefined') Loja.init();
-            
-            if(this.state.activeView === 'view-inventario') Inventario.render();
-
-        } catch (error) {
-            console.error("Erro Firestore:", error);
-            this.mostrarNotificacao('Erro ao carregar dados.', 'erro');
-        }
-    },
-    
-    login: async function() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            await this.state.auth.signInWithPopup(provider);
-            this.mostrarNotificacao('Logado com sucesso!');
-        } catch (error) {
-            this.mostrarNotificacao('Erro no login.', 'erro');
-        }
-    },
-
-    logout: async function() {
-        try {
-            await this.state.auth.signOut();
-            this.mostrarNotificacao('Desconectado.');
-        } catch (error) { console.error(error); }
-    },
-
-    renderAuthUI: function() {
-        if (this.state.user) {
-            this.authContainerEl.innerHTML = `
-                <div class="auth-info">
-                    <img src="${this.state.user.photoURL}" alt="Foto">
-                    <p>${this.state.user.displayName}</p>
-                    <button id="btn-logout" class="btn-logout"><i class="fa-solid fa-sign-out-alt"></i></button>
-                </div>`;
-        } else {
-            this.authContainerEl.innerHTML = `
-                <button id="btn-login" class="btn-login">
-                    <i class="fa-brands fa-google"></i> Login
-                </button>`;
-        }
-    },
-
-    toggleEditFeatures: function() {
-        const editButtons = document.querySelectorAll('#painel-btn-editar, #painel-btn-excluir, #painel-btn-salvar, #form-notas, #painel-btn-nova-leitura');
-        const addLink = document.querySelector('.nav-link[data-view="view-adicionar"]');
-        const display = this.state.user ? 'block' : 'none';
-        
-        editButtons.forEach(btn => btn.style.display = display);
-        if (addLink) addLink.style.display = display;
-    },
-
-    salvarLivro: async function(livroData, firestoreId) {
-        if (!this.state.user) {
-            this.mostrarNotificacao('Faça login para salvar.', 'erro');
-            return false;
-        }
-        const dadosParaSalvar = { ...livroData };
-        delete dadosParaSalvar.firestoreId; 
-        
-        try {
-            if (firestoreId) {
-                await this.state.db.collection('livros').doc(firestoreId).set(dadosParaSalvar, { merge: true });
-                const index = this.state.livros.findIndex(l => l.firestoreId === firestoreId);
-                if (index !== -1) {
-                    this.state.livros[index] = { firestoreId, ...dadosParaSalvar };
-                }
-            } else {
-                const docRef = await this.state.db.collection('livros').add(dadosParaSalvar);
-                this.state.livros.push({ firestoreId: docRef.id, ...dadosParaSalvar });
-            }
-            return true;
-        } catch (error) {
-            console.error('Erro salvar:', error);
-            this.mostrarNotificacao('Erro ao salvar.', 'erro');
-            return false;
-        }
-    },
-    
-    excluirLivro: async function(firestoreId) {
-        if (!this.state.user) return this.mostrarNotificacao('Faça login.', 'erro');
-        try {
-            await this.state.db.collection('livros').doc(firestoreId).delete();
-            this.state.livros = this.state.livros.filter(l => l.firestoreId !== firestoreId);
-            this.carregarDadosDoFirebase(); 
-            this.mostrarNotificacao('Excluído.');
-        } catch (error) { this.mostrarNotificacao('Erro ao excluir.', 'erro'); }
-    },
-    
-    salvarMetas: async function(metas) {
-        if (!this.state.user) return;
-        try {
-            const batch = this.state.db.batch();
-            const collectionRef = this.state.db.collection('challenges');
-            const snapshot = await collectionRef.get();
-            snapshot.docs.forEach(doc => batch.delete(doc.ref));
-            metas.forEach(meta => {
-                const { firestoreId, ...metaData } = meta;
-                const docRef = firestoreId ? collectionRef.doc(firestoreId) : collectionRef.doc();
-                batch.set(docRef, metaData);
-            });
-            await batch.commit();
-        } catch (error) { console.error(error); }
-    },
-
-    navegarPara: function(viewId) {
-        this.views.forEach(v => v.classList.remove('active'));
-        const viewEl = document.getElementById(viewId);
-        if(viewEl) viewEl.classList.add('active');
-        
-        this.navLinks.forEach(l => l.classList.remove('active'));
-        const activeLink = document.querySelector(`.nav-link[data-view="${viewId}"]`);
-        if (activeLink) activeLink.classList.add('active');
-        
-        this.state.activeView = viewId;
-        window.scrollTo(0, 0);
-        
-        if (viewId === 'view-dashboard') Dashboard.atualizar(this.state.livros);
-        if (viewId === 'view-desafio') Desafio.atualizar(this.state.livros);
-        if (viewId === 'view-inventario') Inventario.render();
-        if (viewId === 'view-loja' && typeof Loja !== 'undefined') Loja.render();
-        if (viewId === 'view-oraculo') Oraculo.render();
-    },
-
-    mostrarNotificacao: function(mensagem, tipo = 'sucesso') {
-        const notificacao = document.createElement('div');
-        notificacao.className = `notificacao ${tipo}`;
-        notificacao.textContent = mensagem;
-        this.notificacaoContainerEl.appendChild(notificacao);
-        setTimeout(() => notificacao.remove(), 3000);
-    }
-};
-
-// --- GAMIFICATION & LOOT SYSTEM 2.0 ---
 const Gamification = {
     config: { xpPorPagina: 1, xpBonusLivro: 50, fatorNivel: 0.15 },
 
-    // Tabela de Loot Expandida e Criativa
     lootTable: [
-        // 1. CONSUMÍVEIS (XP e Buffs Rápidos)
         { id: 'pot_cafe', nome: 'Café Expresso', categoria: 'consumivel', tipo: 'Comum', icone: 'fa-mug-hot', desc: 'Um gole rápido de energia. +50 XP.', efeito: 'xp', valor: 50, dropRate: 30 },
-        { id: 'pot_cha', nome: 'Chá de Camomila', categoria: 'consumivel', tipo: 'Comum', icone: 'fa-mug-saucer', desc: 'Acalma a mente para absorver melhor a história. +60 XP.', efeito: 'xp', valor: 60, dropRate: 30 },
+        { id: 'pot_cha', nome: 'Chá de Camomila', categoria: 'consumivel', tipo: 'Comum', icone: 'fa-mug-saucer', desc: 'Acalma a mente. +60 XP.', efeito: 'xp', valor: 60, dropRate: 30 },
         { id: 'pot_energetico', nome: 'Energético Literário', categoria: 'consumivel', tipo: 'Incomum', icone: 'fa-bolt', desc: 'Foco laser! +150 XP.', efeito: 'xp', valor: 150, dropRate: 15 },
-        { id: 'pot_sabedoria', nome: 'Elixir da Sabedoria', categoria: 'consumivel', tipo: 'Raro', icone: 'fa-flask', desc: 'Conhecimento puro engarrafado. +300 XP.', efeito: 'xp', valor: 300, dropRate: 8 },
-        { id: 'pot_memoria', nome: 'Frasco de Memória', categoria: 'consumivel', tipo: 'Épico', icone: 'fa-brain', desc: 'Você se lembra de cada detalhe. +800 XP.', efeito: 'xp', valor: 800, dropRate: 3 },
-
-        // 2. EQUIPAMENTOS (Prestígio)
-        { id: 'eq_oculos', nome: 'Óculos de Leitura', categoria: 'equipamento', tipo: 'Comum', icone: 'fa-glasses', desc: 'Faz você parecer mais inteligente (+1 Charme).', dropRate: 20 },
-        { id: 'eq_marcador', nome: 'Marcador de Papelão', categoria: 'equipamento', tipo: 'Comum', icone: 'fa-bookmark', desc: 'Simples, mas funciona.', dropRate: 20 },
-        { id: 'eq_lupa', nome: 'Lupa de Detetive', categoria: 'equipamento', tipo: 'Incomum', icone: 'fa-magnifying-glass', desc: 'Para encontrar detalhes escondidos no plot.', dropRate: 15 },
-        { id: 'eq_kindle', nome: 'Tablet Arcano', categoria: 'equipamento', tipo: 'Raro', icone: 'fa-tablet-screen-button', desc: 'Contém milhares de mundos em um vidro negro.', dropRate: 8 },
-        { id: 'eq_pena', nome: 'Pena de Fênix', categoria: 'equipamento', tipo: 'Épico', icone: 'fa-feather-pointed', desc: 'Dizem que a tinta nunca acaba.', dropRate: 2 },
-
-        // 3. COLECIONÁVEIS (LORE - Partes de um todo)
-        { id: 'col_mapa_1', nome: 'Fragmento de Mapa (Norte)', categoria: 'colecionavel', tipo: 'Incomum', icone: 'fa-map', desc: 'Parte de um mapa antigo de uma biblioteca perdida.', dropRate: 5 },
-        { id: 'col_mapa_2', nome: 'Fragmento de Mapa (Sul)', categoria: 'colecionavel', tipo: 'Incomum', icone: 'fa-map-location', desc: 'Outra parte do mapa. Onde isso leva?', dropRate: 5 },
-        { id: 'col_runa_antiga', nome: 'Runa Esquecida', categoria: 'colecionavel', tipo: 'Raro', icone: 'fa-cubes-stacked', desc: 'Uma pedra vibrando com histórias antigas.', dropRate: 4 },
-        
-        // 4. ARTEFATOS LENDÁRIOS
-        { id: 'art_necro', nome: 'Página do Necronomicon', categoria: 'colecionavel', tipo: 'Lendário', icone: 'fa-book-skull', desc: 'Cuidado. Não leia em voz alta à meia-noite.', dropRate: 1 },
-        { id: 'art_graal', nome: 'Cálice de Tinta', categoria: 'colecionavel', tipo: 'Lendário', icone: 'fa-wine-glass', desc: 'A inspiração infinita dos grandes autores.', dropRate: 1 }
+        { id: 'pot_sabedoria', nome: 'Elixir da Sabedoria', categoria: 'consumivel', tipo: 'Raro', icone: 'fa-flask', desc: 'Conhecimento puro. +300 XP.', efeito: 'xp', valor: 300, dropRate: 8 },
+        { id: 'pot_memoria', nome: 'Frasco de Memória', categoria: 'consumivel', tipo: 'Épico', icone: 'fa-brain', desc: 'Lembrança total. +800 XP.', efeito: 'xp', valor: 800, dropRate: 3 },
+        { id: 'eq_oculos', nome: 'Óculos de Leitura', categoria: 'equipamento', tipo: 'Comum', icone: 'fa-glasses', desc: 'Mais inteligente (+1 Charme).', dropRate: 20 },
+        { id: 'eq_marcador', nome: 'Marcador de Papelão', categoria: 'equipamento', tipo: 'Comum', icone: 'fa-bookmark', desc: 'Simples e funcional.', dropRate: 20 },
+        { id: 'eq_lupa', nome: 'Lupa de Detetive', categoria: 'equipamento', tipo: 'Incomum', icone: 'fa-magnifying-glass', desc: 'Encontra detalhes ocultos.', dropRate: 15 },
+        { id: 'eq_kindle', nome: 'Tablet Arcano', categoria: 'equipamento', tipo: 'Raro', icone: 'fa-tablet-screen-button', desc: 'Milhares de mundos num vidro.', dropRate: 8 },
+        { id: 'eq_pena', nome: 'Pena de Fênix', categoria: 'equipamento', tipo: 'Épico', icone: 'fa-feather-pointed', desc: 'Tinta infinita.', dropRate: 2 },
+        { id: 'col_mapa_1', nome: 'Fragmento de Mapa (Norte)', categoria: 'colecionavel', tipo: 'Incomum', icone: 'fa-map', desc: 'Parte de um mapa antigo.', dropRate: 5 },
+        { id: 'col_mapa_2', nome: 'Fragmento de Mapa (Sul)', categoria: 'colecionavel', tipo: 'Incomum', icone: 'fa-map-location', desc: 'Outra parte do mapa.', dropRate: 5 },
+        { id: 'col_runa_antiga', nome: 'Runa Esquecida', categoria: 'colecionavel', tipo: 'Raro', icone: 'fa-cubes-stacked', desc: 'Pedra vibrante.', dropRate: 4 },
+        { id: 'art_necro', nome: 'Página do Necronomicon', categoria: 'colecionavel', tipo: 'Lendário', icone: 'fa-book-skull', desc: 'Cuidado ao ler.', dropRate: 1 },
+        { id: 'art_graal', nome: 'Cálice de Tinta', categoria: 'colecionavel', tipo: 'Lendário', icone: 'fa-wine-glass', desc: 'Inspiração infinita.', dropRate: 1 }
     ],
 
+    archetypes: [
+        { keys: ['paranormal', 'vampires', 'terror', 'horror', 'medo', 'thriller', 'suspense', 'dark', 'gothic', 'undead'], type: 'Undead', icon: 'fa-ghost', label: 'Espectro' },
+        { keys: ['fantasy', 'discworld', 'beauty and the beast', 'cats', 'dungeons', 'dragons', 'fantasia', 'magic', 'mágica', 'wizard', 'epic', 'game'], type: 'Beast', icon: 'fa-dragon', label: 'Fera Mística' },
+        { keys: ['science fiction', 'planets', 'extraterrestrial', 'alien', 'human-alien', 'ficção', 'sci-fi', 'space', 'cyber', 'future', 'robot'], type: 'Alien', icon: 'fa-satellite-dish', label: 'Alienígena' },
+        { keys: ['biography', 'autobiography', 'humanoid', 'american', 'adventure', 'aventura', 'biografia', 'memoir', 'vida', 'alliances'], type: 'Humanoid', icon: 'fa-user-tie', label: 'Humanoide' },
+        { keys: ['philosophy', 'history', 'história', 'guerra', 'war', 'sapiens', 'antigo', 'ancient', 'politics'], type: 'Ancient', icon: 'fa-scroll', label: 'Ancestral' },
+        { keys: ['science', 'games & activities', 'técnico', 'dev', 'code', 'design', 'estudo', 'educação', 'marketing', 'business', 'software', 'tech'], type: 'Construct', icon: 'fa-robot', label: 'Constructo' },
+        { keys: ['performing arts', 'drama', 'relationships', 'families', 'romance', 'love', 'amor', 'romantic', 'young adult', 'ya'], type: 'Elemental', icon: 'fa-heart-pulse', label: 'Elemental' },
+        { keys: ['good and evil', 'religião', 'espiritual', 'faith', 'church', 'religion', 'christian', 'philosophy'], type: 'Celestial', icon: 'fa-sun', label: 'Celestial' },
+        { keys: ['assassins', 'enemies', 'brigands', 'robbers', 'amnesiacs', 'mistério', 'mystery', 'crime', 'policial', 'detective', 'murder'], type: 'Shadow', icon: 'fa-user-secret', label: 'Sombra' },
+        { keys: ['comics', 'graphic', 'gifted', 'hqs', 'manga', 'mangá'], type: 'Mutant', icon: 'fa-mask', label: 'Mutante' },
+        { keys: ['fiction', 'juvenile', 'novel', 'literatura', 'literature'], type: 'Humanoid', icon: 'fa-user', label: 'Viajante' }
+    ],
+
+    gerarDadosMob: function(livro) {
+        const paginas = parseInt(livro.paginas) || 200;
+        const ano = parseInt(livro.anoLancamento) || 2025;
+        const generos = (livro.categorias || '').toLowerCase();
+        
+        const nivel = Math.max(1, Math.floor(paginas / 50)); 
+        const hp = paginas * 10;
+        
+        let archetype = { type: 'Minion', icon: 'fa-paw', label: 'Criatura' };
+        
+        for (const arch of this.archetypes) {
+            if (arch.keys.some(k => generos.includes(k))) {
+                archetype = arch;
+                break;
+            }
+        }
+
+        let modifiers = [];
+        if (ano < 1980) modifiers.push({ id: 'ancient', label: 'Ancião', icon: 'fa-hourglass-half', rarity: 'rare' });
+        if (paginas > 600) modifiers.push({ id: 'colossal', label: 'Colossal', icon: 'fa-mountain', rarity: 'epic' });
+        if (paginas > 400 && ano < 2000) modifiers.push({ id: 'elite', label: 'Elite', icon: 'fa-star', rarity: 'uncommon' });
+
+        const xpReward = Math.floor(paginas * 0.8);
+        const goldReward = Math.floor(paginas * 0.4);
+
+        return {
+            level: nivel,
+            hp: hp,
+            hpMax: hp,
+            type: archetype.type,
+            typeLabel: archetype.label,
+            typeIcon: archetype.icon,
+            modifiers: modifiers,
+            xpReward: xpReward,
+            goldReward: goldReward,
+            isBoss: paginas > 800
+        };
+    },
+
+    getDifficultyColor: function(level) {
+        if (level < 5) return '#94a3b8';
+        if (level < 10) return '#10b981';
+        if (level < 15) return '#3b82f6';
+        if (level < 20) return '#a855f7';
+        return '#ef4444';
+    },
+
     calcularStats: function(livros) {
-        const livrosLidos = livros.filter(l => l.situacao === 'Lido');
+        if (!livros || !Array.isArray(livros)) {
+            return { totalXP: 0, nivel: 1, xpProximo: 100, pctBarra: 0, classe: 'Novato' };
+        }
+
+        const livrosLidos = livros.filter(l => l && l.situacao === 'Lido');
         let totalXP = 0;
         
-        // XP dos Livros
         livrosLidos.forEach(l => {
             const pags = parseInt(l.paginas, 10) || 0;
             totalXP += (pags * this.config.xpPorPagina) + this.config.xpBonusLivro;
         });
 
-        // XP dos Itens Consumidos
-        App.state.livros.forEach(l => {
-            if (l.loot && l.loot.consumido) {
+        livros.forEach(l => {
+            if (l && l.loot && l.loot.consumido) {
                 const valorXP = l.loot.valor || 0;
                 totalXP += valorXP;
             }
@@ -261,25 +103,43 @@ const Gamification = {
         const nivel = Math.floor(Math.sqrt(totalXP) * this.config.fatorNivel) + 1;
         const xpAtualNivelBase = Math.pow((nivel - 1) / this.config.fatorNivel, 2);
         const xpProximoNivel = Math.pow(nivel / this.config.fatorNivel, 2);
-        let pctBarra = ((totalXP - xpAtualNivelBase) / (xpProximoNivel - xpAtualNivelBase)) * 100;
-        if(pctBarra > 100) pctBarra = 100; if(totalXP === 0) pctBarra = 0;
+        
+        let pctBarra = 0;
+        if (xpProximoNivel > xpAtualNivelBase) {
+            pctBarra = ((totalXP - xpAtualNivelBase) / (xpProximoNivel - xpAtualNivelBase)) * 100;
+        }
+        if(pctBarra > 100) pctBarra = 100; 
         if(pctBarra < 0) pctBarra = 0;
 
-        // Classe Baseada no Gênero
-        const generos = {};
-        livrosLidos.forEach(l => { if(l.categorias) l.categorias.split(',').forEach(c => { const t=c.trim(); if(t) generos[t]=(generos[t]||0)+1; }); });
-        const topGenero = Object.keys(generos).reduce((a, b) => generos[a] > generos[b] ? a : b, "Novato");
-
-        return { totalXP, nivel, xpProximo: Math.floor(xpProximoNivel), pctBarra, classe: this.mapearClasse(topGenero) };
+        const classesCount = {};
+        livrosLidos.forEach(l => {
+            const rpg = l.rpg || this.gerarDadosMob(l);
+            const tipo = rpg.type || 'Minion';
+            classesCount[tipo] = (classesCount[tipo] || 0) + 1;
+        });
+        
+        const topTipo = Object.keys(classesCount).length > 0 
+            ? Object.keys(classesCount).reduce((a, b) => classesCount[a] > classesCount[b] ? a : b) 
+            : "Minion";
+        
+        return { totalXP, nivel, xpProximo: Math.floor(xpProximoNivel), pctBarra, classe: this.mapearClasseJogador(topTipo) };
     },
 
-    mapearClasse: function(genero) {
-        const m = { 
-            'Fantasia':'Arcanista', 'Ficção Científica':'Tecnomante', 'Terror':'Caçador de Sombras', 
-            'Romance':'Bardo', 'Técnico':'Artífice', 'História':'Cronista', 'Mistério':'Investigador',
-            'Autoajuda':'Monge', 'Poesia':'Poeta', 'HQ':'Herói'
+    mapearClasseJogador: function(tipoInimigoFavorito) {
+        const map = {
+            'Undead': 'Caçador de Sombras', 
+            'Beast': 'Draconiano',         
+            'Alien': 'Patrulheiro Estelar',
+            'Ancient': 'Arqueólogo',       
+            'Construct': 'Engenheiro',     
+            'Humanoid': 'Diplomata',       
+            'Elemental': 'Poeta',          
+            'Shadow': 'Detetive',
+            'Celestial': 'Paladino',
+            'Mutant': 'Vigilante',
+            'Minion': 'Aventureiro'
         };
-        return m[genero] || 'Aventureiro';
+        return map[tipoInimigoFavorito] || 'Novato';
     },
 
     getClassificacaoMob: function(paginas) {
@@ -290,13 +150,13 @@ const Gamification = {
         return { tipo: 'minion', label: 'Minion', classe: 'mob-minion', icone: 'fa-ghost', cor: '#94a3b8' };
     },
 
-gerarLoot: function(livro) {
+    gerarLoot: function(livro) {
         if (livro.loot) return livro.loot; 
 
         let isOracleBoosted = false;
         if (livro.oracle && livro.oracle.active) {
             isOracleBoosted = true;
-            livro.oracle.active = false; // Consome o buff
+            livro.oracle.active = false; 
         }
 
         let pool = [];
@@ -340,7 +200,6 @@ gerarLoot: function(livro) {
         const raridadeClass = item.tipo === 'Comum' ? 'common' : item.tipo === 'Incomum' ? 'uncommon' : item.tipo === 'Raro' ? 'rare' : item.tipo === 'Épico' ? 'epic' : 'legendary';
         container.className = `loot-container loot-${raridadeClass}`;
         
-        // TRATAMENTO PARA CATEGORIA UNDEFINED VISUAL
         const catExibicao = (item.categoria || 'Outros').toUpperCase();
         
         titleMain.textContent = isReplay ? "Inspecionando Item" : "Quest Complete!";
@@ -355,10 +214,11 @@ gerarLoot: function(livro) {
         }
 
         modal.showModal();
-        btnColetar.onclick = () => { modal.close(); Inventario.render(); };
+        btnColetar.onclick = () => { modal.close(); if(typeof Inventario !== 'undefined') Inventario.render(); };
     },
     
     atualizarInterface: function(livros) {
+        if(!livros) return;
         const stats = this.calcularStats(livros);
         const elNivel = document.getElementById('player-level-badge');
         const elXP = document.getElementById('xp-current');
@@ -376,221 +236,256 @@ gerarLoot: function(livro) {
     }
 };
 
-// --- INVENTÁRIO (MOCHILA) 4.0 ---
-const Inventario = {
-    state: { 
-        filtroAtual: 'Todos',
-        itemSelecionado: null,
-        itensAgrupados: []
-    },
-
-    init: function() {
-        this.cacheDOM();
+// --- APP PRINCIPAL ---
+const App = {
+    state: {
+        todosOsLivros: [],
+        challenges: [],
+        activeView: 'view-estante',
+        db: null,
+        auth: null,
+        user: null,
     },
 
     cacheDOM: function() {
-        this.gridEl = document.getElementById('grid-inventario');
-        this.sidebar = document.querySelector('.inventario-sidebar');
-        this.previewIcon = document.getElementById('inv-preview-icon');
-        this.previewTitle = document.getElementById('inv-preview-title');
-        this.previewType = document.getElementById('inv-preview-type');
-        this.previewDesc = document.getElementById('inv-preview-desc');
-        this.btnUsar = document.getElementById('btn-inv-usar');
-        this.statsTotal = document.getElementById('inv-total-items');
-        this.statsGold = document.getElementById('inv-gold-value');
-        
-        if(this.btnUsar) {
-            const novoBtn = this.btnUsar.cloneNode(true);
-            this.btnUsar.parentNode.replaceChild(novoBtn, this.btnUsar);
-            this.btnUsar = novoBtn;
-            this.btnUsar.addEventListener('click', () => this.usarItemSelecionado());
-        }
+        this.navLinks = document.querySelectorAll('.nav-link');
+        this.views = document.querySelectorAll('.view');
+        this.notificacaoContainerEl = document.getElementById('notificacao-container');
+        this.authContainerEl = document.getElementById('auth-container');
     },
 
-    agruparItens: function() {
-        const livros = App.state.livros || [];
-        const mapaItens = new Map();
-
-        livros.forEach(livro => {
-            if (livro.loot && !livro.loot.consumido) {
-                const loot = livro.loot;
-                
-                // --- CORREÇÃO DE DADOS LEGADOS (MIGRAÇÃO EM TEMPO REAL) ---
-                // Se o item antigo não tem categoria, atribuímos 'outros' ou tentamos inferir
-                if (!loot.categoria) {
-                    if(loot.tipo === 'Consumível' || loot.efeito === 'xp') loot.categoria = 'consumivel';
-                    else loot.categoria = 'equipamento';
-                }
-                
-                const key = loot.idItem || loot.nome; // Fallback para nome se id faltar
-
-                if (mapaItens.has(key)) {
-                    const grupo = mapaItens.get(key);
-                    grupo.quantidade++;
-                    grupo.livrosOrigem.push(livro);
-                } else {
-                    mapaItens.set(key, {
-                        ...loot,
-                        quantidade: 1,
-                        livrosOrigem: [livro]
-                    });
-                }
-            }
+    bindEvents: function() {
+        this.navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetLink = e.target.closest('.nav-link');
+                if (targetLink) this.navegarPara(targetLink.dataset.view);
+            });
         });
 
-        this.state.itensAgrupados = Array.from(mapaItens.values());
+        if(this.authContainerEl) {
+            this.authContainerEl.addEventListener('click', (e) => {
+                const loginButton = e.target.closest('#btn-login');
+                const logoutButton = e.target.closest('#btn-logout');
+                if (loginButton) this.login();
+                if (logoutButton) this.logout();
+            });
+        }
     },
 
-    filtrar: function(filtro) {
-        this.state.filtroAtual = filtro;
-        document.querySelectorAll('.filtro-status-inv').forEach(btn => {
-            if(btn.dataset.tipo === filtro) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        this.renderGrid();
-    },
-
-    render: function() {
-        this.init();
-        this.agruparItens();
-        this.renderGrid();
-        this.limparPreview();
-    },
-
-    renderGrid: function() {
-        if (!this.gridEl) return;
+    init: async function() {
+        console.log('Aplicativo iniciando com Firebase...');
+        this.cacheDOM();
+        this.bindEvents();
         
-        let itensExibidos = this.state.itensAgrupados;
-        if (this.state.filtroAtual !== 'Todos') {
-            itensExibidos = itensExibidos.filter(i => i.categoria === this.state.filtroAtual);
-        }
-
-        const totalItens = this.state.itensAgrupados.reduce((acc, item) => acc + item.quantidade, 0);
-        if(this.statsTotal) this.statsTotal.textContent = totalItens;
-        if(this.statsGold) this.statsGold.innerHTML = `${totalItens * 10} <i class="fa-solid fa-coins"></i>`;
-
-        if (itensExibidos.length === 0) {
-            this.gridEl.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:2rem; color:#64748b;">Mochila vazia.</div>`;
-            for(let i=0; i<12; i++) this.gridEl.innerHTML += `<div class="inv-slot empty"></div>`;
-            return;
-        }
-
-        this.gridEl.innerHTML = itensExibidos.map(item => {
-            const raridadeClass = `rarity-${item.tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
-            const itemJson = encodeURIComponent(JSON.stringify(item));
+        try {
+            firebase.initializeApp(firebaseConfig);
+            this.state.db = firebase.firestore();
+            this.state.auth = firebase.auth();
+            console.log('Firebase conectado!');
             
-            return `
-                <div class="inv-slot ${raridadeClass}" onclick="Inventario.selecionarItem('${item.idItem}')">
-                    <i class="fa-solid ${item.icone}"></i>
-                    <span class="item-count">${item.quantidade}</span>
+            this.state.auth.onAuthStateChanged(user => {
+                this.state.user = user || null;
+                this.renderAuthUI();
+                this.toggleEditFeatures();
+                
+                if (user) {
+                    this.carregarDadosDoFirebase();
+                } else {
+                    this.state.todosOsLivros = [];
+                    this.state.challenges = [];
+                    this.atualizarModulos();
+                }
+            });
+
+        } catch (error) {
+            console.error('Erro crítico:', error);
+            this.mostrarNotificacao('Erro ao conectar.', 'erro');
+        }
+        
+        // Botão Mágico (Só pra emergência, pode remover depois)
+        setTimeout(() => this.criarBotaoMagico(), 3000);
+    },
+
+    // --- CORREÇÃO CRÍTICA AQUI: ROTA DO BANCO ---
+    carregarDadosDoFirebase: async function() {
+        this.mostrarNotificacao('Sincronizando dados...', 'info');
+        try {
+            // VOLTEI PARA A ROTA ANTIGA QUE FUNCIONAVA
+            // Coleções na Raiz (Seu DB está aqui)
+            
+            this.state.db.collection('livros')
+                .onSnapshot(snapshot => {
+                    this.state.todosOsLivros = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+                    this.atualizarModulos();
+                });
+
+            this.state.db.collection('challenges')
+                .onSnapshot(snapshot => {
+                    this.state.challenges = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+                    this.atualizarModulos();
+                });
+
+            // Loja é um pouco mais complexa, vou assumir que está no usuário
+            if (typeof Loja !== 'undefined') Loja.init();
+
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+            this.mostrarNotificacao("Falha ao carregar dados.", "erro");
+        }
+    },
+
+    atualizarModulos: function() {
+        if(typeof Estante !== 'undefined') Estante.init(this.state.todosOsLivros, this.state.challenges);
+        if(typeof Dashboard !== 'undefined') Dashboard.init(this.state.todosOsLivros);
+        if(typeof Inventario !== 'undefined') Inventario.render();
+        if(typeof Gamification !== 'undefined') Gamification.atualizarInterface(this.state.todosOsLivros);
+        if(typeof Oraculo !== 'undefined') Oraculo.render();
+        if(typeof Desafio !== 'undefined') Desafio.init(this.state.challenges, this.state.todosOsLivros);
+    },
+
+    salvarLivro: async function(livro, id = null) {
+        if (!this.state.user) return this.mostrarNotificacao("Faça login para salvar.", "erro");
+        try {
+            // VOLTEI PARA A ROTA ANTIGA NA RAIZ
+            const collection = this.state.db.collection('livros');
+            if (id) {
+                await collection.doc(id).set(livro, {merge: true});
+            } else {
+                await collection.add(livro);
+            }
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
+            this.mostrarNotificacao("Erro ao salvar.", "erro");
+        }
+    },
+
+    excluirLivro: async function(id) {
+        if (!this.state.user) return;
+        try {
+            // VOLTEI PARA A ROTA ANTIGA NA RAIZ
+            await this.state.db.collection('livros').doc(id).delete();
+            this.mostrarNotificacao("Livro removido.", "sucesso");
+        } catch (error) {
+            console.error("Erro ao excluir:", error);
+        }
+    },
+
+    login: async function() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            await this.state.auth.signInWithPopup(provider);
+            this.mostrarNotificacao("Login realizado!", "sucesso");
+        } catch (error) {
+            console.error(error);
+            this.mostrarNotificacao("Erro no login.", "erro");
+        }
+    },
+
+    logout: async function() {
+        try {
+            await this.state.auth.signOut();
+            this.mostrarNotificacao("Desconectado.", "info");
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+        }
+    },
+
+    renderAuthUI: function() {
+        if (this.state.user) {
+            this.authContainerEl.innerHTML = `
+                <div class="user-profile" style="display:flex; align-items:center; gap:10px;">
+                    <img src="${this.state.user.photoURL}" alt="User" style="width:32px; height:32px; border-radius:50%;">
+                    <div>
+                        <span class="user-name" style="font-size:0.9rem; color:#fff; display:block;">${this.state.user.displayName}</span>
+                        <button id="btn-logout" style="background:none; border:none; color:#94a3b8; font-size:0.7rem; cursor:pointer; padding:0;">Sair</button>
+                    </div>
                 </div>`;
-        }).join('');
-
-        const slotsVazios = Math.max(0, 24 - itensExibidos.length);
-        for(let i=0; i<slotsVazios; i++) {
-            this.gridEl.innerHTML += `<div class="inv-slot empty"></div>`;
-        }
-    },
-
-    selecionarItem: function(idItem) {
-        // Busca pelo ID, se falhar, busca pelo item que foi passado (para garantir compatibilidade)
-        this.state.itemSelecionado = this.state.itensAgrupados.find(i => i.idItem === idItem);
-        if (!this.state.itemSelecionado) return;
-
-        const item = this.state.itemSelecionado;
-        
-        document.querySelectorAll('.inv-slot').forEach(slot => slot.classList.remove('active'));
-        // Adicionar active visualmente se possível via event target, mas focado no painel agora
-
-        this.previewIcon.innerHTML = `<i class="fa-solid ${item.icone}"></i>`;
-        this.previewIcon.className = `item-preview-icon rarity-${item.tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
-        this.previewTitle.textContent = item.nome;
-        
-        let corTipo = '#fff';
-        if (item.categoria === 'consumivel') corTipo = '#10b981';
-        if (item.categoria === 'equipamento') corTipo = '#3b82f6';
-        if (item.categoria === 'colecionavel') corTipo = '#f59e0b';
-        
-        // TRATAMENTO PARA "UNDEFINED" NO PAINEL
-        const catDisplay = item.categoria ? item.categoria.toUpperCase() : "GERAL";
-        
-        this.previewType.textContent = `${item.tipo} | ${catDisplay}`;
-        this.previewType.style.color = corTipo;
-        this.previewType.style.border = `1px solid ${corTipo}`;
-        this.previewType.style.background = `${corTipo}20`;
-        
-        this.previewDesc.textContent = item.desc;
-
-        if (item.categoria === 'consumivel') {
-            this.btnUsar.style.display = 'flex';
-            this.btnUsar.innerHTML = `<i class="fa-solid fa-sparkles"></i> USAR (${item.quantidade})`;
-            this.btnUsar.className = 'btn btn-primario btn-usar-item active';
         } else {
-            this.btnUsar.style.display = 'none';
+            this.authContainerEl.innerHTML = `<button id="btn-login" class="btn btn-primario" style="width:100%">Login com Google</button>`;
         }
     },
 
-    limparPreview: function() {
-        this.state.itemSelecionado = null;
-        this.previewIcon.innerHTML = '<i class="fa-solid fa-sack-dollar"></i>';
-        this.previewIcon.className = 'item-preview-icon';
-        this.previewTitle.textContent = 'Selecione um Item';
-        this.previewType.textContent = '---';
-        this.previewType.style = '';
-        this.previewDesc.textContent = 'Clique em um item na mochila para ver detalhes.';
-        this.btnUsar.style.display = 'none';
+    toggleEditFeatures: function() {
+        const editButtons = document.querySelectorAll('#painel-btn-editar, #painel-btn-excluir, #painel-btn-salvar, #form-notas, #painel-btn-nova-leitura');
+        const addLink = document.querySelector('.nav-link[data-view="view-adicionar"]');
+        const display = this.state.user ? 'block' : 'none';
+        
+        editButtons.forEach(btn => btn.style.display = display);
+        if (addLink) addLink.style.display = display;
     },
 
-    usarItemSelecionado: async function() {
-        const item = this.state.itemSelecionado;
-        if (!item || item.categoria !== 'consumivel' || item.livrosOrigem.length === 0) return;
-
-        const livroAlvo = item.livrosOrigem[0];
+    navegarPara: function(viewId) {
+        this.views.forEach(v => v.classList.remove('active'));
+        this.navLinks.forEach(l => l.classList.remove('active'));
         
-        if (!confirm(`Consumir 1x ${item.nome}?`)) return;
-
-        // FEEDBACK VISUAL DE USO
-        const efeitoDiv = document.createElement('div');
-        efeitoDiv.className = 'effect-popup';
-        efeitoDiv.innerHTML = `<i class="fa-solid fa-bolt"></i> ${item.nome} Usado!<br>+${item.valor} XP`;
-        document.body.appendChild(efeitoDiv);
-        setTimeout(() => efeitoDiv.remove(), 2000);
-
-        livroAlvo.loot.consumido = true;
-        livroAlvo.loot.valor = item.valor; 
+        const target = document.getElementById(viewId);
+        const link = document.querySelector(`.nav-link[data-view="${viewId}"]`);
         
-        await App.salvarLivro(livroAlvo, livroAlvo.firestoreId);
+        if (target) target.classList.add('active');
+        if (link) link.classList.add('active');
         
-        Gamification.atualizarInterface(App.state.livros);
-        this.render();
+        this.state.activeView = viewId;
+        window.scrollTo(0, 0);
         
-        // Se acabou o item, limpa o preview
-        if (item.quantidade <= 1) this.limparPreview();
-        else this.selecionarItem(item.idItem); // Atualiza contador no botão
+        if (viewId === 'view-dashboard' && typeof Dashboard !== 'undefined') Dashboard.atualizar(this.state.todosOsLivros);
+        if (viewId === 'view-desafio' && typeof Desafio !== 'undefined') Desafio.atualizar(this.state.todosOsLivros);
+        if (viewId === 'view-inventario' && typeof Inventario !== 'undefined') Inventario.render();
+        if (viewId === 'view-loja' && typeof Loja !== 'undefined') Loja.render();
+        if (viewId === 'view-oraculo' && typeof Oraculo !== 'undefined') Oraculo.render();
     },
 
-    sincronizarLootAntigo: async function() {
-        const livrosParaProcessar = App.state.livros.filter(l => l.situacao === 'Lido' && !l.loot);
+    mostrarNotificacao: function(msg, tipo = 'info') {
+        const notif = document.createElement('div');
+        notif.className = `notificacao ${tipo}`;
+        notif.innerHTML = `<i class="fa-solid ${tipo === 'sucesso' ? 'fa-check-circle' : tipo === 'erro' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${msg}`;
+        this.notificacaoContainerEl.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
+    },
+
+    criarBotaoMagico: function() {
+        const antigo = document.getElementById('btn-magico-fix');
+        if (antigo) antigo.remove();
+
+        const btn = document.createElement('button');
+        btn.id = 'btn-magico-fix';
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> CORRIGIR BESTIÁRIO';
+        btn.style.cssText = "position:fixed; bottom:20px; left:20px; z-index:9999; padding:15px 25px; background:#a855f7; color:white; font-weight:bold; border:2px solid white; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(0,0,0,0.5); font-family:sans-serif; font-size:14px;";
+        btn.onclick = () => this.rodarMigracaoInterna();
+        document.body.appendChild(btn);
+    },
+
+    rodarMigracaoInterna: async function() {
+        if (!confirm("Recalcular classes dos monstros agora?")) return;
         
-        if (livrosParaProcessar.length === 0) {
-            return App.mostrarNotificacao('Todos os seus livros lidos já possuem loot!', 'info');
+        const btn = document.getElementById('btn-magico-fix');
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Processando...";
+        btn.style.background = "#334155";
+
+        let count = 0;
+        const livros = this.state.todosOsLivros;
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        for (const livro of livros) {
+            const novoRPG = Gamification.gerarDadosMob(livro);
+            const tipoAtual = (livro.rpg && livro.rpg.type) || 'Nenhum';
+            
+            if (tipoAtual !== novoRPG.type || tipoAtual === 'Minion') {
+                livro.rpg = novoRPG;
+                await this.salvarLivro(livro, livro.firestoreId);
+                await delay(50); 
+                count++;
+                btn.innerHTML = `⏳ ${count} corrigidos...`;
+            }
         }
 
-        if(!confirm(`Encontramos ${livrosParaProcessar.length} livros lidos sem itens. Deseja abrir esses baús agora?`)) return;
-
-        let novosItens = 0;
-        for (const livro of livrosParaProcessar) {
-            const loot = Gamification.gerarLoot(livro); 
-            await App.salvarLivro(livro, livro.firestoreId);
-            novosItens++;
-        }
-        
-        const modal = document.getElementById('modal-loot');
-        if(modal) modal.close();
-
-        App.mostrarNotificacao(`${novosItens} novos itens adicionados!`, 'sucesso');
-        this.render();
+        btn.innerHTML = `✅ SUCESSO! ${count} Livros`;
+        btn.style.background = "#10b981";
+        setTimeout(() => btn.remove(), 5000); 
     }
 };
 
 App.init();
+window.App = App;

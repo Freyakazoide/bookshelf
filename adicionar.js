@@ -377,6 +377,13 @@ const Adicionar = {
         e.preventDefault();
         const firestoreId = document.getElementById('livro-id').value;
         
+// Garante que o RPG data seja gerado se não existir
+        const rpgData = Gamification.gerarDadosMob({
+            paginas: document.getElementById('paginas').value,
+            anoLancamento: document.getElementById('anoLancamento').value,
+            categorias: document.getElementById('categorias').value
+        });
+
         const livroData = {
             id: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.id || Date.now()) : Date.now(),
             nomeDoLivro: document.getElementById('nomeDoLivro').value,
@@ -394,7 +401,9 @@ const Adicionar = {
             leituras: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.leituras || []) : [],
             loot: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.loot || null) : null,
             citacoes: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.citacoes || []) : [],
-            situacao: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.situacao || 'Quero Ler') : 'Quero Ler'
+            situacao: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.situacao || 'Quero Ler') : 'Quero Ler',
+            
+            rpg: firestoreId ? (this.state.todosOsLivros.find(l => l.firestoreId === firestoreId)?.rpg || rpgData) : rpgData
         };
 
         try {

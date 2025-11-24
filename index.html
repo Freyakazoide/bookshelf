@@ -473,52 +473,59 @@
                 </div>
             </div>
 
-                        <div id="view-oraculo" class="view">
-                <div class="oraculo-container">
-                    <div class="oraculo-header">
-                        <h1><i class="fa-solid fa-eye"></i> O Oráculo do Destino</h1>
-                        <p>O destino escolhe sua próxima leitura. Ouro é o preço da certeza.</p>
-                        <div class="oracle-balance-display">
-                        Seu Ouro: <span id="oracle-gold-value" class="gold-text">--- <i class="fa-solid fa-coins"></i></span>
+<div id="view-oraculo" class="view">
+    <div class="oraculo-container">
+        <header class="oraculo-header">
+            <h1><i class="fa-solid fa-eye"></i> O Oráculo do Destino</h1>
+            <p>O destino escolhe sua próxima leitura. Ouro é o preço da certeza.</p>
+            <div class="oracle-balance-display">
+                Seu Ouro: <span id="oracle-gold-value" class="gold-text">--- <i class="fa-solid fa-coins"></i></span>
+            </div>
+        </header>
+
+        <div class="oraculo-panel-wrapper">
+            
+            <main class="oraculo-main">
+                <div id="oraculo-slot-machine" class="slot-machine-container">
+                    <div class="slot-window">
+                        <div id="slot-track" class="slot-track">
+                            <div class="slot-item"><img src="placeholder.jpg" style="opacity:0.3"></div>
                         </div>
+                        <div class="slot-overlay"></div>
                     </div>
-
-                    <div class="oraculo-stage">
-                        <div id="oraculo-slot-machine" class="slot-machine-container">
-                            <div class="slot-window">
-                                <div id="slot-track" class="slot-track">
-                                    <div class="slot-placeholder"><i class="fa-solid fa-question"></i></div>
-                                </div>
-                                <div class="slot-overlay"></div>
-                                <div class="slot-line"></div>
-                            </div>
-                            
-                            <div class="slot-controls">
-                                <div class="custo-display">Custo: <span class="gold-text">50 <i class="fa-solid fa-coins"></i></span></div>
-                                <button id="btn-invocar-oraculo" class="btn btn-primario btn-lg">
-                                    <i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="oraculo-resultado" class="resultado-container hidden">
-                            <div class="resultado-glow"></div>
-                            <h2>O Destino Escolheu:</h2>
-                            <div id="card-livro-oraculo"></div>
-                            
-                            <div class="buff-info-card">
-                                <h4><i class="fa-solid fa-bolt"></i> Buff Ativo: Escolhido pelo Destino</h4>
-                                <p>Inicie a leitura em até <strong>48 horas</strong> para garantir <strong>Loot Lendário (100%)</strong> ao terminar.</p>
-                                <div class="timer-display" id="oracle-timer">Expira em: --:--:--</div>
-                            </div>
-
-                            <button id="btn-reroll" class="btn btn-secundario" style="margin-top: 1rem;">
-                                <i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: 1000 <i class="fa-solid fa-coins"></i>)
-                            </button>
-                        </div>
+                    
+                    <div class="slot-controls">
+                        <div class="custo-display">Custo: <span class="gold-text">50 <i class="fa-solid fa-coins"></i></span></div>
+                        <button id="btn-invocar-oraculo" class="btn btn-primario btn-lg">
+                            <i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO
+                        </button>
                     </div>
                 </div>
-            </div>
+
+                <div id="oraculo-resultado" class="resultado-container hidden">
+                    <div id="card-livro-oraculo"></div> <div class="buff-info-card">
+                        </div>
+
+                    <button id="btn-reroll" class="btn btn-secundario" style="margin-top: 1.5rem;">
+                        <i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: 100 <i class="fa-solid fa-coins"></i>)
+                    </button>
+                </div>
+            </main>
+
+            <aside class="oraculo-sidebar">
+                <div class="hist-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Visões</h3>
+                </div>
+                <button onclick="Oraculo.abrirNovoSorteio()" class="btn btn-secundario" style="width:100%; margin: 10px 0; border-color: var(--cor-acao-primaria); color:#fff;">
+                    <i class="fa-solid fa-plus"></i> Novo Desafio
+                </button>
+                <div id="oraculo-history-list" class="hist-list">
+                    </div>
+            </aside>
+
+        </div>
+    </div>
+</div>
 
 
 
@@ -695,6 +702,7 @@
     <script src="app.js"></script>
     <script src="loja.js"></script>
     <script src="oraculo.js"></script>
+    <script src="inventario.js"></script>
     <script src="estante.js"></script>
     <script src="adicionar.js"></script>
     <script src="dashboard.js"></script>
