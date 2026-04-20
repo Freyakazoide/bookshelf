@@ -1,517 +1,556 @@
 const Desafio = {
     state: {
-        livros: [],
         metas: [],
-        metaAtivaId: null,
-        buscaMetaTermo: '',
-        filtroMetaStatus: 'Todos',
-        paginaMetaAtual: 0,
-        livrosPorPaginaMeta: 12, 
+        livros: [],
+        metaAtiva: null,
+        initialized: false,
+        paginaSeletor: 0,
+        buscaSeletor: '',
+        filtroSeletor: 'Todos'
+    },
+
+    init: function(metas, livros) {
+        // Atualiza os dados sempre que chamado
+        this.state.metas = metas || [];
+        this.state.livros = livros || [];
+        
+        // CORREÇÃO CRÍTICA AQUI:
+        // Só faz o cache e o render inicial SE ainda não foi inicializado.
+        // Se já foi, não faz NADA visualmente (o 'atualizar' cuidará disso).
+        if (!this.state.initialized) {
+            console.log('[DEBUG] Desafio.init: Inicializando pela primeira vez.');
+            this.cacheDOM();
+            this.bindEvents();
+            this.state.initialized = true;
+            this.render(); // <--- O render agora mora aqui dentro!
+        } else {
+            console.log('[DEBUG] Desafio.init: Já inicializado, ignorando render total.');
+        }
+    },
+
+    atualizar: function(livros) {
+        console.log('[DEBUG] Desafio.atualizar executando update suave.');
+        this.state.livros = livros || [];
+        
+        if (window.App && window.App.state && window.App.state.challenges) {
+             this.state.metas = window.App.state.challenges;
+        }
+
+        if (this.state.metaAtiva) {
+            const idAtivo = this.state.metaAtiva.firestoreId || this.state.metaAtiva.id;
+            const metaAtualizada = this.state.metas.find(m => 
+                String(m.firestoreId) === String(idAtivo) || String(m.id) === String(idAtivo)
+            );
+            
+            if (metaAtualizada) {
+                // Atualiza o objeto da memória
+                this.state.metaAtiva = metaAtualizada;
+                // false = NÃO recria o HTML, apenas atualiza valores
+                this.renderDetalhesMeta(false);
+            } else {
+                this.alternarVisualizacao(false);
+            }
+        }
+        this.renderListaDeMetas();
     },
 
     cacheDOM: function() {
-        this.modalCriarMetaEl = document.getElementById('modal-criar-meta');
-        this.btnAbrirModalMetaEl = document.getElementById('btn-abrir-modal-meta');
-        this.btnFecharModalMetaEl = document.getElementById('btn-fechar-modal-meta');
-        
-        this.listaMetasAtivasEl = document.getElementById('lista-metas-ativas');
-        this.listaMetasConcluidasEl = document.getElementById('lista-metas-concluidas');
-        
-        this.metaDetalheContainerEl = document.getElementById('meta-detalhe-container');
-        
-        this.formCriarMetaEl = document.getElementById('form-criar-meta');
-        this.inputMetaNomeEl = document.getElementById('input-meta-nome');
-        this.selectMetaAnoEl = document.getElementById('select-meta-ano');
-        this.selectMetaTipoEl = document.getElementById('select-meta-tipo');
-        this.inputMetaObjetivoEl = document.getElementById('input-meta-objetivo');
-        this.campoObjetivoContainerEl = document.getElementById('campo-objetivo-container');
-        
-        this.desafioAtivoContainerEl = document.getElementById('desafio-ativo-container');
-        this.nenhumaMetaContainerEl = document.getElementById('nenhuma-meta-selecionada');
+        this.listaMetasAtivas = document.getElementById('lista-metas-ativas');
+        this.listaMetasConcluidas = document.getElementById('lista-metas-concluidas');
+        this.modalCriarMeta = document.getElementById('modal-criar-meta');
+        this.btnAbrirModal = document.getElementById('btn-abrir-modal-meta');
+        this.btnFecharModal = document.getElementById('btn-fechar-modal-meta');
+        this.formCriarMeta = document.getElementById('form-criar-meta');
+        this.btnCriarSubmit = document.getElementById('btn-criar-nova-meta');
+        this.containerDetalhe = document.getElementById('desafio-ativo-container'); 
+        this.btnDeletarMeta = document.getElementById('btn-deletar-meta-ativa');
     },
 
     bindEvents: function() {
-        this.btnAbrirModalMetaEl.addEventListener('click', () => this.abrirModalMeta());
-        this.btnFecharModalMetaEl.addEventListener('click', () => this.modalCriarMetaEl.close());
-        this.modalCriarMetaEl.addEventListener('close', () => this.formCriarMetaEl.reset());
-
-        this.formCriarMetaEl.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.criarNovaMeta();
-        });
-
-        const handleMetaClick = (e) => {
-            const btnReward = e.target.closest('.btn-claim-reward');
-            if (btnReward) {
-                e.stopPropagation();
-                this.reivindicarRecompensa(parseInt(btnReward.dataset.id, 10));
-                return;
-            }
-            const card = e.target.closest('.meta-card');
-            if (card) {
-                this.state.metaAtivaId = parseInt(card.dataset.metaid, 10);
-                this.state.paginaMetaAtual = 0;
-                this.render();
-            }
-        };
-
-        this.listaMetasAtivasEl.addEventListener('click', handleMetaClick);
-        this.listaMetasConcluidasEl.addEventListener('click', handleMetaClick);
-
-        // Delegação de eventos para elementos dinâmicos dentro do container de detalhes
-        this.metaDetalheContainerEl.addEventListener('click', (e) => {
-            // Deletar Meta
-            if (e.target.closest('#btn-deletar-meta-ativa')) {
-                this.confirmarDelecaoMeta();
-            }
-            
-            // Abas
-            const tabBtn = e.target.closest('.tab-button');
-            if (tabBtn) {
-                document.querySelectorAll('.quest-tabs .tab-button').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.meta-tab-content').forEach(c => c.classList.remove('active'));
-                tabBtn.classList.add('active');
-                document.getElementById(tabBtn.dataset.tab).classList.add('active');
-            }
-
-            // Paginação Seletor
-            if (e.target.closest('#btn-meta-anterior')) {
-                if (this.state.paginaMetaAtual > 0) {
-                    this.state.paginaMetaAtual--;
-                    this.renderizarSeletorDeLivros();
-                }
-            }
-            if (e.target.closest('#btn-meta-proxima')) {
-                const livros = this.filtrarLivrosParaSeletor();
-                const totalPaginas = Math.ceil(livros.length / this.state.livrosPorPaginaMeta);
-                if (this.state.paginaMetaAtual + 1 < totalPaginas) {
-                    this.state.paginaMetaAtual++;
-                    this.renderizarSeletorDeLivros();
-                }
-            }
-
-            // Selecionar Livro no Grid
-            const cardSeletor = e.target.closest('.card-livro-seletor');
-            if (cardSeletor) {
-                this.toggleLivroNaMeta(parseInt(cardSeletor.dataset.id, 10));
-            }
-            
-            // Filtros do Seletor
-            const filtroBtn = e.target.closest('.filtro-status-meta');
-            if (filtroBtn) {
-                document.querySelectorAll('.filtro-status-meta').forEach(b => b.classList.remove('active'));
-                filtroBtn.classList.add('active');
-                this.state.filtroMetaStatus = filtroBtn.dataset.status;
-                this.state.paginaMetaAtual = 0;
-                this.renderizarSeletorDeLivros();
-            }
-        });
+        if (this.btnAbrirModal) this.btnAbrirModal.onclick = (e) => { e.preventDefault(); this.abrirModalCriacao(); };
+        if (this.btnFecharModal) this.btnFecharModal.onclick = (e) => { e.preventDefault(); this.modalCriarMeta.close(); };
         
-        // Input de busca dinâmica (delegate ou direto se possível, mas como é recriado, melhor renderizar com evento inline ou re-bind)
-        // Para simplificar, usaremos evento no container principal verificando ID
-        this.metaDetalheContainerEl.addEventListener('input', (e) => {
-            if (e.target.id === 'input-busca-livros-meta') {
-                this.state.buscaMetaTermo = e.target.value.toLowerCase();
-                this.state.paginaMetaAtual = 0;
-                this.renderizarSeletorDeLivros();
-            }
-        });
-
-        this.selectMetaTipoEl.addEventListener('change', (e) => {
-            this.campoObjetivoContainerEl.style.display = e.target.value === 'lista' ? 'none' : 'block';
-        });
-    },
-
-    init: function(livros, metas) {
-        this.state.livros = livros;
-        this.state.metas = metas || [];
-        this.cacheDOM();
-        this.bindEvents();
-        
-        if (!this.state.metaAtivaId && this.state.metas.length > 0) {
-            this.state.metaAtivaId = this.state.metas.sort((a,b) => b.id - a.id)[0].id;
+        if (this.btnCriarSubmit) {
+            const novoBtn = this.btnCriarSubmit.cloneNode(true);
+            this.btnCriarSubmit.parentNode.replaceChild(novoBtn, this.btnCriarSubmit);
+            this.btnCriarSubmit = novoBtn;
+            this.btnCriarSubmit.addEventListener('click', (e) => { e.preventDefault(); this.criarNovaMeta(); });
         }
-        
-        this.render();
-    },
-    
-    atualizar: function(livros, metas) {
-        this.state.livros = livros;
-        if(metas) this.state.metas = metas;
-        this.render();
-    },
 
-    abrirModalMeta: function() {
-        this.popularFiltroDeAno();
-        this.campoObjetivoContainerEl.style.display = this.selectMetaTipoEl.value === 'lista' ? 'none' : 'block';
-        this.modalCriarMetaEl.showModal();
-    },
-
-    popularFiltroDeAno: function() {
-        const anoAtual = new Date().getFullYear();
-        let options = '';
-        for (let i = anoAtual + 2; i >= anoAtual - 5; i--) {
-            options += `<option value="${i}" ${i === anoAtual ? 'selected' : ''}>${i}</option>`;
-        }
-        this.selectMetaAnoEl.innerHTML = options;
-    },
-
-    criarNovaMeta: async function() {
-        const nome = this.inputMetaNomeEl.value.trim();
-        const ano = parseInt(this.selectMetaAnoEl.value, 10);
-        const tipo = this.selectMetaTipoEl.value;
-        const objetivo = parseInt(this.inputMetaObjetivoEl.value, 10);
-
-        if (!nome) return App.mostrarNotificacao('Preencha o nome.', 'erro');
-
-        const novaMeta = {
-            id: Date.now(),
-            nome: nome,
-            ano: ano,
-            tipo: tipo,
-            objetivo: tipo === 'lista' ? 0 : objetivo,
-            livrosDaMeta: tipo === 'lista' ? [] : undefined,
-            recompensada: false
-        };
-        
-        this.state.metas.push(novaMeta);
-        this.state.metaAtivaId = novaMeta.id;
-        await App.salvarMetas(this.state.metas);
-        this.formCriarMetaEl.reset();
-        this.modalCriarMetaEl.close();
-        this.render();
-        App.mostrarNotificacao(`Quest "${nome}" aceita!`);
-    },
-
-    confirmarDelecaoMeta: async function() {
-        if (!this.state.metaAtivaId) return;
-        const metaAtiva = this.getMetaAtiva();
-        if (confirm(`Abandonar a quest "${metaAtiva.nome}"?`)) {
-            this.state.metas = this.state.metas.filter(meta => meta.id !== this.state.metaAtivaId);
-            this.state.metaAtivaId = null;
-            await App.salvarMetas(this.state.metas);
-            this.render();
-            App.mostrarNotificacao('Quest abandonada.');
-        }
-    },
-
-    toggleLivroNaMeta: async function(livroId) {
-        const metaAtiva = this.getMetaAtiva();
-        if (!metaAtiva || metaAtiva.tipo !== 'lista') return;
-
-        const index = metaAtiva.livrosDaMeta.indexOf(livroId);
-        if (index > -1) {
-            metaAtiva.livrosDaMeta.splice(index, 1);
-        } else {
-            metaAtiva.livrosDaMeta.push(livroId);
-        }
-        metaAtiva.objetivo = metaAtiva.livrosDaMeta.length;
-        
-        await App.salvarMetas(this.state.metas);
-        this.render(); 
-    },
-
-    getMetaAtiva: function() {
-        if (!this.state.metaAtivaId) return null;
-        return this.state.metas.find(m => m.id === this.state.metaAtivaId);
-    },
-
-    calcularProgressoMeta: function(meta) {
-        let progresso = 0, objetivo = meta.objetivo;
-        const anoMeta = meta.ano;
-
-        const leiturasDoAno = this.state.livros
-            .flatMap(livro => (livro.leituras || []).map(leitura => ({ ...leitura, livro })))
-            .filter(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === anoMeta);
-
-        if (meta.tipo === 'lista') {
-            const idsMeta = new Set(meta.livrosDaMeta || []);
-            const livrosDaMeta = this.state.livros.filter(livro => idsMeta.has(livro.id));
-            progresso = livrosDaMeta.filter(livro => 
-                (livro.leituras || []).some(leitura => leitura.dataFim && new Date(leitura.dataFim).getFullYear() === anoMeta)
-            ).length;
-            objetivo = livrosDaMeta.length;
-        } else if (meta.tipo === 'livros') {
-            progresso = leiturasDoAno.length;
-        } else if (meta.tipo === 'paginas') {
-            progresso = leiturasDoAno.reduce((total, leitura) => total + (parseInt(leitura.livro.paginas) || 0), 0);
-        }
-        
-        const porcentagem = objetivo > 0 ? Math.min(100, (progresso / objetivo) * 100) : 0;
-        const concluida = (progresso >= objetivo && objetivo > 0);
-        
-        return { progresso, objetivo, porcentagem, concluida };
-    },
-
-    calcularRankMeta: function(meta) {
-        let score = 0;
-        if (meta.tipo === 'paginas') score = meta.objetivo / 500;
-        else score = meta.objetivo;
-
-        if (score >= 50) return { label: 'Rank S', class: 'meta-rank-S', color: '#f59e0b', xp: 5000, loot: 'Lendário' };
-        if (score >= 20) return { label: 'Rank A', class: 'meta-rank-A', color: '#a855f7', xp: 2500, loot: 'Épico' };
-        if (score >= 10) return { label: 'Rank B', class: 'meta-rank-B', color: '#3b82f6', xp: 1000, loot: 'Raro' };
-        if (score >= 4)  return { label: 'Rank C', class: 'meta-rank-C', color: '#10b981', xp: 500, loot: 'Incomum' };
-        return { label: 'Rank D', class: 'meta-rank-D', color: '#94a3b8', xp: 200, loot: 'Comum' };
-    },
-
-    gerarFlavorText: function(rank, tipo) {
-        const textos = {
-            'Rank S': "Uma jornada lendária digna dos deuses antigos. Apenas os escolhidos sobrevivem.",
-            'Rank A': "Um contrato de elite para aventureiros veteranos. A glória aguarda.",
-            'Rank B': "Um desafio respeitável. Requer dedicação e disciplina constante.",
-            'Rank C': "Uma missão padrão da guilda. Ótima para manter a forma.",
-            'Rank D': "Uma tarefa introdutória. Perfeita para aquecer os motores."
-        };
-        return textos[rank.label] || "Sua jornada literária começa aqui.";
-    },
-
-    reivindicarRecompensa: async function(metaId) {
-        const meta = this.state.metas.find(m => m.id === metaId);
-        if (!meta || meta.recompensada) return;
-
-        const rank = this.calcularRankMeta(meta);
-        if(!confirm(`Completar Quest e receber ${rank.loot} Loot?`)) return;
-
-        meta.recompensada = true;
-        await App.salvarMetas(this.state.metas);
-
-        const itemReward = {
-            id: 'quest_reward_' + Date.now(),
-            nome: `Baú de Guilda (${rank.label})`,
-            tipo: rank.loot,
-            icone: 'fa-box-open',
-            desc: `Recompensa da Quest: ${meta.nome}`,
-            dropRate: 0
-        };
-
-        // Adiciona XP
-        Gamification.adicionarXP(rank.xp);
-
-        Gamification.mostrarModalLoot(itemReward, false);
-        this.render();
+        if (this.btnDeletarMeta) this.btnDeletarMeta.onclick = (e) => { e.preventDefault(); this.deletarMetaAtiva(); };
     },
 
     render: function() {
         this.renderListaDeMetas();
-        const metaAtiva = this.getMetaAtiva();
-
-        if (metaAtiva) {
-            this.desafioAtivoContainerEl.classList.remove('hidden');
-            this.nenhumaMetaContainerEl.classList.add('hidden');
-            this.renderDetalhesDaMeta(metaAtiva);
+        if (this.state.metaAtiva) {
+            // true = Render inicial forçado (apenas quando chama via init ou troca de meta)
+            this.renderDetalhesMeta(true); 
+            this.alternarVisualizacao(true);
         } else {
-            this.desafioAtivoContainerEl.classList.add('hidden');
-            this.nenhumaMetaContainerEl.classList.remove('hidden');
+            this.alternarVisualizacao(false);
         }
     },
 
     renderListaDeMetas: function() {
-        let ativasHTML = '';
-        let concluidasHTML = '';
+        if (!this.listaMetasAtivas) return;
+        const rawMetas = this.state.metas || [];
         
-        const metasOrdenadas = [...this.state.metas].sort((a, b) => b.ano - a.ano || a.nome.localeCompare(b.nome));
+        const todas = rawMetas.map(meta => {
+            if(!meta) return null;
+            const titulo = meta.titulo || meta.nome || 'Meta Sem Nome';
+            const progresso = this.calcularProgressoMeta(meta);
+            return { ...meta, titulo, progresso };
+        }).filter(Boolean);
 
-        if (metasOrdenadas.length === 0) {
-            this.listaMetasAtivasEl.innerHTML = '<div class="placeholder-container" style="padding:1rem"><small>Nenhuma quest ativa.</small></div>';
-            this.listaMetasConcluidasEl.innerHTML = '';
+        todas.sort((a, b) => String(a.titulo).localeCompare(String(b.titulo)));
+        const ativas = todas.filter(m => !m.progresso.concluida);
+        const concluidas = todas.filter(m => m.progresso.concluida);
+
+        const htmlCard = (m) => {
+            const rank = this.calcularRankMeta(m.progresso.porcentagem);
+            const mId = m.firestoreId || m.id;
+            const activeId = this.state.metaAtiva ? (this.state.metaAtiva.firestoreId || this.state.metaAtiva.id) : null;
+            const activeClass = (String(mId) === String(activeId)) ? 'active' : '';
+
+            return `
+                <div class="meta-card meta-rank-${rank} ${activeClass}" onclick="Desafio.selecionarMetaPorId('${mId}')">
+                    <div class="meta-header">
+                        <h4>${m.titulo}</h4>
+                        <span class="meta-tag-rank">${rank}</span>
+                    </div>
+                    <div class="meta-card-info">
+                        <span>${m.progresso.atual}/${m.progresso.total}</span>
+                        <span>${m.progresso.porcentagem}%</span>
+                    </div>
+                    <div class="quest-bar-bg">
+                        <div class="quest-bar-fill" style="width: ${m.progresso.porcentagem}%"></div>
+                    </div>
+                </div>`;
+        };
+
+        this.listaMetasAtivas.innerHTML = ativas.length ? ativas.map(htmlCard).join('') : '<p style="color:#64748b; padding:10px; text-align:center">Sem metas ativas.</p>';
+        if(this.listaMetasConcluidas) this.listaMetasConcluidas.innerHTML = concluidas.length ? concluidas.map(htmlCard).join('') : '<p style="color:#64748b; padding:10px; text-align:center">Sem metas concluídas.</p>';
+    },
+
+    selecionarMetaPorId: function(id) {
+        const meta = this.state.metas.find(m => String(m.firestoreId) === String(id) || String(m.id) === String(id));
+        if (meta) this.selecionarMeta(meta);
+    },
+
+    selecionarMeta: function(meta) {
+        this.state.metaAtiva = meta;
+        this.alternarVisualizacao(true);
+        this.buscaSeletor = '';
+        this.paginaSeletor = 0;
+        this.renderDetalhesMeta(true); // Trocou de meta, precisa reconstruir HTML
+        this.renderListaDeMetas();
+    },
+
+    renderDetalhesMeta: function(forceRebuild = false) {
+        const meta = this.state.metaAtiva;
+        if(!meta || !this.containerDetalhe) return;
+
+        // SE O HTML JÁ EXISTE e não forçado, só atualiza dados e aborta
+        const jaExiste = document.getElementById('meta-titulo-dinamico');
+        if (jaExiste && !forceRebuild) {
+            this.atualizarInfoHeader();
+            this.renderGridProgresso();
+            this.renderSeletorLivros();
             return;
         }
 
-        metasOrdenadas.forEach(meta => {
-            const stats = this.calcularProgressoMeta(meta);
-            const rank = this.calcularRankMeta(meta);
-            const activeClass = meta.id === this.state.metaAtivaId ? 'active' : '';
-            
-            let btnClaim = '';
-            if (stats.concluida && !meta.recompensada) {
-                btnClaim = `<button class="btn btn-claim-reward" data-id="${meta.id}"><i class="fa-solid fa-gift"></i> RESGATAR</button>`;
-            } else if (meta.recompensada) {
-                btnClaim = `<div style="text-align:center; font-size:0.6rem; color:${rank.color}; margin-top:8px; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-check-double"></i> Quest Completa</div>`;
-            }
-
-            const html = `
-                <div class="meta-card ${activeClass} ${rank.class}" data-metaid="${meta.id}" style="border-left-color: ${rank.color}">
-                    <div class="meta-header">
-                        <h4>${meta.nome}</h4>
-                        <span class="meta-tag-rank" style="background:${rank.color}20; color:${rank.color}; border:1px solid ${rank.color}">${rank.label}</span>
+        // HTML fixo e limpo
+        const headerHTML = `
+            <div class="meta-compact-header">
+                <div style="display:flex; align-items:center; gap:15px; width:100%;">
+                    <div style="flex-grow:1;">
+                        <h2 id="meta-titulo-dinamico" style="margin:0; font-size:1.4rem; color:#fff; text-shadow:0 0 10px rgba(45,212,191,0.3);">---</h2>
+                        <span id="meta-obj-dinamico" style="font-size:0.8rem; color:#94a3b8;">---</span>
                     </div>
-                    <div class="meta-card-info">
-                        <span><i class="fa-solid fa-scroll"></i> ${meta.tipo === 'lista' ? 'Lista' : 'Desafio'}</span>
-                        <span>${Math.floor(stats.porcentagem)}%</span>
-                    </div>
-                    <div class="quest-bar-bg">
-                        <div class="quest-bar-fill" style="width: ${stats.porcentagem}%; background: ${rank.color}; box-shadow: 0 0 10px ${rank.color}"></div>
-                    </div>
-                    ${btnClaim}
-                </div>
-            `;
-
-            if (stats.concluida) concluidasHTML += html;
-            else ativasHTML += html;
-        });
-
-        this.listaMetasAtivasEl.innerHTML = ativasHTML || '<div class="placeholder-container" style="padding:1rem"><small>Sem quests ativas.</small></div>';
-        this.listaMetasConcluidasEl.innerHTML = concluidasHTML;
-    },
-
-    renderDetalhesDaMeta: function(meta) {
-        const stats = this.calcularProgressoMeta(meta);
-        const rank = this.calcularRankMeta(meta);
-        const flavorText = this.gerarFlavorText(rank, meta.tipo);
-        
-        // Renderiza a estrutura completa do detalhe (reconstruindo o HTML para limpar eventos antigos e atualizar visual)
-        this.desafioAtivoContainerEl.innerHTML = `
-            <div class="quest-briefing-container">
-                <div class="quest-info">
-                    <span class="quest-rank-badge" style="background: ${rank.color}20; color: ${rank.color}; border: 1px solid ${rank.color}">${rank.label} Quest</span>
-                    <h2>${meta.nome}</h2>
-                    <p class="quest-desc">"${flavorText}"</p>
-                    
-                    <div class="rpg-progress-wrapper">
-                        <div class="rpg-progress-track">
-                            <div class="rpg-progress-fill" style="width: ${stats.porcentagem}%; background: linear-gradient(90deg, ${rank.color}40, ${rank.color}); box-shadow: 0 0 15px ${rank.color};"></div>
+                    <div style="text-align:right;">
+                         <span id="meta-prog-texto" style="font-family:monospace; color:#2dd4bf; font-weight:bold; font-size:1.2rem;">0 / 0</span>
+                         <div style="width:150px; height:6px; background:#334155; border-radius:4px; margin-top:5px; overflow:hidden;">
+                            <div id="meta-prog-bar" style="width:0%; height:100%; background:#2dd4bf; box-shadow: 0 0 8px #2dd4bf;"></div>
                         </div>
-                        <div class="rpg-progress-text">${stats.progresso} / ${stats.objetivo} OBJETIVOS</div>
                     </div>
+                    <button type="button" class="btn btn-perigo" id="btn-deletar-interno" title="Abandonar Quest" style="padding:8px 12px; margin-left:10px;"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+            
+            <div class="meta-detalhe-tabs">
+                <button type="button" class="tab-button active" data-tab="tab-progresso-meta">Progresso</button>
+                <button type="button" class="tab-button" data-tab="tab-gerenciar-livros">Gerenciar Livros</button>
+            </div>
+
+            <div class="painel-conteudo-tabs">
+                <div id="tab-progresso-meta" class="meta-tab-content active">
+                     <div id="grid-progresso-meta" class="grid-livros-meta"></div>
                 </div>
                 
-                <div class="quest-rewards-card">
-                    <h4>Recompensas Previstas</h4>
-                    <div class="rewards-grid">
-                        <div class="reward-item">
-                            <i class="fa-solid fa-star"></i>
-                            <span>+${rank.xp} XP</span>
-                        </div>
-                        <div class="reward-item">
-                            <i class="fa-solid fa-box-open"></i>
-                            <span style="color: ${rank.color}">${rank.loot}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="quest-tabs">
-                <button class="tab-button active" data-tab="tab-meta-progresso"><i class="fa-solid fa-crosshairs"></i> Alvos da Missão</button>
-                ${meta.tipo === 'lista' ? '<button class="tab-button" data-tab="tab-meta-gerenciar"><i class="fa-solid fa-pen-to-square"></i> Editar Lista</button>' : ''}
-                <button class="btn btn-perigo" id="btn-deletar-meta-ativa" style="margin-left: auto; padding: 5px 15px; font-size: 0.8rem;"><i class="fa-solid fa-trash"></i> Abandonar</button>
-            </nav>
-
-            <div id="tab-meta-progresso" class="meta-tab-content active" style="padding: 2rem;">
-                <div id="desafio-livros-da-meta" class="estante-de-livros list-view" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
-            </div>
-
-            <div id="tab-meta-gerenciar" class="meta-tab-content" style="padding: 2rem;">
-                 <div class="desafio-meta">
-                    <label style="display:block; margin-bottom:10px; color:var(--cor-texto-secundario);">Adicionar/Remover alvos da missão:</label>
-                    <div class="controles-estante" style="margin-bottom: 1rem;">
-                        <div class="campo-com-icone">
+                <div id="tab-gerenciar-livros" class="meta-tab-content">
+                    <div class="controles-dashboard" style="flex-shrink:0; margin-bottom:10px; padding: 1.5rem 1.5rem 0 1.5rem;">
+                         <div class="campo-com-icone" style="width:100%;">
                             <i class="fa-solid fa-search"></i>
-                            <input type="search" id="input-busca-livros-meta" placeholder="Filtrar acervo...">
+                            <input type="text" id="input-busca-livros-meta" placeholder="Buscar livro para adicionar..." 
+                                onkeyup="Desafio.buscaSeletor = this.value; Desafio.paginaSeletor = 0; Desafio.renderSeletorLivros()">
                         </div>
-                         <div class="grupo-filtros">
-                            <button class="filtro-status-meta active" data-status="Todos">Todos</button>
-                            <button class="filtro-status-meta" data-status="NaoLidos">Não Lidos</button>
+                        <div class="grupo-filtros" style="margin-top:10px;">
+                            <button type="button" class="filtro-status-meta active" data-status="Todos" onclick="Desafio.mudarFiltro(this, 'Todos')">Todos</button>
+                            <button type="button" class="filtro-status-meta" data-status="NaoLidos" onclick="Desafio.mudarFiltro(this, 'NaoLidos')">Pendentes</button>
+                            <button type="button" class="filtro-status-meta" data-status="Selecionados" onclick="Desafio.mudarFiltro(this, 'Selecionados')">Já na Quest</button>
                         </div>
                     </div>
-                    <div id="seletor-livros-meta" class="estante-de-livros selecionavel" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;"></div>
-                    <div class="controles-paginacao" id="paginacao-seletor-meta">
-                        <button id="btn-meta-anterior" class="btn btn-secundario"><i class="fa-solid fa-arrow-left"></i></button>
-                        <span id="info-pagina-meta"></span>
-                        <button id="btn-meta-proxima" class="btn btn-primario"><i class="fa-solid fa-arrow-right"></i></button>
+                    
+                    <div id="seletor-livros-meta" style="flex-grow:1; overflow-y:auto; padding:10px;"></div>
+                    
+                    <div class="controles-paginacao" id="paginacao-seletor-meta" style="flex-shrink:0; padding: 1rem; border-top: 1px solid var(--ui-border); background: rgba(0,0,0,0.2);">
+                        <button type="button" id="btn-meta-anterior" class="btn btn-secundario"><i class="fa-solid fa-arrow-left"></i></button>
+                        <span id="info-pagina-meta" style="color:#fff; font-weight:bold;">1/1</span>
+                        <button type="button" id="btn-meta-proxima" class="btn btn-secundario"><i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
             </div>
         `;
+
+        this.containerDetalhe.innerHTML = headerHTML;
         
-        // Renderização condicional baseada no tipo
-        if (meta.tipo === 'lista') {
-            this.renderizarSeletorDeLivros();
-            const idsMeta = new Set(meta.livrosDaMeta || []);
-            const livrosDaLista = this.state.livros.filter(livro => idsMeta.has(livro.id));
-            this.renderListaDeLivrosDaMeta(livrosDaLista, meta.ano);
-        } else {
-            const livrosDoAno = this.state.livros.filter(l => (l.leituras||[]).some(lei => lei.dataFim && new Date(lei.dataFim).getFullYear() === meta.ano));
-            this.renderListaDeLivrosDaMeta(livrosDoAno, meta.ano);
-        }
-    },
-    
-    filtrarLivrosParaSeletor: function() {
-        let livrosFiltrados = this.state.livros;
-        if (this.state.buscaMetaTermo) {
-            livrosFiltrados = livrosFiltrados.filter(livro => 
-                livro.nomeDoLivro.toLowerCase().includes(this.state.buscaMetaTermo)
-            );
-        }
-        if (this.state.filtroMetaStatus === 'NaoLidos') {
-            livrosFiltrados = livrosFiltrados.filter(livro => 
-                !(livro.leituras || []).some(leitura => leitura.dataFim)
-            );
-        }
-        return livrosFiltrados.sort((a, b) => a.nomeDoLivro.localeCompare(b.nomeDoLivro));
-    },
+        // RE-BIND DAS ABAS
+        const tabs = document.querySelectorAll('.meta-detalhe-tabs .tab-button');
+        tabs.forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.meta-detalhe-tabs .tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.meta-tab-content').forEach(c => c.classList.remove('active'));
+                
+                e.target.classList.add('active');
+                const tabId = e.target.dataset.tab;
+                const tabConteudo = document.getElementById(tabId);
+                if(tabConteudo) tabConteudo.classList.add('active');
+                
+                // Restaura o valor da busca se voltar pra aba gerenciar
+                if (tabId === 'tab-gerenciar-livros') {
+                    const input = document.getElementById('input-busca-livros-meta');
+                    if (input) input.value = this.buscaSeletor;
+                }
+            };
+        });
 
-    renderizarSeletorDeLivros: function() {
-        const metaAtiva = this.getMetaAtiva();
-        if (!metaAtiva || metaAtiva.tipo !== 'lista') return;
+        const btnDel = document.getElementById('btn-deletar-interno');
+        if(btnDel) btnDel.onclick = (e) => { e.preventDefault(); this.deletarMetaAtiva(); };
 
-        const container = document.getElementById('seletor-livros-meta');
-        if(!container) return;
-
-        const todosLivrosFiltrados = this.filtrarLivrosParaSeletor();
-        const inicio = this.state.paginaMetaAtual * this.state.livrosPorPaginaMeta;
-        const fim = inicio + this.state.livrosPorPaginaMeta;
-        const livrosParaExibir = todosLivrosFiltrados.slice(inicio, fim);
-        const idsNaMeta = new Set(metaAtiva.livrosDaMeta);
-
-        container.innerHTML = livrosParaExibir.map(livro => {
-            const capaSrc = livro.urlCapa || 'placeholder.jpg';
-            const selecionadoClass = idsNaMeta.has(livro.id) ? 'selected' : '';
-            
-            return `
-                <div class="card-livro-seletor ${selecionadoClass}" data-id="${livro.id}">
-                    <div class="seletor-capa-wrapper">
-                        <img src="${capaSrc}" alt="${livro.nomeDoLivro}" onerror="this.src='placeholder.jpg';">
-                        ${idsNaMeta.has(livro.id) ? '<div class="seletor-overlay"><i class="fa-solid fa-check"></i></div>' : ''}
-                    </div>
-                </div>`;
-        }).join('');
+        this.cacheDOMDinamicamente();
         
-        const infoPagina = document.getElementById('info-pagina-meta');
-        const btnAnt = document.getElementById('btn-meta-anterior');
-        const btnProx = document.getElementById('btn-meta-proxima');
-        
-        const totalPaginas = Math.ceil(todosLivrosFiltrados.length / this.state.livrosPorPaginaMeta);
-        if(infoPagina) infoPagina.textContent = `Pág ${this.state.paginaMetaAtual + 1}/${totalPaginas || 1}`;
-        if(btnAnt) btnAnt.disabled = this.state.paginaMetaAtual === 0;
-        if(btnProx) btnProx.disabled = this.state.paginaMetaAtual + 1 >= totalPaginas;
+        this.atualizarInfoHeader();
+        this.renderGridProgresso();
+        this.renderSeletorLivros();
     },
 
-    renderListaDeLivrosDaMeta: function(livros, anoMeta) {
-        const container = document.getElementById('desafio-livros-da-meta');
-        if(!container) return;
+    atualizarInfoHeader: function() {
+        const meta = this.state.metaAtiva;
+        if (!meta) return;
+        const progresso = this.calcularProgressoMeta(meta);
 
-        if (!livros || livros.length === 0) {
-            container.innerHTML = '<div class="placeholder-container"><i class="fa-solid fa-scroll"></i><p>Nenhum alvo designado para esta missão.</p></div>';
+        const elTitulo = document.getElementById('meta-titulo-dinamico');
+        const elObj = document.getElementById('meta-obj-dinamico');
+        const elTexto = document.getElementById('meta-prog-texto');
+        const elBarra = document.getElementById('meta-prog-bar');
+
+        if(elTitulo) elTitulo.textContent = meta.titulo || 'Quest';
+        if(elObj) elObj.textContent = `Objetivo: ${meta.tipo === 'paginas' ? meta.objetivo + ' Páginas' : meta.objetivo + ' Livros'}`;
+        if(elTexto) elTexto.textContent = `${progresso.atual} / ${progresso.total}`;
+        if(elBarra) elBarra.style.width = `${progresso.porcentagem}%`;
+    },
+
+    renderGridProgresso: function() {
+        const container = document.getElementById('grid-progresso-meta');
+        if (!container) return;
+        
+        const meta = this.state.metaAtiva;
+        const idsVinculados = meta.livrosDaMeta || [];
+
+        if (idsVinculados.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:3rem; color:#64748b; font-style:italic;"><i class="fa-solid fa-ghost" style="font-size:2rem; margin-bottom:10px;"></i><br>Esta quest está vazia.<br>Vá na aba "Gerenciar Livros" para invocar companheiros.</div>';
             return;
         }
 
-        container.innerHTML = livros.map(livro => {
-            const capaSrc = livro.urlCapa || 'placeholder.jpg';
-            const leituraFinalizada = (livro.leituras || []).find(l => l.dataFim && new Date(l.dataFim).getFullYear() === anoMeta);
-            const isLido = !!leituraFinalizada;
-            const eliminatedClass = isLido ? 'eliminated' : '';
-            const statusIcon = isLido ? '<i class="fa-solid fa-check-circle"></i> Neutralizado' : '<i class="fa-solid fa-crosshairs"></i> Alvo Ativo';
+        const listaCards = idsVinculados.map(idMeta => {
+            const idToCheck = (typeof idMeta === 'object' && idMeta.id) ? idMeta.id : idMeta;
+            const l = this.state.livros.find(book => String(book.id) === String(idToCheck) || String(book.firestoreId) === String(idToCheck));
+            
+            if (!l) return ''; 
+
+            const sit = String(l.situacao || '').trim().toLowerCase();
+            const isLido = sit === 'lido' || sit === 'concluido';
+            const capa = l.urlCapa || 'https://via.placeholder.com/150x220?text=Sem+Capa';
+            const idReal = l.firestoreId || l.id;
 
             return `
-               <div class="target-card ${eliminatedClass}">
-                   <img src="${capaSrc}" class="target-thumb" onerror="this.src='placeholder.jpg';">
-                   <div class="target-info">
-                       <h4>${livro.nomeDoLivro}</h4>
-                       <p>${livro.autor}</p>
-                       <small style="color: ${isLido ? '#10b981' : '#94a3b8'}">${statusIcon}</small>
-                   </div>
-               </div>`;
+                <div class="card-meta-active ${isLido ? 'lido' : ''}" onclick="Desafio.abrirDetalhesLivro('${idReal}')" title="${l.nomeDoLivro}">
+                    <button type="button" class="btn-remove-quick" 
+                        onclick="event.stopPropagation(); Desafio.toggleLivroMeta('${idToCheck}')" 
+                        title="Remover desta Quest">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                    <img src="${capa}" alt="${l.nomeDoLivro}" onerror="this.src='https://via.placeholder.com/150x220?text=Erro'">
+                    <div class="meta-book-info">
+                        <span class="meta-book-title">${l.nomeDoLivro}</span>
+                    </div>
+                </div>
+            `;
         }).join('');
+
+        container.innerHTML = listaCards;
+    },
+
+    mudarFiltro: function(btn, status) {
+        document.querySelectorAll('.filtro-status-meta').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.filtroSeletor = status;
+        this.paginaSeletor = 0;
+        this.renderSeletorLivros();
+    },
+
+    cacheDOMDinamicamente: function() {
+        this.seletorLivros = document.getElementById('seletor-livros-meta');
+        this.infoPaginaSeletor = document.getElementById('info-pagina-meta');
+        this.btnAntSeletor = document.getElementById('btn-meta-anterior');
+        this.btnProxSeletor = document.getElementById('btn-meta-proxima');
+        
+        if(this.btnAntSeletor) this.btnAntSeletor.onclick = (e) => { e.preventDefault(); if(this.paginaSeletor > 0) { this.paginaSeletor--; this.renderSeletorLivros(); } };
+        if(this.btnProxSeletor) this.btnProxSeletor.onclick = (e) => { e.preventDefault(); this.paginaSeletor++; this.renderSeletorLivros(); };
+    },
+
+    renderSeletorLivros: function() {
+        if (!this.seletorLivros) return;
+
+        const metaItens = this.state.metaAtiva?.livrosDaMeta || [];
+        
+        let livrosFiltrados = this.state.livros.filter(l => {
+            const termo = (this.buscaSeletor || '').toLowerCase();
+            const titulo = (l.nomeDoLivro || '').toLowerCase();
+            const autor = (l.autor || '').toLowerCase();
+            const matchBusca = titulo.includes(termo) || autor.includes(termo);
+            
+            let matchStatus = true;
+            const id = l.firestoreId || l.id;
+            const estaNaMeta = metaItens.some(item => {
+                 const itemId = (typeof item === 'object' && item.id) ? item.id : item;
+                 return String(itemId) === String(id);
+            });
+
+            if (this.filtroSeletor === 'NaoLidos') matchStatus = l.situacao !== 'Lido' && l.situacao !== 'Concluido';
+            else if (this.filtroSeletor === 'Selecionados') matchStatus = estaNaMeta;
+
+            return matchBusca && matchStatus;
+        });
+
+        const porPagina = 20;
+        const totalPaginas = Math.ceil(livrosFiltrados.length / porPagina);
+        
+        if (this.paginaSeletor >= totalPaginas) this.paginaSeletor = totalPaginas > 0 ? totalPaginas - 1 : 0;
+        if (this.paginaSeletor < 0) this.paginaSeletor = 0;
+        
+        const inicio = this.paginaSeletor * porPagina;
+        const fim = inicio + porPagina;
+        const livrosPagina = livrosFiltrados.slice(inicio, fim);
+
+        if (this.infoPaginaSeletor) this.infoPaginaSeletor.textContent = totalPaginas > 0 ? `${this.paginaSeletor + 1}/${totalPaginas}` : '0/0';
+
+        if(livrosPagina.length === 0) {
+            this.seletorLivros.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:#64748b;">Nenhum livro encontrado com esses filtros.</div>';
+            return;
+        }
+
+        this.seletorLivros.innerHTML = livrosPagina.map(l => {
+            const id = l.firestoreId || l.id;
+            const selecionado = metaItens.some(item => {
+                 const itemId = (typeof item === 'object' && item.id) ? item.id : item;
+                 return String(itemId) === String(id);
+            });
+            const capa = l.urlCapa || 'https://via.placeholder.com/150x220?text=Sem+Capa';
+            const autor = l.autor || 'Desconhecido';
+            const btnIcon = selecionado ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-plus"></i>';
+            const textoBtn = selecionado ? 'Na Lista' : 'Adicionar';
+            
+            return `
+                <div class="card-seletor-item ${selecionado ? 'selecionado' : ''}" 
+                     onclick="Desafio.toggleLivroMeta('${id}')"
+                     title="Clique para adicionar/remover da Quest">
+                    <div class="seletor-img-wrapper">
+                        <img src="${capa}" alt="Capa" loading="lazy">
+                    </div>
+                    <div class="seletor-body">
+                        <div class="seletor-titulo" title="${l.nomeDoLivro}">${l.nomeDoLivro}</div>
+                        <div class="seletor-autor">${autor}</div>
+                        <div class="seletor-actions">
+                            <button type="button" class="btn-seletor-acao btn-info" onclick="event.stopPropagation(); Desafio.abrirDetalhesLivro('${id}')"><i class="fa-solid fa-eye"></i></button>
+                            <button type="button" class="btn-seletor-acao btn-toggle">${btnIcon} ${textoBtn}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    abrirDetalhesLivro: function(idLivro) {
+        if (typeof Estante !== 'undefined' && Estante.abrirPainelLivro) {
+            Estante.abrirPainelLivro(idLivro);
+        } else {
+            alert("Detalhes indisponíveis.");
+        }
+    },
+
+    toggleLivroMeta: async function(livroId) {
+        if (!this.state.metaAtiva) return;
+        const docId = this.state.metaAtiva.firestoreId;
+        
+        let listaAtual = [...(this.state.metaAtiva.livrosDaMeta || [])];
+        const index = listaAtual.findIndex(item => {
+            const itemId = (typeof item === 'object' && item.id) ? item.id : item;
+            return String(itemId) === String(livroId);
+        });
+        
+        if (index > -1) {
+            listaAtual.splice(index, 1);
+        } else {
+            listaAtual.push({ id: String(livroId), dataAdicao: new Date().toISOString() });
+        }
+        
+        // Atualiza Memória LOCALMENTE (Instantâneo)
+        this.state.metaAtiva.livrosDaMeta = listaAtual;
+        const metaGlobal = this.state.metas.find(m => String(m.firestoreId) === String(docId));
+        if(metaGlobal) metaGlobal.livrosDaMeta = listaAtual;
+
+        // Atualiza UI agora (sem piscar)
+        this.atualizarInfoHeader();
+        this.renderGridProgresso();
+        this.renderSeletorLivros();
+
+        if (window.App && window.App.state && window.App.state.db) {
+            try {
+                await window.App.state.db.collection('challenges').doc(docId).update({ livrosDaMeta: listaAtual });
+                if (window.App.mostrarNotificacao) window.App.mostrarNotificacao('Salvo!', 'sucesso');
+            } catch(e) {
+                console.error(e);
+                alert("Erro ao salvar no banco.");
+            }
+        }
+    },
+
+    calcularProgressoMeta: function(meta) {
+        if (!meta) return { atual: 0, total: 0, porcentagem: 0, concluida: false };
+        const ids = meta.livrosDaMeta || [];
+        const totalObj = parseInt(meta.objetivo) || 0;
+        const total = meta.tipo === 'paginas' ? totalObj : (totalObj > 0 ? totalObj : ids.length);
+        
+        let atual = 0;
+        ids.forEach(idMeta => {
+            const idToCheck = (typeof idMeta === 'object' && idMeta.id) ? idMeta.id : idMeta;
+            const livro = this.state.livros.find(l => String(l.id) === String(idToCheck) || String(l.firestoreId) === String(idToCheck));
+            if (livro) {
+                const statusLimpo = String(livro.situacao || '').trim().toLowerCase();
+                if (['lido', 'concluido', 'leitura concluída'].includes(statusLimpo)) {
+                    atual += meta.tipo === 'paginas' ? (parseInt(livro.paginas) || 0) : 1;
+                }
+            }
+        });
+
+        let porcentagem = 0;
+        if (total > 0) porcentagem = Math.round((atual / total) * 100);
+        else if (total === 0 && atual > 0) porcentagem = 100;
+        if (porcentagem > 100) porcentagem = 100;
+        return { atual, total, porcentagem, concluida: porcentagem >= 100 };
+    },
+
+    calcularRankMeta: function(pct) {
+        if (pct >= 100) return 'S';
+        if (pct >= 75) return 'A';
+        if (pct >= 50) return 'B';
+        if (pct >= 25) return 'C';
+        return 'D';
+    },
+
+    abrirModalCriacao: function() {
+        if(this.modalCriarMeta) {
+            this.modalCriarMeta.showModal();
+            this.popularSelectAno();
+        }
+    },
+
+    popularSelectAno: function() {
+        const select = document.getElementById('select-meta-ano');
+        if (!select) return;
+        const anoAtual = new Date().getFullYear();
+        select.innerHTML = '';
+        for (let i = anoAtual; i >= anoAtual - 5; i--) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i;
+            select.appendChild(opt);
+        }
+    },
+
+    criarNovaMeta: async function() {
+        if (!window.App || !window.App.state.user) return alert("Faça login primeiro!");
+        const nome = document.getElementById('input-meta-nome').value;
+        const ano = document.getElementById('select-meta-ano').value;
+        const tipo = document.getElementById('select-meta-tipo').value;
+        const objetivo = document.getElementById('input-meta-objetivo').value;
+
+        if (!nome || !objetivo) return alert("Preencha todos os campos obrigatórios!");
+
+        const novaMeta = {
+            titulo: nome,
+            ano: parseInt(ano),
+            tipo: tipo,
+            objetivo: parseInt(objetivo),
+            livrosDaMeta: [],
+            criadoEm: new Date().toISOString(),
+            userId: window.App.state.user.uid
+        };
+
+        if (window.App && window.App.state && window.App.state.db) {
+            try {
+                if (this.btnCriarSubmit) this.btnCriarSubmit.disabled = true;
+                const docRef = await window.App.state.db.collection('challenges').add(novaMeta);
+                novaMeta.firestoreId = docRef.id;
+                this.state.metas.push(novaMeta);
+                if (window.App.state && window.App.state.challenges) window.App.state.challenges.push(novaMeta);
+                this.modalCriarMeta.close();
+                this.formCriarMeta.reset();
+                this.renderListaDeMetas();
+                this.selecionarMeta(novaMeta);
+                if (window.App.mostrarNotificacao) window.App.mostrarNotificacao('Nova Quest Iniciada!', 'sucesso');
+            } catch(e) {
+                alert("Erro ao criar meta: " + e.message);
+            } finally {
+                if (this.btnCriarSubmit) this.btnCriarSubmit.disabled = false;
+            }
+        }
+    },
+
+    deletarMetaAtiva: async function() {
+        if (!this.state.metaAtiva || !confirm('Tem certeza? Isso apagará a meta para sempre.')) return;
+        const id = this.state.metaAtiva.firestoreId;
+        if (window.App && window.App.state && window.App.state.db) {
+            try {
+                await window.App.state.db.collection('challenges').doc(id).delete();
+                this.state.metaAtiva = null;
+                if (window.App.mostrarNotificacao) window.App.mostrarNotificacao('Quest deletada.', 'sucesso');
+                this.alternarVisualizacao(false);
+            } catch(e) {
+                alert("Erro: " + e.message);
+            }
+        }
+    },
+
+    alternarVisualizacao: function(temMetaAtiva) {
+        const vazio = document.getElementById('nenhuma-meta-selecionada');
+        const ativo = document.getElementById('desafio-ativo-container');
+        if (vazio && ativo) {
+            vazio.style.display = temMetaAtiva ? 'none' : 'flex';
+            ativo.style.display = temMetaAtiva ? 'block' : 'none';
+            if(temMetaAtiva) ativo.classList.remove('hidden');
+        }
     }
 };

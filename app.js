@@ -81,23 +81,17 @@ const Gamification = {
     },
 
     calcularStats: function(livros) {
-        if (!livros || !Array.isArray(livros)) {
-            return { totalXP: 0, nivel: 1, xpProximo: 100, pctBarra: 0, classe: 'Novato' };
-        }
+        if (!livros || !Array.isArray(livros)) return { totalXP: 0, nivel: 1, xpProximo: 100, pctBarra: 0, classe: 'Novato' };
 
         const livrosLidos = livros.filter(l => l && l.situacao === 'Lido');
         let totalXP = 0;
-        
         livrosLidos.forEach(l => {
             const pags = parseInt(l.paginas, 10) || 0;
             totalXP += (pags * this.config.xpPorPagina) + this.config.xpBonusLivro;
         });
 
         livros.forEach(l => {
-            if (l && l.loot && l.loot.consumido) {
-                const valorXP = l.loot.valor || 0;
-                totalXP += valorXP;
-            }
+            if (l && l.loot && l.loot.consumido) totalXP += (l.loot.valor || 0);
         });
 
         const nivel = Math.floor(Math.sqrt(totalXP) * this.config.fatorNivel) + 1;
@@ -105,9 +99,7 @@ const Gamification = {
         const xpProximoNivel = Math.pow(nivel / this.config.fatorNivel, 2);
         
         let pctBarra = 0;
-        if (xpProximoNivel > xpAtualNivelBase) {
-            pctBarra = ((totalXP - xpAtualNivelBase) / (xpProximoNivel - xpAtualNivelBase)) * 100;
-        }
+        if (xpProximoNivel > xpAtualNivelBase) pctBarra = ((totalXP - xpAtualNivelBase) / (xpProximoNivel - xpAtualNivelBase)) * 100;
         if(pctBarra > 100) pctBarra = 100; 
         if(pctBarra < 0) pctBarra = 0;
 
@@ -118,28 +110,13 @@ const Gamification = {
             classesCount[tipo] = (classesCount[tipo] || 0) + 1;
         });
         
-        const topTipo = Object.keys(classesCount).length > 0 
-            ? Object.keys(classesCount).reduce((a, b) => classesCount[a] > classesCount[b] ? a : b) 
-            : "Minion";
-        
+        const topTipo = Object.keys(classesCount).length > 0 ? Object.keys(classesCount).reduce((a, b) => classesCount[a] > classesCount[b] ? a : b) : "Minion";
         return { totalXP, nivel, xpProximo: Math.floor(xpProximoNivel), pctBarra, classe: this.mapearClasseJogador(topTipo) };
     },
 
-    mapearClasseJogador: function(tipoInimigoFavorito) {
-        const map = {
-            'Undead': 'Caçador de Sombras', 
-            'Beast': 'Draconiano',         
-            'Alien': 'Patrulheiro Estelar',
-            'Ancient': 'Arqueólogo',       
-            'Construct': 'Engenheiro',     
-            'Humanoid': 'Diplomata',       
-            'Elemental': 'Poeta',          
-            'Shadow': 'Detetive',
-            'Celestial': 'Paladino',
-            'Mutant': 'Vigilante',
-            'Minion': 'Aventureiro'
-        };
-        return map[tipoInimigoFavorito] || 'Novato';
+    mapearClasseJogador: function(tipo) {
+        const map = { 'Undead': 'Caçador de Sombras', 'Beast': 'Draconiano', 'Alien': 'Patrulheiro Estelar', 'Ancient': 'Arqueólogo', 'Construct': 'Engenheiro', 'Humanoid': 'Diplomata', 'Elemental': 'Poeta', 'Shadow': 'Detetive', 'Celestial': 'Paladino', 'Mutant': 'Vigilante', 'Minion': 'Aventureiro' };
+        return map[tipo] || 'Novato';
     },
 
     getClassificacaoMob: function(paginas) {
@@ -152,36 +129,13 @@ const Gamification = {
 
     gerarLoot: function(livro) {
         if (livro.loot) return livro.loot; 
-
         let isOracleBoosted = false;
-        if (livro.oracle && livro.oracle.active) {
-            isOracleBoosted = true;
-            livro.oracle.active = false; 
-        }
-
+        if (livro.oracle && livro.oracle.active) { isOracleBoosted = true; livro.oracle.active = false; }
         let pool = [];
-        if (isOracleBoosted) {
-            this.lootTable.filter(i => i.tipo === 'Lendário' || i.tipo === 'Épico').forEach(item => pool.push(item));
-             if(window.App) window.App.mostrarNotificacao('✨ A Profecia se Cumpriu! Loot Lendário!', 'sucesso');
-        } else {
-            this.lootTable.forEach(item => { for(let i=0; i < item.dropRate; i++) pool.push(item); });
-        }
-        
+        if (isOracleBoosted) { this.lootTable.filter(i => i.tipo === 'Lendário' || i.tipo === 'Épico').forEach(item => pool.push(item)); if(window.App) window.App.mostrarNotificacao('✨ Loot Lendário!', 'sucesso'); } 
+        else { this.lootTable.forEach(item => { for(let i=0; i < item.dropRate; i++) pool.push(item); }); }
         const itemSorteado = pool[Math.floor(Math.random() * pool.length)];
-
-        const lootData = {
-            idItem: itemSorteado.id,
-            nome: itemSorteado.nome,
-            tipo: itemSorteado.tipo,
-            categoria: itemSorteado.categoria,
-            icone: itemSorteado.icone,
-            desc: itemSorteado.desc,
-            efeito: itemSorteado.efeito || null,
-            valor: itemSorteado.valor || 0,
-            dataDrop: new Date().toISOString(),
-            consumido: false
-        };
-
+        const lootData = { idItem: itemSorteado.id, nome: itemSorteado.nome, tipo: itemSorteado.tipo, categoria: itemSorteado.categoria, icone: itemSorteado.icone, desc: itemSorteado.desc, efeito: itemSorteado.efeito || null, valor: itemSorteado.valor || 0, dataDrop: new Date().toISOString(), consumido: false };
         livro.loot = lootData;
         this.mostrarModalLoot(lootData, false);
         return lootData;
@@ -199,20 +153,12 @@ const Gamification = {
 
         const raridadeClass = item.tipo === 'Comum' ? 'common' : item.tipo === 'Incomum' ? 'uncommon' : item.tipo === 'Raro' ? 'rare' : item.tipo === 'Épico' ? 'epic' : 'legendary';
         container.className = `loot-container loot-${raridadeClass}`;
-        
-        const catExibicao = (item.categoria || 'Outros').toUpperCase();
-        
         titleMain.textContent = isReplay ? "Inspecionando Item" : "Quest Complete!";
-        rarityText.textContent = `${item.tipo} | ${catExibicao}`;
+        rarityText.textContent = `${item.tipo} | ${(item.categoria || 'Outros').toUpperCase()}`;
         descText.textContent = item.desc;
         cardContent.innerHTML = `<i class="fa-solid ${item.icone} loot-icon"></i><div class="loot-title">${item.nome}</div>`;
-
-        if (isReplay) {
-            btnColetar.innerHTML = '<i class="fa-solid fa-check"></i> Fechar';
-        } else {
-            btnColetar.innerHTML = '<i class="fa-solid fa-hand-holding-medical"></i> COLETAR PARA MOCHILA';
-        }
-
+        if (isReplay) { btnColetar.innerHTML = '<i class="fa-solid fa-check"></i> Fechar'; } 
+        else { btnColetar.innerHTML = '<i class="fa-solid fa-hand-holding-medical"></i> COLETAR'; }
         modal.showModal();
         btnColetar.onclick = () => { modal.close(); if(typeof Inventario !== 'undefined') Inventario.render(); };
     },
@@ -220,23 +166,17 @@ const Gamification = {
     atualizarInterface: function(livros) {
         if(!livros) return;
         const stats = this.calcularStats(livros);
-        const elNivel = document.getElementById('player-level-badge');
-        const elXP = document.getElementById('xp-current');
-        const elBarra = document.getElementById('xp-bar-fill');
-        const elClasse = document.getElementById('player-class');
-        const elProx = document.getElementById('xp-next');
-        
-        if(elNivel) {
-            elNivel.textContent = stats.nivel;
-            elXP.textContent = `${Math.floor(stats.totalXP)} XP`;
-            elBarra.style.width = `${stats.pctBarra}%`;
-            if(elClasse) elClasse.textContent = stats.classe;
-            if(elProx) elProx.textContent = `Próx: ${stats.xpProximo}`;
+        const els = { nivel: document.getElementById('player-level-badge'), xp: document.getElementById('xp-current'), barra: document.getElementById('xp-bar-fill'), classe: document.getElementById('player-class'), prox: document.getElementById('xp-next') };
+        if(els.nivel) {
+            els.nivel.textContent = stats.nivel;
+            els.xp.textContent = `${Math.floor(stats.totalXP)} XP`;
+            els.barra.style.width = `${stats.pctBarra}%`;
+            if(els.classe) els.classe.textContent = stats.classe;
+            if(els.prox) els.prox.textContent = `Próx: ${stats.xpProximo}`;
         }
     }
 };
 
-// --- APP PRINCIPAL ---
 const App = {
     state: {
         todosOsLivros: [],
@@ -274,12 +214,22 @@ const App = {
     },
 
     init: async function() {
-        console.log('Aplicativo iniciando com Firebase...');
+        console.log('Aplicativo iniciando...');
         this.cacheDOM();
         this.bindEvents();
         
+        if (typeof firebaseConfig === 'undefined') {
+            alert("ERRO CRÍTICO: O arquivo 'firebase-credentials.js' não foi carregado ou a variável 'firebaseConfig' não existe. Verifique o HTML.");
+            return;
+        }
+        
         try {
-            firebase.initializeApp(firebaseConfig);
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            } else {
+                firebase.app(); 
+            }
+            
             this.state.db = firebase.firestore();
             this.state.auth = firebase.auth();
             console.log('Firebase conectado!');
@@ -291,6 +241,9 @@ const App = {
                 
                 if (user) {
                     this.carregarDadosDoFirebase();
+                    if (this.state.activeView === 'view-login' || !this.state.activeView) {
+                         this.navegarPara('view-estante');
+                    }
                 } else {
                     this.state.todosOsLivros = [];
                     this.state.challenges = [];
@@ -300,24 +253,20 @@ const App = {
 
         } catch (error) {
             console.error('Erro crítico:', error);
-            this.mostrarNotificacao('Erro ao conectar.', 'erro');
+            alert("ERRO DE CONEXÃO: " + error.message);
         }
-        
-        // Botão Mágico (Só pra emergência, pode remover depois)
-        setTimeout(() => this.criarBotaoMagico(), 3000);
     },
 
-    // --- CORREÇÃO CRÍTICA AQUI: ROTA DO BANCO ---
     carregarDadosDoFirebase: async function() {
         this.mostrarNotificacao('Sincronizando dados...', 'info');
         try {
-            // VOLTEI PARA A ROTA ANTIGA QUE FUNCIONAVA
-            // Coleções na Raiz (Seu DB está aqui)
-            
             this.state.db.collection('livros')
                 .onSnapshot(snapshot => {
                     this.state.todosOsLivros = snapshot.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
                     this.atualizarModulos();
+                }, error => {
+                    console.error("Erro ao ler livros:", error);
+                    if (error.code === 'permission-denied') alert("ERRO DE PERMISSÃO: Você não tem acesso a leitura dos livros. Verifique as Regras do Firestore.");
                 });
 
             this.state.db.collection('challenges')
@@ -326,48 +275,60 @@ const App = {
                     this.atualizarModulos();
                 });
 
-            // Loja é um pouco mais complexa, vou assumir que está no usuário
             if (typeof Loja !== 'undefined') Loja.init();
 
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
-            this.mostrarNotificacao("Falha ao carregar dados.", "erro");
         }
     },
 
-    atualizarModulos: function() {
+atualizarModulos: function() {
         if(typeof Estante !== 'undefined') Estante.init(this.state.todosOsLivros, this.state.challenges);
         if(typeof Dashboard !== 'undefined') Dashboard.init(this.state.todosOsLivros);
         if(typeof Inventario !== 'undefined') Inventario.render();
         if(typeof Gamification !== 'undefined') Gamification.atualizarInterface(this.state.todosOsLivros);
         if(typeof Oraculo !== 'undefined') Oraculo.render();
-        if(typeof Desafio !== 'undefined') Desafio.init(this.state.challenges, this.state.todosOsLivros);
+        if(typeof Loja !== 'undefined') Loja.render(); 
+        
+        if(typeof Adicionar !== 'undefined') Adicionar.init(this.state.todosOsLivros);
+
+        if(typeof Desafio !== 'undefined') {
+            Desafio.init(this.state.challenges, this.state.todosOsLivros);
+            Desafio.atualizar(this.state.todosOsLivros);
+        }
     },
 
     salvarLivro: async function(livro, id = null) {
         if (!this.state.user) return this.mostrarNotificacao("Faça login para salvar.", "erro");
+
         try {
-            // VOLTEI PARA A ROTA ANTIGA NA RAIZ
+            const dadosParaSalvar = {
+                ...livro,
+                userId: this.state.user.uid,
+                updatedAt: new Date().toISOString()
+            };
+
             const collection = this.state.db.collection('livros');
+            
             if (id) {
-                await collection.doc(id).set(livro, {merge: true});
+                await collection.doc(id).set(dadosParaSalvar, {merge: true}); 
             } else {
-                await collection.add(livro);
+                await collection.add(dadosParaSalvar);
             }
         } catch (error) {
-            console.error("Erro ao salvar:", error);
-            this.mostrarNotificacao("Erro ao salvar.", "erro");
+            console.error("Erro FATAL ao salvar:", error);
+            alert(`ERRO AO SALVAR NO BANCO:\nCódigo: ${error.code}\nMensagem: ${error.message}`);
+            throw error;
         }
     },
 
     excluirLivro: async function(id) {
         if (!this.state.user) return;
         try {
-            // VOLTEI PARA A ROTA ANTIGA NA RAIZ
             await this.state.db.collection('livros').doc(id).delete();
             this.mostrarNotificacao("Livro removido.", "sucesso");
         } catch (error) {
-            console.error("Erro ao excluir:", error);
+            alert(`Erro ao excluir: ${error.message}`);
         }
     },
 
@@ -375,17 +336,15 @@ const App = {
         const provider = new firebase.auth.GoogleAuthProvider();
         try {
             await this.state.auth.signInWithPopup(provider);
-            this.mostrarNotificacao("Login realizado!", "sucesso");
         } catch (error) {
             console.error(error);
-            this.mostrarNotificacao("Erro no login.", "erro");
+            alert("Erro no Login: " + error.message);
         }
     },
 
     logout: async function() {
         try {
             await this.state.auth.signOut();
-            this.mostrarNotificacao("Desconectado.", "info");
             window.location.reload();
         } catch (error) {
             console.error(error);
@@ -437,53 +396,12 @@ const App = {
     },
 
     mostrarNotificacao: function(msg, tipo = 'info') {
+        if(!this.notificacaoContainerEl) return;
         const notif = document.createElement('div');
         notif.className = `notificacao ${tipo}`;
         notif.innerHTML = `<i class="fa-solid ${tipo === 'sucesso' ? 'fa-check-circle' : tipo === 'erro' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${msg}`;
         this.notificacaoContainerEl.appendChild(notif);
         setTimeout(() => notif.remove(), 3000);
-    },
-
-    criarBotaoMagico: function() {
-        const antigo = document.getElementById('btn-magico-fix');
-        if (antigo) antigo.remove();
-
-        const btn = document.createElement('button');
-        btn.id = 'btn-magico-fix';
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> CORRIGIR BESTIÁRIO';
-        btn.style.cssText = "position:fixed; bottom:20px; left:20px; z-index:9999; padding:15px 25px; background:#a855f7; color:white; font-weight:bold; border:2px solid white; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(0,0,0,0.5); font-family:sans-serif; font-size:14px;";
-        btn.onclick = () => this.rodarMigracaoInterna();
-        document.body.appendChild(btn);
-    },
-
-    rodarMigracaoInterna: async function() {
-        if (!confirm("Recalcular classes dos monstros agora?")) return;
-        
-        const btn = document.getElementById('btn-magico-fix');
-        btn.disabled = true;
-        btn.innerHTML = "⏳ Processando...";
-        btn.style.background = "#334155";
-
-        let count = 0;
-        const livros = this.state.todosOsLivros;
-        const delay = ms => new Promise(res => setTimeout(res, ms));
-
-        for (const livro of livros) {
-            const novoRPG = Gamification.gerarDadosMob(livro);
-            const tipoAtual = (livro.rpg && livro.rpg.type) || 'Nenhum';
-            
-            if (tipoAtual !== novoRPG.type || tipoAtual === 'Minion') {
-                livro.rpg = novoRPG;
-                await this.salvarLivro(livro, livro.firestoreId);
-                await delay(50); 
-                count++;
-                btn.innerHTML = `⏳ ${count} corrigidos...`;
-            }
-        }
-
-        btn.innerHTML = `✅ SUCESSO! ${count} Livros`;
-        btn.style.background = "#10b981";
-        setTimeout(() => btn.remove(), 5000); 
     }
 };
 
