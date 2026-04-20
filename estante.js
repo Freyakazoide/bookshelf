@@ -37,6 +37,7 @@ const Estante = {
         this.estanteEl = document.getElementById('estante-de-livros');
         this.inputBuscaEl = document.getElementById('input-busca');
         this.filtrosStatusEl = document.querySelectorAll('.filtro-status');
+        this.selectAgrupamentoEl = document.getElementById('select-agrupamento');
         this.selectOrdenacaoEl = document.getElementById('select-ordenacao');
         this.contadorResultadosEl = document.getElementById('contador-resultados');
         this.selectTamanhoPaginaEl = document.getElementById('select-tamanho-pagina');
@@ -111,6 +112,13 @@ const Estante = {
                 this.renderEstante();
             });
         });
+
+       if(this.selectAgrupamentoEl) {
+            this.selectAgrupamentoEl.addEventListener('change', e => {
+                this.state.filtros.pagina = 0;
+                this.renderEstante();
+            });
+        }
 
         this.selectOrdenacaoEl.addEventListener('change', e => {
             this.state.filtros.ordenacao = e.target.value;
@@ -411,109 +419,141 @@ const Estante = {
         return 'rarity-legendary';
     },
 
- // --- RENDERIZAÇÃO DA ESTANTE (VERSÃO BLINDADA) ---
+ // --- RENDERIZAÇÃO DA ESTANTE (MOTOR NETFLIX) ---
     renderEstante: function() {
-        // 1. Segurança: Se não tem livros, para tudo.
         if (!this.state.todosOsLivros) return;
 
         this.filtrarEOrdenarLivros();
         
-        // 2. Segurança: Verifica se a estante existe no HTML
+        const agrupamento = this.selectAgrupamentoEl ? this.selectAgrupamentoEl.value : 'nenhum';
+
         if (this.estanteEl) {
-            if (this.state.filtros.visualizacao === 'list') this.estanteEl.classList.add('modo-lista');
+            if (this.state.filtros.visualizacao === 'list' && agrupamento === 'nenhum') this.estanteEl.classList.add('modo-lista');
             else this.estanteEl.classList.remove('modo-lista');
+            
+            if (agrupamento !== 'nenhum') this.estanteEl.classList.add('estante-agrupada');
+            else this.estanteEl.classList.remove('estante-agrupada');
         }
 
-        const { pagina, porPagina } = this.state.filtros;
-        const inicio = pagina * porPagina;
-        const fim = inicio + porPagina;
-        const livrosDaPagina = this.state.livrosFiltrados.slice(inicio, fim);
-
-        // 3. Segurança: Pega os elementos com cuidado
         const placeholder = document.getElementById('estante-placeholder');
         const paginacao = document.getElementById('controles-paginacao');
         const contador = document.getElementById('contador-resultados');
 
-        if (livrosDaPagina.length === 0) {
+        if (this.state.livrosFiltrados.length === 0) {
             if(this.estanteEl) this.estanteEl.innerHTML = '';
             if(placeholder) placeholder.classList.remove('hidden');
             if(paginacao) paginacao.classList.add('hidden');
         } else {
             if(placeholder) placeholder.classList.add('hidden');
-            if(paginacao) paginacao.classList.remove('hidden');
+            
+            // Helper para gerar o HTML do Card (evita código duplicado)
+            const gerarCardHTML = (livro) => {
+                const id = this.getId(livro);
+                const capa = livro.urlCapa || 'placeholder.jpg';
+                const status = livro.situacao || 'Quero Ler';
+                
+                const mobData = livro.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(livro) : { level: 1, modifiers: [], typeIcon: 'fa-paw', typeLabel: 'Criatura' });
+                const mobColor = (typeof Gamification !== 'undefined') ? Gamification.getDifficultyColor(mobData.level) : '#94a3b8';
+                
+                const modifiersHTML = (mobData.modifiers || []).map(mod => `<span class="mob-modifier ${mod.id}"><i class="fa-solid ${mod.icon}"></i> ${mod.label}</span>`).join('');
 
-            if(this.estanteEl) {
-                this.estanteEl.innerHTML = livrosDaPagina.map(livro => {
-                    const id = this.getId(livro);
-                    const capa = livro.urlCapa || 'placeholder.jpg';
-                    const status = livro.situacao || 'Quero Ler';
-                    
-                    // GERAÇÃO SEGURA DOS DADOS DE RPG
-                    // Tenta pegar do livro, se não tiver, gera na hora usando o Gamification novo
-                    const mobData = livro.rpg || (typeof Gamification !== 'undefined' ? Gamification.gerarDadosMob(livro) : { level: 1, modifiers: [], typeIcon: 'fa-paw', typeLabel: 'Criatura' });
-                    const mobColor = (typeof Gamification !== 'undefined') ? Gamification.getDifficultyColor(mobData.level) : '#94a3b8';
-                    
-                    const modifiersHTML = (mobData.modifiers || []).map(mod => 
-                        `<span class="mob-modifier ${mod.id}"><i class="fa-solid ${mod.icon}"></i> ${mod.label}</span>`
-                    ).join('');
+                let statusPillHTML = '';
+                if (status === 'Lendo') statusPillHTML = '<span class="status-pill lendo"><i class="fa-solid fa-glasses"></i> Lendo</span>';
+                else if (status === 'Lido') statusPillHTML = '<span class="status-pill lido"><i class="fa-solid fa-check"></i> Lido</span>';
+                else if (status === 'Quero Ler') statusPillHTML = '<span class="status-pill quero-ler"><i class="fa-solid fa-bookmark"></i> Quero Ler</span>';
+                else if (status === 'Abandonado') statusPillHTML = '<span class="status-pill abandonado"><i class="fa-solid fa-ban"></i> Abandonado</span>';
 
-                    let statusPillHTML = '';
-                    if (status === 'Lendo') statusPillHTML = '<span class="status-pill lendo"><i class="fa-solid fa-glasses"></i> Lendo</span>';
-                    else if (status === 'Lido') statusPillHTML = '<span class="status-pill lido"><i class="fa-solid fa-check"></i> Lido</span>';
-                    else if (status === 'Quero Ler') statusPillHTML = '<span class="status-pill quero-ler"><i class="fa-solid fa-bookmark"></i> Quero Ler</span>';
-                    else if (status === 'Abandonado') statusPillHTML = '<span class="status-pill abandonado"><i class="fa-solid fa-ban"></i> Abandonado</span>';
-
-                    let xpBarHTML = '';
-                    if (status === 'Lendo') {
-                        const leituraAtual = (livro.leituras || []).find(l => !l.dataFim);
-                        let pct = 5;
-                        if (leituraAtual) {
-                            const dias = Math.floor((new Date() - new Date(leituraAtual.dataInicio)) / (1000 * 60 * 60 * 24));
-                            pct = Math.min(100, Math.max(10, dias * 5));
-                        }
-                        xpBarHTML = `<div class="rpg-xp-bar-container"><div class="rpg-xp-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${mobColor}, #fff);"></div></div>`;
+                let xpBarHTML = '';
+                if (status === 'Lendo') {
+                    const leituraAtual = (livro.leituras || []).find(l => !l.dataFim);
+                    let pct = 5;
+                    if (leituraAtual) {
+                        const dias = Math.floor((new Date() - new Date(leituraAtual.dataInicio)) / (1000 * 60 * 60 * 24));
+                        pct = Math.min(100, Math.max(10, dias * 5));
                     }
+                    xpBarHTML = `<div class="rpg-xp-bar-container"><div class="rpg-xp-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${mobColor}, #fff);"></div></div>`;
+                }
 
-                    const now = Date.now();
-                    const hasOracleBuff = livro.oracle && livro.oracle.active && livro.oracle.expires > now;
-                    const buffClass = hasOracleBuff ? 'buff-oracle' : '';
+                const now = Date.now();
+                const hasOracleBuff = livro.oracle && livro.oracle.active && livro.oracle.expires > now;
+                const buffClass = hasOracleBuff ? 'buff-oracle' : '';
 
-                    const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
-                    const isTop10 = this.state.top10Ids.has(id);
-                    
-                    let rarityClass = '';
-                    if (isTop10) rarityClass = 'rarity-legendary';
-                    else if (isInMeta) rarityClass = 'rarity-epic';
-                    else if (status === 'Lendo') rarityClass = 'rarity-active';
+                const isInMeta = this.state.metas.some(m => m.livrosDaMeta && m.livrosDaMeta.includes(id));
+                const isTop10 = this.state.top10Ids.has(id);
+                
+                let rarityClass = '';
+                if (isTop10) rarityClass = 'rarity-legendary';
+                else if (isInMeta) rarityClass = 'rarity-epic';
+                else if (status === 'Lendo') rarityClass = 'rarity-active';
 
-                    const notaNum = this.getNotaRecente(livro);
-                    const rarityClassNota = this.getRarityClass(notaNum);                
-                    const notaHTML = notaNum ? `<div class="rpg-badge-nota ${rarityClassNota}">LVL ${notaNum.toFixed(1)}</div>` : '';
+                const notaNum = this.getNotaRecente(livro);
+                const rarityClassNota = this.getRarityClass(notaNum);                
+                const notaHTML = notaNum ? `<div class="rpg-badge-nota ${rarityClassNota}">LVL ${notaNum.toFixed(1)}</div>` : '';
 
-                    return `
-                        <div class="card-livro ${rarityClass} ${buffClass}" style="border-color: ${mobColor}" data-id="${id}" data-status="${status}">
-                            <div class="mob-header-badge" style="background: ${mobColor}">
-                                Lv.${mobData.level} <i class="fa-solid ${mobData.typeIcon}"></i>
-                            </div>
-                            <div class="card-capa-container">
-                                <img src="${capa}" alt="${livro.nomeDoLivro}" loading="lazy" onerror="this.src='placeholder.jpg';">
-                                <div class="mob-modifiers-container">${modifiersHTML}</div>
-                                ${xpBarHTML}
-                            </div>
-                            ${notaHTML}
-                            <div class="card-info">
-                                <h3>${livro.nomeDoLivro}</h3>
-                                <p class="autor">${livro.autor || 'Desconhecido'}</p>
-                                <div class="status-pill-container">${statusPillHTML}</div>
-                            </div>
-                            <button class="card-acao-btn" aria-label="Opções"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                return `
+                    <div class="card-livro ${rarityClass} ${buffClass}" style="border-color: ${mobColor}" data-id="${id}" data-status="${status}">
+                        <div class="mob-header-badge" style="background: ${mobColor}">Lv.${mobData.level} <i class="fa-solid ${mobData.typeIcon}"></i></div>
+                        <div class="card-capa-container">
+                            <img src="${capa}" alt="${livro.nomeDoLivro}" loading="lazy" onerror="this.src='placeholder.jpg';">
+                            <div class="mob-modifiers-container">${modifiersHTML}</div>
+                            ${xpBarHTML}
                         </div>
-                    `;
-                }).join('');
+                        ${notaHTML}
+                        <div class="card-info">
+                            <h3>${livro.nomeDoLivro}</h3>
+                            <p class="autor">${livro.autor || 'Desconhecido'}</p>
+                            <div class="status-pill-container">${statusPillHTML}</div>
+                        </div>
+                        <button class="card-acao-btn" aria-label="Opções"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>`;
+            };
+
+            // LÓGICA DE AGRUPAMENTO (NETFLIX)
+            if (agrupamento === 'autor') {
+                if(paginacao) paginacao.classList.add('hidden'); // Esconde paginação na visão Netflix pois mostramos tudo rolando horizontalmente
+
+                const prateleiras = {};
+                this.state.livrosFiltrados.forEach(livro => {
+                    const chave = livro.autor ? livro.autor.trim() : 'Desconhecidos';
+                    if (!prateleiras[chave]) prateleiras[chave] = [];
+                    prateleiras[chave].push(livro);
+                });
+
+                const autoresOrdenados = Object.keys(prateleiras).sort();
+                
+                if(this.estanteEl) {
+                    this.estanteEl.innerHTML = autoresOrdenados.map(autor => {
+                        const livrosAutor = prateleiras[autor];
+                        const cardsHTML = livrosAutor.map(l => gerarCardHTML(l)).join('');
+                        return `
+                            <div class="prateleira-autor">
+                                <div class="prateleira-header">
+                                    <h3><i class="fa-solid fa-feather-pointed"></i> ${autor}</h3>
+                                    <span class="qtd-livros">${livrosAutor.length} livros</span>
+                                </div>
+                                <div class="prateleira-scroll">
+                                    ${cardsHTML}
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
+
+            } else {
+                // LÓGICA DE GRADE PADRÃO
+                if(paginacao) paginacao.classList.remove('hidden');
+                
+                const { pagina, porPagina } = this.state.filtros;
+                const inicio = pagina * porPagina;
+                const fim = inicio + porPagina;
+                const livrosDaPagina = this.state.livrosFiltrados.slice(inicio, fim);
+
+                if(this.estanteEl) {
+                    this.estanteEl.innerHTML = livrosDaPagina.map(l => gerarCardHTML(l)).join('');
+                }
+                this.renderPaginacao();
             }
         }
         if(contador) contador.textContent = `${this.state.livrosFiltrados.length} monstros.`;
-        this.renderPaginacao();
     },
 
     renderPaginacao: function() {

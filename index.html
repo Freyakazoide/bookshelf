@@ -6,7 +6,6 @@
     <title>Minha Estante Virtual</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="desafio.css">
-    <link rel="stylesheet" href="estante.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -35,13 +34,10 @@
         <h2><i class="fa-solid fa-dungeon"></i> Quest Log</h2>
     </header>
     <nav class="sidebar-nav">
-        <a href="#" class="nav-link active" data-view="view-estante"><i class="fa-solid fa-book-journal-whills"></i> Inventário (Estante)</a>
-        <a href="#" class="nav-link" data-view="view-adicionar"><i class="fa-solid fa-plus-circle"></i> Quests (Adicionar)</a>
-        <a href="#" class="nav-link" data-view="view-desafio"><i class="fa-solid fa-scroll"></i> Missões (Metas)</a>
-        <a href="#" class="nav-link" data-view="view-dashboard"><i class="fa-solid fa-chart-line"></i> Status (Dash)</a>
-        <a href="#" class="nav-link" data-view="view-inventario"><i class="fa-solid fa-sack-dollar"></i> Mochila (Loot)</a>
-        <a href="#" class="nav-link" data-view="view-loja"><i class="fa-solid fa-shop"></i> Mercado Negro</a>
-        <a href="#" class="nav-link" data-view="view-oraculo"><i class="fa-solid fa-eye"></i> O Oráculo</a>
+        <a href="#" class="nav-link active" data-view="view-estante"><i class="fa-solid fa-book-journal-whills"></i> Estante</a>
+        <a href="#" class="nav-link" data-view="view-adicionar"><i class="fa-solid fa-plus-circle"></i> Adicionar</a>
+        <a href="#" class="nav-link" data-view="view-desafio"><i class="fa-solid fa-scroll"></i> Metas</a>
+        <a href="#" class="nav-link" data-view="view-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
     </nav>
     <div id="auth-container" class="sidebar-footer"></div>
 </aside>
@@ -83,6 +79,13 @@
                 <div class="controles-secundarios">
                     <p id="contador-resultados"></p>
                     <div class="controles-secundarios-direita">
+                        <div class="grupo-agrupamento">
+                            <label for="select-agrupamento" style="color: var(--cor-acao-primaria); font-weight: bold;"><i class="fa-solid fa-layer-group"></i> Visão:</label>
+                            <select id="select-agrupamento" style="border-color: var(--cor-acao-primaria);">
+                                <option value="nenhum">Tudo Misturado (Grade)</option>
+                                <option value="autor" selected>Prateleiras por Autor</option>
+                            </select>
+                        </div>
                         <div class="grupo-ordenacao">
                             <label for="select-ordenacao"><i class="fa-solid fa-sort-amount-down"></i> Ordenar por:</label>
                             <select id="select-ordenacao">
@@ -121,55 +124,83 @@
                 </div>
             </div>
 
-            <div id="view-inventario" class="view">
-                <div class="inventario-header">
-                    <h1><i class="fa-solid fa-dungeon"></i> Minha Mochila</h1>
-                    <button onclick="Inventario.sincronizarLootAntigo()" class="btn btn-secundario" style="border-color: var(--loot-rare); color: var(--loot-rare);">
-                        <i class="fa-solid fa-gem"></i> Resgatar Loot Passado
-                    </button>
-                </div>
-                
-                <div class="inventario-stats-container dash-card" style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); border: 1px solid var(--ui-border);">
-                    <div class="inv-stat">
-                        <span class="inv-label">Total de Itens</span>
-                        <span id="inv-total-items" class="inv-value">0</span>
-                    </div>
-                    <div class="inv-stat">
-                        <span class="inv-label">Valor Estimado</span>
-                        <span id="inv-gold-value" class="inv-value" style="color: #fcd34d; text-shadow: 0 0 10px rgba(253, 211, 77, 0.4);">0 <i class="fa-solid fa-coins"></i></span>
+           <div id="view-loja" class="view">
+                <div class="loja-header">
+                    <h1><i class="fa-solid fa-shop"></i> Mercado Negro</h1>
+                    <div class="carteira-display">
+                        <span>Saldo:</span>
+                        <strong id="loja-saldo-gold" class="gold-text">0 <i class="fa-solid fa-coins"></i></strong>
                     </div>
                 </div>
 
-                <div class="grupo-filtros" style="margin: 1.5rem 0; gap: 10px; justify-content: center;">
-                    <button class="filtro-status-inv active" data-tipo="Todos" onclick="Inventario.filtrar('Todos')">Todos</button>
-                    <button class="filtro-status-inv" data-tipo="consumivel" onclick="Inventario.filtrar('consumivel')"><i class="fa-solid fa-flask"></i> Consumíveis</button>
-                    <button class="filtro-status-inv" data-tipo="equipamento" onclick="Inventario.filtrar('equipamento')"><i class="fa-solid fa-shield-halved"></i> Equipamentos</button>
-                    <button class="filtro-status-inv" data-tipo="colecionavel" onclick="Inventario.filtrar('colecionavel')"><i class="fa-solid fa-trophy"></i> Colecionáveis</button>
-                </div>
-
-                <div class="inventario-container-wrapper">
-                    <div class="inventario-main">
-                        <div id="grid-inventario" class="mochila-grid">
-                            </div>
-                    </div>
-
-                    <aside class="inventario-sidebar">
-                        <div id="inv-preview-icon" class="item-preview-icon">
-                            <i class="fa-solid fa-sack-dollar"></i>
-                        </div>
-                        <div class="item-preview-info">
-                            <h3 id="inv-preview-title">Selecione um Item</h3>
-                            <span id="inv-preview-type" class="item-preview-type">---</span>
-                            <p id="inv-preview-desc" class="item-preview-desc">Clique em um item na mochila para ver detalhes e opções de uso.</p>
-                        </div>
-                        <div style="margin-top: auto; width: 100%;">
-                            <button id="btn-inv-usar" class="btn btn-primario btn-usar-item">
-                                USAR ITEM
-                            </button>
-                        </div>
+                <div class="loja-layout">
+                    <aside class="loja-filtros">
+                        <button class="btn-tab-loja active" data-cat="todos"><i class="fa-solid fa-border-all"></i> Tudo</button>
+                        <button class="btn-tab-loja" data-cat="tema"><i class="fa-solid fa-palette"></i> Temas Globais</button>
+                        <button class="btn-tab-loja" data-cat="frame"><i class="fa-solid fa-id-badge"></i> Molduras</button>
+                        <button class="btn-tab-loja" data-cat="cardbg"><i class="fa-solid fa-image"></i> Skins de Card</button>
                     </aside>
+
+                    <main class="loja-grid-container">
+                        <div id="grid-loja" class="loja-items-grid">
+                            </div>
+                    </main>
                 </div>
             </div>
+
+<div id="view-oraculo" class="view">
+    <div class="oraculo-container">
+        <header class="oraculo-header">
+            <h1><i class="fa-solid fa-eye"></i> O Oráculo do Destino</h1>
+            <p>O destino escolhe sua próxima leitura. Ouro é o preço da certeza.</p>
+            <div class="oracle-balance-display">
+                Seu Ouro: <span id="oracle-gold-value" class="gold-text">--- <i class="fa-solid fa-coins"></i></span>
+            </div>
+        </header>
+
+        <div class="oraculo-panel-wrapper">
+            
+            <main class="oraculo-main">
+                <div id="oraculo-slot-machine" class="slot-machine-container">
+                    <div class="slot-window">
+                        <div id="slot-track" class="slot-track">
+                            <div class="slot-item"><img src="placeholder.jpg" style="opacity:0.3"></div>
+                        </div>
+                        <div class="slot-overlay"></div>
+                    </div>
+                    
+                    <div class="slot-controls">
+                        <div class="custo-display">Custo: <span class="gold-text">50 <i class="fa-solid fa-coins"></i></span></div>
+                        <button id="btn-invocar-oraculo" class="btn btn-primario btn-lg">
+                            <i class="fa-solid fa-hat-wizard"></i> INVOCAR O DESTINO
+                        </button>
+                    </div>
+                </div>
+
+                <div id="oraculo-resultado" class="resultado-container hidden">
+                    <div id="card-livro-oraculo"></div> <div class="buff-info-card">
+                        </div>
+
+                    <button id="btn-reroll" class="btn btn-secundario" style="margin-top: 1.5rem;">
+                        <i class="fa-solid fa-rotate"></i> Desafiar o Destino (Custo: 100 <i class="fa-solid fa-coins"></i>)
+                    </button>
+                </div>
+            </main>
+
+            <aside class="oraculo-sidebar">
+                <div class="hist-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Visões</h3>
+                </div>
+                <button onclick="Oraculo.abrirNovoSorteio()" class="btn btn-secundario" style="width:100%; margin: 10px 0; border-color: var(--cor-acao-primaria); color:#fff;">
+                    <i class="fa-solid fa-plus"></i> Novo Desafio
+                </button>
+                <div id="oraculo-history-list" class="hist-list">
+                    </div>
+            </aside>
+
+        </div>
+    </div>
+</div>
 
             <div id="view-adicionar" class="view">
     <h1><i class="fa-solid fa-dungeon"></i> Guilda dos Escribas (Adicionar)</h1>
@@ -676,24 +707,7 @@
         </div>
     </dialog>
 
-    <dialog id="modal-loot">
-        <div class="loot-container">
-            <div class="loot-rays"></div>
-            <h2 class="loot-title">Quest Complete!</h2>
-            <p class="loot-rarity" id="loot-rarity-text">Item Obtido</p>
-            
-            <div id="loot-card-content" class="loot-item-card">
-                <i class="fa-solid fa-question loot-icon"></i>
-            </div>
 
-            <p id="loot-desc-text" class="loot-desc" style="margin-bottom: 2rem; position: relative; z-index: 2;">...</p>
-            
-            <button id="btn-coletar-loot" class="btn btn-primario" style="width: 100%; position: relative; z-index: 2; font-size: 1.2rem;">
-                <i class="fa-solid fa-hand-holding-medical"></i> COLETAR RECOMPENSA
-            </button>
-        </div>
-    </dialog>
-    
     <div id="notificacao-container"></div>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -701,14 +715,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="loja.js"></script>
-    <script src="oraculo.js"></script>
-    <script src="inventario.js"></script>
     <script src="estante.js"></script>
     <script src="adicionar.js"></script>
     <script src="dashboard.js"></script>
     <script src="desafio.js"></script>
-    
     <script src="app.js"></script>
 </body>
 </html>

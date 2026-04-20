@@ -2177,6 +2177,81 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 @keyframes worldBossShimmer { from { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); transform: scale(1); } to { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); transform: scale(1.02); border-color: #fff; } }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } 50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); border-color: #fff; } 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); } }
 
+/* --- PRATELEIRAS NETFLIX (AGRUPAMENTO POR AUTOR) --- */
+.estante-agrupada {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    width: 100%;
+}
+
+.prateleira-autor {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.prateleira-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prateleira-header h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.prateleira-header .qtd-livros {
+    font-size: 0.8rem;
+    color: var(--cor-acao-primaria);
+    background: rgba(45, 212, 191, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.prateleira-scroll {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+    padding-top: 10px; /* Espaço para o hover não cortar */
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cor-acao-primaria) transparent;
+}
+
+.prateleira-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+.prateleira-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.prateleira-scroll::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.3);
+    border-radius: 10px;
+}
+.prateleira-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--cor-acao-primaria);
+}
+
+.prateleira-scroll .card-livro {
+    flex: 0 0 180px; /* Largura fixa do card para não amassar */
+    scroll-snap-align: start;
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 1100px) {
     .current-row-tripla { grid-template-columns: 1fr 1fr; }
